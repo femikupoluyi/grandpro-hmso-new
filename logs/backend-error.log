@@ -4934,3 +4934,49 @@
 2025-10-02T17:28:53:     at /root/grandpro-hmso-new/backend/node_modules/router/index.js:295:15
 2025-10-02T17:28:53:     at processParams (/root/grandpro-hmso-new/backend/node_modules/router/index.js:582:12)
 2025-10-02T17:28:53:     at next (/root/grandpro-hmso-new/backend/node_modules/router/index.js:291:5)
+2025-10-02T17:36:43: Error getting invoices: error: invalid input syntax for type integer: "4394ca00-a7fd-4db3-abed-78d0186fd637"
+2025-10-02T17:36:43:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:36:43:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:36:43:     at async BillingEnhancedService.getInvoices (/root/grandpro-hmso-new/backend/src/services/billing-enhanced.service.js:555:22)
+2025-10-02T17:36:43:     at async /root/grandpro-hmso-new/backend/src/routes/billing.routes.js:105:20 {
+2025-10-02T17:36:43:   length: 179,
+2025-10-02T17:36:43:   severity: 'ERROR',
+2025-10-02T17:36:43:   code: '22P02',
+2025-10-02T17:36:43:   detail: undefined,
+2025-10-02T17:36:43:   hint: undefined,
+2025-10-02T17:36:43:   position: undefined,
+2025-10-02T17:36:43:   internalPosition: undefined,
+2025-10-02T17:36:43:   internalQuery: undefined,
+2025-10-02T17:36:43:   where: "unnamed portal parameter $1 = '...'",
+2025-10-02T17:36:43:   schema: undefined,
+2025-10-02T17:36:43:   table: undefined,
+2025-10-02T17:36:43:   column: undefined,
+2025-10-02T17:36:43:   dataType: undefined,
+2025-10-02T17:36:43:   constraint: undefined,
+2025-10-02T17:36:43:   file: 'numutils.c',
+2025-10-02T17:36:43:   line: '616',
+2025-10-02T17:36:43:   routine: 'pg_strtoint32_safe'
+2025-10-02T17:36:43: }
+2025-10-02T17:38:18: Error getting roster: error: column s.first_name does not exist
+2025-10-02T17:38:18:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:38:18:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:38:18:     at async HREnhancedService.getRoster (/root/grandpro-hmso-new/backend/src/services/hr-enhanced.service.js:685:22)
+2025-10-02T17:38:18:     at async /root/grandpro-hmso-new/backend/src/routes/hr.routes.js:133:20 {
+2025-10-02T17:38:18:   length: 110,
+2025-10-02T17:38:18:   severity: 'ERROR',
+2025-10-02T17:38:18:   code: '42703',
+2025-10-02T17:38:18:   detail: undefined,
+2025-10-02T17:38:18:   hint: undefined,
+2025-10-02T17:38:18:   position: '44',
+2025-10-02T17:38:18:   internalPosition: undefined,
+2025-10-02T17:38:18:   internalQuery: undefined,
+2025-10-02T17:38:18:   where: undefined,
+2025-10-02T17:38:18:   schema: undefined,
+2025-10-02T17:38:18:   table: undefined,
+2025-10-02T17:38:18:   column: undefined,
+2025-10-02T17:38:18:   dataType: undefined,
+2025-10-02T17:38:18:   constraint: undefined,
+2025-10-02T17:38:18:   file: 'parse_relation.c',
+2025-10-02T17:38:18:   line: '3716',
+2025-10-02T17:38:18:   routine: 'errorMissingColumn'
+2025-10-02T17:38:18: }
