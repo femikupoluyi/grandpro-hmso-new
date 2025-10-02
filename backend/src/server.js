@@ -8,12 +8,12 @@ dotenv.config();
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
-const hospitalRoutes = require('./routes/hospital.routes');
+const hospitalRoutes = require('./routes/hospital-full.routes'); // Using full implementation
 const userRoutes = require('./routes/user.routes');
-const contractRoutes = require('./routes/contract.routes');
+const contractRoutes = require('./routes/contract-full.routes'); // Using full implementation
 const applicationRoutes = require('./routes/application.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
-const onboardingRoutes = require('./routes/onboarding.routes');
+const onboardingRoutes = require('./routes/onboarding-full.routes'); // Using full implementation
 
 // CRM Routes
 const crmRoutes = require('./routes/crm.routes');

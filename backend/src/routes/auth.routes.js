@@ -21,8 +21,9 @@ router.post('/login', async (req, res) => {
     
     const user = userResult.rows[0];
     
-    // Verify password
-    const isValid = await bcrypt.compare(password, user.password_hash);
+    // Verify password - check both password_hash and password for compatibility
+    const passwordField = user.password_hash || user.password;
+    const isValid = await bcrypt.compare(password, passwordField);
     
     if (!isValid) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -70,11 +71,12 @@ router.post('/register', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
     
     // Create user
+    const fullName = `${firstName} ${lastName}`;
     const result = await pool.query(
-      `INSERT INTO users (email, password_hash, first_name, last_name, role, is_active, created_at)
-       VALUES ($1, $2, $3, $4, $5, true, NOW())
+      `INSERT INTO users (email, password_hash, name, first_name, last_name, role, is_active, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, true, NOW())
        RETURNING id, email, first_name, last_name, role`,
-      [email, passwordHash, firstName, lastName, role || 'patient']
+      [email, passwordHash, fullName, firstName, lastName, role || 'patient']
     );
     
     res.status(201).json({
