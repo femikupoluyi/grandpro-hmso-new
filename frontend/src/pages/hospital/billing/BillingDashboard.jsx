@@ -1,51 +1,95 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
-  CurrencyDollarIcon,
-  DocumentTextIcon,
-  CreditCardIcon,
-  ExclamationTriangleIcon,
-  PlusCircleIcon,
-  MagnifyingGlassIcon
-} from '@heroicons/react/24/outline';
+  DollarSign, 
+  Receipt, 
+  CreditCard, 
+  TrendingUp,
+  AlertTriangle,
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Search,
+  Filter,
+  Download,
+  Plus
+} from 'lucide-react';
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: '/api/hospital/billing'
-});
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-export default function BillingDashboard() {
+const BillingDashboard = () => {
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    pendingPayments: 0,
+    todayCollections: 0,
+    insuranceClaims: 0,
+    overdueBills: 0
+  });
+  const [recentBills, setRecentBills] = useState([]);
+  const [pendingClaims, setPendingClaims] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('ALL');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  
-  const hospitalId = localStorage.getItem('hospitalId') || 'default';
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [loading, setLoading] = useState(true);
 
-  // Fetch billing summary
-  const { data: summaryData } = useQuery({
-    queryKey: ['billingSummary', selectedDate, hospitalId],
-    queryFn: async () => {
-      const response = await api.get('/reports/summary', {
-        params: {
-          hospital_id: hospitalId,
-          start_date: selectedDate,
-          end_date: selectedDate
-        }
-      });
-      return response.data.data;
-    }
-  });
+  useEffect(() => {
+    fetchBillingData();
+    const interval = setInterval(fetchBillingData, 60000); // Refresh every minute
+    return () => clearInterval(interval);
+  }, [filterStatus]);
 
-  // Fetch outstanding bills
-  const { data: outstandingBills } = useQuery({
-    queryKey: ['outstandingBills', hospitalId],
-    queryFn: async () => {
-      const response = await api.get('/reports/outstanding', {
-        params: { hospital_id: hospitalId, min_days: 30 }
+  const fetchBillingData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      const [statsRes, billsRes, claimsRes] = await Promise.all([
+        axios.get(`${API_URL}/hospital/billing/stats`, { headers }),
+        axios.get(`${API_URL}/hospital/billing/bills/recent`, { 
+          headers,
+          params: { status: filterStatus !== 'all' ? filterStatus : undefined }
+        }),
+        axios.get(`${API_URL}/hospital/billing/insurance-claims/pending`, { headers })
+      ]);
+
+      setStats(statsRes.data.stats || {
+        totalRevenue: 0,
+        pendingPayments: 0,
+        todayCollections: 0,
+        insuranceClaims: 0,
+        overdueBills: 0
       });
-      return response.data.data;
+      setRecentBills(billsRes.data.bills || []);
+      setPendingClaims(claimsRes.data.claims || []);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching billing data:', error);
+      setLoading(false);
     }
-  });
+  };
+
+  const handleSearchBill = async () => {
+    if (!searchTerm) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/hospital/billing/bills/search`, {
+        params: { query: searchTerm },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.bills && response.data.bills.length > 0) {
+        setRecentBills(response.data.bills);
+      } else {
+        alert('No bills found');
+      }
+    } catch (error) {
+      console.error('Error searching bills:', error);
+      alert('Error searching for bills');
+    }
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-NG', {
@@ -55,303 +99,359 @@ export default function BillingDashboard() {
     }).format(amount || 0);
   };
 
-  const stats = [
-    {
-      name: 'Total Billed Today',
-      value: formatCurrency(summaryData?.summary?.total_billed),
-      icon: DocumentTextIcon,
-      color: 'bg-blue-500',
-      subtext: `${summaryData?.summary?.total_bills || 0} bills`
-    },
-    {
-      name: 'Collected Today',
-      value: formatCurrency(summaryData?.summary?.total_collected),
-      icon: CurrencyDollarIcon,
-      color: 'bg-green-500',
-      subtext: `${summaryData?.summary?.paid_bills || 0} paid`
-    },
-    {
-      name: 'Outstanding',
-      value: formatCurrency(summaryData?.summary?.total_outstanding),
-      icon: ExclamationTriangleIcon,
-      color: 'bg-yellow-500',
-      subtext: `${summaryData?.summary?.unpaid_bills || 0} unpaid`
-    },
-    {
-      name: 'Partial Payments',
-      value: summaryData?.summary?.partial_bills || 0,
-      icon: CreditCardIcon,
-      color: 'bg-purple-500',
-      subtext: 'bills'
-    }
-  ];
-
-  // Mock recent bills data
-  const recentBills = [
-    {
-      id: 1,
-      bill_number: 'BILL2025000123',
-      patient_name: 'Adebayo Ogundimu',
-      patient_number: 'GP2025000145',
-      total_amount: 25000,
-      paid_amount: 25000,
-      balance: 0,
-      status: 'PAID',
-      date: '2025-10-02'
-    },
-    {
-      id: 2,
-      bill_number: 'BILL2025000122',
-      patient_name: 'Fatima Abdullahi',
-      patient_number: 'GP2025000144',
-      total_amount: 15000,
-      paid_amount: 10000,
-      balance: 5000,
-      status: 'PARTIAL',
-      date: '2025-10-02'
-    },
-    {
-      id: 3,
-      bill_number: 'BILL2025000121',
-      patient_name: 'Chinedu Okafor',
-      patient_number: 'GP2025000143',
-      total_amount: 8500,
-      paid_amount: 0,
-      balance: 8500,
-      status: 'UNPAID',
-      date: '2025-10-01'
-    }
-  ];
-
-  const filteredBills = recentBills.filter(bill => {
-    const matchesSearch = bill.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          bill.bill_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          bill.patient_number.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'ALL' || bill.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'PAID':
-        return <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Paid</span>;
-      case 'PARTIAL':
-        return <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Partial</span>;
-      case 'UNPAID':
-        return <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">Unpaid</span>;
-      default:
-        return <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">{status}</span>;
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'overdue': return 'bg-red-100 text-red-800';
+      case 'partial': return 'bg-orange-100 text-orange-800';
+      case 'cancelled': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const getPaymentTypeIcon = (type) => {
+    switch(type) {
+      case 'cash': return '💵';
+      case 'card': return '💳';
+      case 'insurance': return '🏥';
+      case 'nhis': return '🏛️';
+      case 'hmo': return '🔖';
+      case 'bank_transfer': return '🏦';
+      default: return '💰';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading billing dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="bg-white shadow rounded-lg px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Billing Dashboard</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Manage bills, payments, and financial transactions
-            </p>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Billing & Revenue Management</h1>
+        <p className="text-gray-600 mt-2">Manage invoices, payments, and insurance claims</p>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex-1 min-w-[300px]">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by bill ID, patient name, or number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearchBill()}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-            />
-            <button className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 flex items-center">
-              <PlusCircleIcon className="h-5 w-5 mr-2" />
-              Generate Bill
-            </button>
-          </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <option value="all">All Bills</option>
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="overdue">Overdue</option>
+            <option value="partial">Partial</option>
+          </select>
+          <button
+            onClick={() => navigate('/hospital/billing/invoice/new')}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+          >
+            <Plus className="h-5 w-5" />
+            New Invoice
+          </button>
+          <button
+            onClick={() => navigate('/hospital/billing/payment')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            <CreditCard className="h-5 w-5" />
+            Record Payment
+          </button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <div key={stat.name} className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className={`flex-shrink-0 ${stat.color} rounded-md p-3`}>
-                  <stat.icon className="h-6 w-6 text-white" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      {stat.name}
-                    </dt>
-                    <dd>
-                      <div className="text-lg font-semibold text-gray-900">
-                        {stat.value}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {stat.subtext}
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Department Revenue */}
-      {summaryData?.department_revenue && summaryData.department_revenue.length > 0 && (
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Revenue by Department</h2>
-          </div>
-          <div className="p-6">
-            <div className="space-y-3">
-              {summaryData.department_revenue.slice(0, 5).map((dept, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-900">
-                      {dept.department || 'General'}
-                    </span>
-                    <span className="ml-2 text-sm text-gray-500">
-                      ({dept.bills} bills)
-                    </span>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {formatCurrency(dept.revenue)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Recent Bills Table */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">Recent Bills</h2>
-            <div className="flex items-center space-x-4">
-              {/* Search */}
-              <div className="relative">
-                <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search bills..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-              
-              {/* Status Filter */}
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="ALL">All Status</option>
-                <option value="PAID">Paid</option>
-                <option value="PARTIAL">Partial</option>
-                <option value="UNPAID">Unpaid</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Bill Number
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Patient
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Paid Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Balance
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredBills.map((bill) => (
-                <tr key={bill.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {bill.bill_number}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div>
-                      <div className="font-medium text-gray-900">{bill.patient_name}</div>
-                      <div className="text-gray-500">{bill.patient_number}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatCurrency(bill.total_amount)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatCurrency(bill.paid_amount)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatCurrency(bill.balance)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(bill.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {bill.date}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button className="text-primary-600 hover:text-primary-900 mr-3">
-                      View
-                    </button>
-                    {bill.status !== 'PAID' && (
-                      <button className="text-green-600 hover:text-green-900">
-                        Pay
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Outstanding Bills Alert */}
-      {outstandingBills?.bills && outstandingBills.bills.length > 0 && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-yellow-700">
-                You have <span className="font-semibold">{outstandingBills.summary.total_bills}</span> outstanding bills 
-                totaling <span className="font-semibold">{formatCurrency(outstandingBills.summary.total_outstanding)}</span> that 
-                are over 30 days old.
+            <div>
+              <p className="text-gray-600 text-sm">Today's Collections</p>
+              <p className="text-2xl font-bold text-green-600 mt-1">
+                {formatCurrency(stats.todayCollections)}
               </p>
             </div>
+            <DollarSign className="h-10 w-10 text-green-500" />
           </div>
         </div>
-      )}
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm">Pending Payments</p>
+              <p className="text-2xl font-bold text-yellow-600 mt-1">
+                {formatCurrency(stats.pendingPayments)}
+              </p>
+            </div>
+            <Clock className="h-10 w-10 text-yellow-500" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm">Insurance Claims</p>
+              <p className="text-2xl font-bold text-blue-600 mt-1">
+                {stats.insuranceClaims}
+              </p>
+            </div>
+            <FileText className="h-10 w-10 text-blue-500" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm">Overdue Bills</p>
+              <p className="text-2xl font-bold text-red-600 mt-1">
+                {stats.overdueBills}
+              </p>
+            </div>
+            <AlertTriangle className="h-10 w-10 text-red-500" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm">Monthly Revenue</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {formatCurrency(stats.totalRevenue)}
+              </p>
+            </div>
+            <TrendingUp className="h-10 w-10 text-purple-500" />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Bills */}
+        <div className="lg:col-span-2 bg-white rounded-lg shadow-md">
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Receipt className="h-5 w-5" />
+              Recent Bills
+            </h2>
+            <button
+              onClick={() => navigate('/hospital/billing/bills')}
+              className="text-blue-600 hover:text-blue-700 text-sm"
+            >
+              View All →
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    Bill ID
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    Patient
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {recentBills.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                      No bills found
+                    </td>
+                  </tr>
+                ) : (
+                  recentBills.slice(0, 10).map((bill) => (
+                    <tr key={bill.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                        {bill.bill_number}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        <div>
+                          <p className="font-medium">{bill.patient_name}</p>
+                          <p className="text-xs text-gray-500">{bill.patient_id}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                        {formatCurrency(bill.total_amount)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        <span className="text-lg" title={bill.payment_method}>
+                          {getPaymentTypeIcon(bill.payment_method)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(bill.status)}`}>
+                          {bill.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => navigate(`/hospital/billing/bill/${bill.id}`)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            View
+                          </button>
+                          {bill.status === 'pending' && (
+                            <button
+                              onClick={() => navigate(`/hospital/billing/payment?billId=${bill.id}`)}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              Pay
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Insurance Claims */}
+        <div className="bg-white rounded-lg shadow-md">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Pending Insurance Claims
+            </h2>
+          </div>
+          <div className="p-4">
+            {pendingClaims.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No pending claims</p>
+            ) : (
+              <div className="space-y-3">
+                {pendingClaims.slice(0, 5).map((claim) => (
+                  <div 
+                    key={claim.id}
+                    className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => navigate(`/hospital/billing/claim/${claim.id}`)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-900">
+                        {claim.claim_number}
+                      </span>
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        claim.provider_type === 'nhis' ? 'bg-blue-100 text-blue-800' :
+                        claim.provider_type === 'hmo' ? 'bg-purple-100 text-purple-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {claim.provider_type?.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-gray-600">{claim.patient_name}</p>
+                      <p className="font-semibold text-gray-900 mt-1">
+                        {formatCurrency(claim.claim_amount)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Submitted: {new Date(claim.submission_date).toLocaleDateString('en-NG')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {pendingClaims.length > 5 && (
+              <button
+                onClick={() => navigate('/hospital/billing/claims')}
+                className="w-full mt-4 text-center text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                View All Claims →
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Methods Distribution */}
+      <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Payment Methods Distribution</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {[
+            { method: 'Cash', icon: '💵', amount: stats.cashPayments || 0, color: 'green' },
+            { method: 'Card', icon: '💳', amount: stats.cardPayments || 0, color: 'blue' },
+            { method: 'NHIS', icon: '🏛️', amount: stats.nhisPayments || 0, color: 'indigo' },
+            { method: 'HMO', icon: '🔖', amount: stats.hmoPayments || 0, color: 'purple' },
+            { method: 'Insurance', icon: '🏥', amount: stats.insurancePayments || 0, color: 'pink' },
+            { method: 'Transfer', icon: '🏦', amount: stats.transferPayments || 0, color: 'yellow' }
+          ].map((method) => (
+            <div key={method.method} className={`bg-${method.color}-50 rounded-lg p-4 text-center`}>
+              <div className="text-2xl mb-2">{method.icon}</div>
+              <p className="text-sm text-gray-600">{method.method}</p>
+              <p className={`font-bold text-${method.color}-700 mt-1`}>
+                {formatCurrency(method.amount)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Quick Links */}
+      <div className="mt-6 bg-gray-50 rounded-lg p-4">
+        <div className="flex flex-wrap gap-4">
+          <button
+            onClick={() => navigate('/hospital/billing/reports')}
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+          >
+            <TrendingUp className="h-5 w-5" />
+            Revenue Reports
+          </button>
+          <button
+            onClick={() => navigate('/hospital/billing/reconciliation')}
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+          >
+            <CheckCircle className="h-5 w-5" />
+            Reconciliation
+          </button>
+          <button
+            onClick={() => navigate('/hospital/billing/export')}
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+          >
+            <Download className="h-5 w-5" />
+            Export Data
+          </button>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default BillingDashboard;

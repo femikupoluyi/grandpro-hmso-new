@@ -1,0 +1,24 @@
+[dotenv@17.2.3] injecting env (11) from .env -- tip: ⚙️  override existing env vars with { override: true }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║     GrandPro HMSO - CRM Module Backend Server                ║
+║                                                               ║
+╠═══════════════════════════════════════════════════════════════╣
+║  Server running on: http://localhost:3000                    ║
+║  Environment: development                           ║
+║  Database: Connected to Neon PostgreSQL                      ║
+║                                                               ║
+║  Available Endpoints:                                         ║
+║  - Health Check: GET /health                                 ║
+║  - CRM API: /api/crm/*                                       ║
+║  - Owner CRM: /api/crm/owners/*                              ║
+║  - Patient CRM: /api/crm/patients/*                          ║
+║  - Communications: /api/crm/communications/*                 ║
+╚═══════════════════════════════════════════════════════════════╝
+  
+Database connected successfully at: 2025-10-02T03:17:15.120Z
+Connected to PostgreSQL database
+Connected to PostgreSQL database

@@ -18,8 +18,17 @@ import Reminders from './pages/patient/Reminders';
 // Hospital Management Pages
 import HospitalDashboard from './pages/hospital/dashboard/HospitalDashboard';
 import PatientRegistration from './pages/hospital/emr/PatientRegistration';
+// EMR Components
+import ClinicianDashboard from './pages/hospital/emr/ClinicianDashboard';
+import PatientRecord from './pages/hospital/emr/PatientRecord';
+// Billing Components
 import BillingDashboard from './pages/hospital/billing/BillingDashboard';
+import InvoiceGeneration from './pages/hospital/billing/InvoiceGeneration';
+// Inventory Components
 import InventoryDashboard from './pages/hospital/inventory/InventoryDashboard';
+// HR Components
+import HRDashboard from './pages/hospital/hr/HRDashboard';
+import PayrollManagement from './pages/hospital/hr/PayrollManagement';
 
 // Operations Pages
 import CommandCentre from './pages/operations/CommandCentre';
@@ -97,21 +106,62 @@ function App() {
               <HospitalDashboard />
             </ProtectedRoute>
           } />
-          <Route path="emr/register" element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
-              <PatientRegistration />
-            </ProtectedRoute>
-          } />
-          <Route path="billing" element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
-              <BillingDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="inventory" element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
-              <InventoryDashboard />
-            </ProtectedRoute>
-          } />
+          
+          {/* EMR Routes */}
+          <Route path="emr">
+            <Route index element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'STAFF', 'DOCTOR', 'NURSE', 'CLINICIAN']}>
+                <ClinicianDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="register" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
+                <PatientRegistration />
+              </ProtectedRoute>
+            } />
+            <Route path="patient/:patientId" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'STAFF', 'DOCTOR', 'NURSE', 'CLINICIAN']}>
+                <PatientRecord />
+              </ProtectedRoute>
+            } />
+          </Route>
+          
+          {/* Billing Routes */}
+          <Route path="billing">
+            <Route index element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'STAFF', 'BILLING', 'ACCOUNTANT']}>
+                <BillingDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="invoice/new" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'STAFF', 'BILLING', 'ACCOUNTANT']}>
+                <InvoiceGeneration />
+              </ProtectedRoute>
+            } />
+          </Route>
+          
+          {/* Inventory Routes */}
+          <Route path="inventory">
+            <Route index element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'STAFF', 'PHARMACIST', 'STOREKEEPER']}>
+                <InventoryDashboard />
+              </ProtectedRoute>
+            } />
+          </Route>
+          
+          {/* HR Routes */}
+          <Route path="hr">
+            <Route index element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'HR']}>
+                <HRDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="payroll" element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'HR']}>
+                <PayrollManagement />
+              </ProtectedRoute>
+            } />
+          </Route>
         </Route>
 
         {/* Operations Management Routes */}
