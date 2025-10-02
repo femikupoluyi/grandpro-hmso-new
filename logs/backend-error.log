@@ -816,3 +816,36 @@
 2025-10-02T15:45:17:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
 2025-10-02T15:45:17:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
 2025-10-02T15:45:17:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T16:10:15: Communication error: TypeError: pool.query is not a function
+2025-10-02T16:10:15:     at CommunicationService.sendCommunication (/root/grandpro-hmso-new/backend/src/services/communication.service.js:34:33)
+2025-10-02T16:10:15:     at /root/grandpro-hmso-new/backend/src/routes/communication.routes.js:8:47
+2025-10-02T16:10:15:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T16:10:15:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T16:10:15:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T16:10:15:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T16:10:15:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T16:10:15:     at /root/grandpro-hmso-new/backend/node_modules/router/index.js:295:15
+2025-10-02T16:10:15:     at processParams (/root/grandpro-hmso-new/backend/node_modules/router/index.js:582:12)
+2025-10-02T16:10:15:     at next (/root/grandpro-hmso-new/backend/node_modules/router/index.js:291:5)
+2025-10-02T16:10:15: Communication error: TypeError: pool.query is not a function
+2025-10-02T16:10:15:     at CommunicationService.sendCommunication (/root/grandpro-hmso-new/backend/src/services/communication.service.js:34:33)
+2025-10-02T16:10:15:     at /root/grandpro-hmso-new/backend/src/routes/communication.routes.js:8:47
+2025-10-02T16:10:15:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T16:10:15:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T16:10:15:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T16:10:15:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T16:10:15:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T16:10:15:     at /root/grandpro-hmso-new/backend/node_modules/router/index.js:295:15
+2025-10-02T16:10:15:     at processParams (/root/grandpro-hmso-new/backend/node_modules/router/index.js:582:12)
+2025-10-02T16:10:15:     at next (/root/grandpro-hmso-new/backend/node_modules/router/index.js:291:5)
+2025-10-02T16:10:15: Communication error: TypeError: pool.query is not a function
+2025-10-02T16:10:15:     at CommunicationService.sendCommunication (/root/grandpro-hmso-new/backend/src/services/communication.service.js:34:33)
+2025-10-02T16:10:15:     at /root/grandpro-hmso-new/backend/src/routes/communication.routes.js:8:47
+2025-10-02T16:10:15:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T16:10:15:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T16:10:15:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T16:10:15:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T16:10:15:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T16:10:15:     at /root/grandpro-hmso-new/backend/node_modules/router/index.js:295:15
+2025-10-02T16:10:15:     at processParams (/root/grandpro-hmso-new/backend/node_modules/router/index.js:582:12)
+2025-10-02T16:10:15:     at next (/root/grandpro-hmso-new/backend/node_modules/router/index.js:291:5)
