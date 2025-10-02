@@ -33,6 +33,7 @@ const operationsRoutes = require('./routes/operations.routes');
 
 // Hospital Analytics Routes
 const hospitalAnalyticsRoutes = require('./routes/hospital-analytics.routes');
+const analyticsEnhancedRoutes = require('./routes/analytics-enhanced.routes');
 
 // Initialize Express app
 const app = express();
@@ -87,7 +88,9 @@ app.use('/api/hr', hrRoutes);
 app.use('/api/operations', operationsRoutes);
 
 // Hospital Analytics Routes
-app.use('/api/analytics', hospitalAnalyticsRoutes);
+app.use('/api/analytics', analyticsEnhancedRoutes); // Use enhanced implementation
+// Legacy analytics route for backward compatibility
+app.use('/api/analytics-legacy', hospitalAnalyticsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
