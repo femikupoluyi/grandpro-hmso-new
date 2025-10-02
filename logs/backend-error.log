@@ -757,3 +757,7 @@
 2025-10-02T15:27:06:     at Hook._require.Module.require (/usr/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:101:39)
 2025-10-02T15:27:06:     at require (node:internal/modules/helpers:182:18)
 2025-10-02T15:27:06:     at Object.<anonymous> (/root/grandpro-hmso-new/backend/src/routes/owner-crm.routes.js:3:25)
+2025-10-02T15:40:23: Error getting owner profile: Error: Owner not found
+2025-10-02T15:40:23:     at OwnerCRMService.getOwnerProfile (/root/grandpro-hmso-new/backend/src/services/owner-crm.service.js:30:15)
+2025-10-02T15:40:23:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T15:40:23:     at async /root/grandpro-hmso-new/backend/src/routes/owner-crm.routes.js:24:21
