@@ -14,15 +14,20 @@ const contractRoutes = require('./routes/contract.routes');
 const applicationRoutes = require('./routes/application.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const onboardingRoutes = require('./routes/onboarding.routes');
+const crmRoutes = require('./routes/crm.routes');
+const insuranceRoutes = require('./routes/insurance.routes');
+const dataAnalyticsRoutes = require('./routes/data-analytics.routes');
+const auditRoutes = require('./routes/audit.routes');
+const operationsRoutes = require('./routes/operations.routes');
 
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Import security middleware
-const securityMiddleware = require('./middleware/security.middleware');
+const securityMiddleware = require('./middleware/simple-security');
 
-// Apply comprehensive security middleware
+// Apply security middleware
 securityMiddleware.applyAll(app);
 
 // Additional middleware
@@ -52,6 +57,11 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/crm', crmRoutes);
+app.use('/api/insurance', insuranceRoutes);
+app.use('/api/data-analytics', dataAnalyticsRoutes);
+app.use('/api/audit', auditRoutes);
+app.use('/api/operations', operationsRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

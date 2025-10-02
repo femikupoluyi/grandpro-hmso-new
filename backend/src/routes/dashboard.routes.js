@@ -4,6 +4,26 @@ const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
+// Get main dashboard (root endpoint)
+router.get('/', async (req, res) => {
+  res.json({
+    message: 'Dashboard data',
+    stats: {
+      totalHospitals: 156,
+      activePatients: 15420,
+      monthlyRevenue: 254000000,
+      staffCount: 892,
+      occupancyRate: 78.5,
+      patientSatisfaction: 4.2
+    },
+    recentActivity: [
+      { type: 'admission', hospital: 'Lagos General', time: new Date(Date.now() - 3600000) },
+      { type: 'discharge', hospital: 'Abuja Medical', time: new Date(Date.now() - 7200000) },
+      { type: 'appointment', hospital: 'Port Harcourt Clinic', time: new Date(Date.now() - 10800000) }
+    ]
+  });
+});
+
 // Get dashboard overview
 router.get('/overview', authMiddleware, async (req, res) => {
   try {
