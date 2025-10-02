@@ -74,7 +74,7 @@ router.post('/payouts/process-monthly', async (req, res) => {
 
 // Update payout status
 router.patch('/payouts/:payoutId/status', [
-  param('payoutId').isNumeric().withMessage('Valid payout ID required'),
+  param('payoutId').notEmpty().withMessage('Valid payout ID required'),
   body('status').isIn(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED']).withMessage('Invalid status')
 ], validate, async (req, res) => {
   try {

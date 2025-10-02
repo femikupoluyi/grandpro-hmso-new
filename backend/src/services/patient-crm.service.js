@@ -122,8 +122,8 @@ class PatientCRMService {
         FROM "Appointment" a
         LEFT JOIN "User" u ON a."doctorId" = u.id
         WHERE a."patientId" = $1
-        AND a.date >= CURRENT_DATE
-        ORDER BY a.date, a.time
+        AND a."appointmentDate" >= CURRENT_DATE
+        ORDER BY a."appointmentDate", a."appointmentTime"
         LIMIT 5
       `, [patientId]);
 
