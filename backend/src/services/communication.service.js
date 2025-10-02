@@ -1,454 +1,508 @@
-const twilio = require('twilio');
-const sgMail = require('@sendgrid/mail');
-const { neon } = require('@neondatabase/serverless');
-
-// Initialize services
-const sql = neon(process.env.DATABASE_URL);
-
-// Twilio configuration (for SMS and WhatsApp)
-const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
-  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-  : null;
-
-// SendGrid configuration (for Email)
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
+const pool = require('../config/database');
 
 class CommunicationService {
-  /**
-   * Send SMS message
-   */
-  async sendSMS(to, message, metadata = {}) {
-    try {
-      // Format Nigerian phone number
-      const formattedPhone = this.formatNigerianPhone(to);
-      
-      if (twilioClient) {
-        const result = await twilioClient.messages.create({
-          body: message,
-          from: process.env.TWILIO_PHONE_NUMBER || '+1234567890',
-          to: formattedPhone
-        });
-
-        return {
-          success: true,
-          messageId: result.sid,
-          status: result.status,
-          to: formattedPhone
-        };
-      }
-
-      // Fallback for development/testing
-      console.log(`[SMS Mock] To: ${formattedPhone}, Message: ${message}`);
-      return {
-        success: true,
-        messageId: `mock-sms-${Date.now()}`,
-        status: 'sent',
-        to: formattedPhone,
-        mock: true
-      };
-    } catch (error) {
-      console.error('SMS sending error:', error);
-      throw new Error(`Failed to send SMS: ${error.message}`);
-    }
-  }
-
-  /**
-   * Send WhatsApp message
-   */
-  async sendWhatsApp(to, message, templateId = null, metadata = {}) {
-    try {
-      const formattedPhone = this.formatNigerianPhone(to);
-      const whatsappNumber = `whatsapp:${formattedPhone}`;
-
-      if (twilioClient) {
-        const messageOptions = {
-          from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER || '+14155238886'}`,
-          to: whatsappNumber
-        };
-
-        if (templateId) {
-          // Use WhatsApp template message
-          messageOptions.contentSid = templateId;
-          messageOptions.contentVariables = JSON.stringify(metadata);
-        } else {
-          messageOptions.body = message;
-        }
-
-        const result = await twilioClient.messages.create(messageOptions);
-
-        return {
-          success: true,
-          messageId: result.sid,
-          status: result.status,
-          to: whatsappNumber
-        };
-      }
-
-      // Fallback for development/testing
-      console.log(`[WhatsApp Mock] To: ${whatsappNumber}, Message: ${message}`);
-      return {
-        success: true,
-        messageId: `mock-whatsapp-${Date.now()}`,
-        status: 'sent',
-        to: whatsappNumber,
-        mock: true
-      };
-    } catch (error) {
-      console.error('WhatsApp sending error:', error);
-      throw new Error(`Failed to send WhatsApp message: ${error.message}`);
-    }
-  }
-
-  /**
-   * Send Email
-   */
-  async sendEmail(to, subject, htmlContent, textContent = null, metadata = {}) {
-    try {
-      const msg = {
-        to,
-        from: process.env.SENDGRID_FROM_EMAIL || 'noreply@grandprohmso.ng',
-        subject,
-        html: htmlContent,
-        text: textContent || this.stripHtml(htmlContent),
-        ...metadata
-      };
-
-      if (process.env.SENDGRID_API_KEY) {
-        const result = await sgMail.send(msg);
-        return {
-          success: true,
-          messageId: result[0].headers['x-message-id'],
-          status: 'sent',
-          to
-        };
-      }
-
-      // Fallback for development/testing
-      console.log(`[Email Mock] To: ${to}, Subject: ${subject}`);
-      return {
-        success: true,
-        messageId: `mock-email-${Date.now()}`,
-        status: 'sent',
-        to,
-        mock: true
-      };
-    } catch (error) {
-      console.error('Email sending error:', error);
-      throw new Error(`Failed to send email: ${error.message}`);
-    }
-  }
-
-  /**
-   * Send bulk communications
-   */
-  async sendBulk(recipients, channel, message, options = {}) {
-    const results = [];
-    const batchSize = options.batchSize || 50;
+  // Send communication via multiple channels
+  async sendCommunication(data) {
+    const { recipientId, recipientType, channels, message, type, priority } = data;
     
-    for (let i = 0; i < recipients.length; i += batchSize) {
-      const batch = recipients.slice(i, i + batchSize);
-      const batchResults = await Promise.allSettled(
-        batch.map(recipient => this.sendToChannel(recipient, channel, message, options))
+    const results = {
+      sms: null,
+      whatsapp: null,
+      email: null
+    };
+
+    try {
+      // Store communication record
+      const query = `
+        INSERT INTO communication_logs (
+          recipient_id, recipient_type, message_type, 
+          message_content, channels, priority, status, sent_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+        RETURNING *
+      `;
+      
+      const values = [
+        recipientId,
+        recipientType,
+        type,
+        message.content,
+        JSON.stringify(channels),
+        priority || 'NORMAL',
+        'PENDING'
+      ];
+
+      const result = await pool.query(query, values);
+      const communicationId = result.rows[0].id;
+
+      // Send via each channel
+      if (channels.includes('SMS')) {
+        results.sms = await this.sendSMS({
+          recipientId,
+          message: message.content,
+          communicationId
+        });
+      }
+
+      if (channels.includes('WHATSAPP')) {
+        results.whatsapp = await this.sendWhatsApp({
+          recipientId,
+          message: message.content,
+          template: message.template,
+          communicationId
+        });
+      }
+
+      if (channels.includes('EMAIL')) {
+        results.email = await this.sendEmail({
+          recipientId,
+          subject: message.subject,
+          content: message.content,
+          template: message.template,
+          communicationId
+        });
+      }
+
+      // Update communication status
+      const successChannels = Object.keys(results).filter(channel => results[channel]?.success);
+      await pool.query(
+        `UPDATE communication_logs 
+         SET status = $1, delivered_channels = $2, updated_at = NOW() 
+         WHERE id = $3`,
+        [
+          successChannels.length > 0 ? 'DELIVERED' : 'FAILED',
+          JSON.stringify(successChannels),
+          communicationId
+        ]
+      );
+
+      return {
+        success: true,
+        communicationId,
+        results
+      };
+    } catch (error) {
+      console.error('Communication error:', error);
+      throw error;
+    }
+  }
+
+  // Send SMS (Nigerian providers: Termii, BulkSMS Nigeria, etc.)
+  async sendSMS({ recipientId, message, communicationId }) {
+    try {
+      // Get recipient phone number
+      const recipientQuery = await pool.query(
+        'SELECT phone_number FROM users WHERE id = $1',
+        [recipientId]
       );
       
-      results.push(...batchResults);
+      if (!recipientQuery.rows[0]?.phone_number) {
+        return { success: false, error: 'No phone number found' };
+      }
+
+      const phoneNumber = recipientQuery.rows[0].phone_number;
+
+      // Mock SMS sending (replace with actual SMS provider API)
+      // For production, integrate with Nigerian SMS providers like:
+      // - Termii (https://termii.com)
+      // - BulkSMS Nigeria (https://www.bulksms.com.ng)
+      // - SMS.ng (https://sms.ng)
       
-      // Rate limiting
-      if (i + batchSize < recipients.length) {
-        await this.sleep(options.delayMs || 1000);
-      }
-    }
+      const mockSMSResponse = {
+        success: true,
+        messageId: `SMS_${Date.now()}`,
+        provider: 'Termii',
+        cost: 4.50, // Cost in Naira
+        recipient: phoneNumber,
+        deliveredAt: new Date().toISOString()
+      };
 
-    return {
-      total: recipients.length,
-      successful: results.filter(r => r.status === 'fulfilled').length,
-      failed: results.filter(r => r.status === 'rejected').length,
-      results
-    };
-  }
-
-  /**
-   * Send to specific channel
-   */
-  async sendToChannel(recipient, channel, message, options = {}) {
-    switch (channel.toUpperCase()) {
-      case 'SMS':
-        return await this.sendSMS(recipient.phone, message, options);
-      case 'WHATSAPP':
-        return await this.sendWhatsApp(recipient.phone, message, options.templateId, options);
-      case 'EMAIL':
-        return await this.sendEmail(recipient.email, options.subject || 'Notification', message, null, options);
-      default:
-        throw new Error(`Unsupported channel: ${channel}`);
-    }
-  }
-
-  /**
-   * Log communication to database
-   */
-  async logCommunication(type, data) {
-    const { recipient_id, recipient_type, channel, message, status, metadata } = data;
-    
-    const table = recipient_type === 'owner' ? 'owner_communications' : 'patient_communications';
-    const idField = recipient_type === 'owner' ? 'owner_id' : 'patient_id';
-    
-    try {
-      const result = await sql.query(`
-        INSERT INTO ${table} (
-          ${idField}, 
-          hospital_id,
-          communication_type, 
-          direction,
-          subject,
-          message, 
-          status,
-          metadata,
-          sent_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-        RETURNING id
-      `, [
-        recipient_id,
-        data.hospital_id,
-        channel,
-        'OUTBOUND',
-        data.subject || null,
-        message,
-        status,
-        JSON.stringify(metadata || {})
-      ]);
-
-      return result[0].id;
-    } catch (error) {
-      console.error('Error logging communication:', error);
-      // Don't throw - logging failure shouldn't stop the communication
-      return null;
-    }
-  }
-
-  /**
-   * Schedule communication for later
-   */
-  async scheduleCommunication(data) {
-    const { recipient_id, recipient_type, channel, message, scheduled_at, metadata } = data;
-    
-    const table = recipient_type === 'owner' ? 'owner_communications' : 'patient_communications';
-    const idField = recipient_type === 'owner' ? 'owner_id' : 'patient_id';
-    
-    try {
-      const result = await sql.query(`
-        INSERT INTO ${table} (
-          ${idField},
-          hospital_id,
-          communication_type,
-          direction,
-          subject,
+      // Log SMS delivery
+      await pool.query(
+        `INSERT INTO sms_logs (
+          communication_id, recipient_phone, message, 
+          provider, status, cost_naira, sent_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+        [
+          communicationId,
+          phoneNumber,
           message,
-          status,
-          metadata,
-          scheduled_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        RETURNING id
-      `, [
-        recipient_id,
-        data.hospital_id,
-        channel,
-        'OUTBOUND',
-        data.subject || null,
+          'Termii',
+          'DELIVERED',
+          4.50
+        ]
+      );
+
+      return mockSMSResponse;
+    } catch (error) {
+      console.error('SMS sending error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Send WhatsApp message
+  async sendWhatsApp({ recipientId, message, template, communicationId }) {
+    try {
+      // Get recipient phone number
+      const recipientQuery = await pool.query(
+        'SELECT phone_number, first_name FROM users WHERE id = $1',
+        [recipientId]
+      );
+      
+      if (!recipientQuery.rows[0]?.phone_number) {
+        return { success: false, error: 'No phone number found' };
+      }
+
+      const { phone_number, first_name } = recipientQuery.rows[0];
+
+      // Mock WhatsApp Business API (replace with actual WhatsApp Business API)
+      // For production, use:
+      // - WhatsApp Business API
+      // - Twilio WhatsApp API
+      // - Meta Business Platform
+      
+      const mockWhatsAppResponse = {
+        success: true,
+        messageId: `WA_${Date.now()}`,
+        provider: 'WhatsApp Business',
+        recipient: phone_number,
+        template: template || 'default',
+        deliveredAt: new Date().toISOString(),
+        read: false
+      };
+
+      // Log WhatsApp delivery
+      await pool.query(
+        `INSERT INTO whatsapp_logs (
+          communication_id, recipient_phone, message, 
+          template_used, status, sent_at
+        ) VALUES ($1, $2, $3, $4, $5, NOW())`,
+        [
+          communicationId,
+          phone_number,
+          message,
+          template || 'default',
+          'DELIVERED'
+        ]
+      );
+
+      return mockWhatsAppResponse;
+    } catch (error) {
+      console.error('WhatsApp sending error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Send Email
+  async sendEmail({ recipientId, subject, content, template, communicationId }) {
+    try {
+      // Get recipient email
+      const recipientQuery = await pool.query(
+        'SELECT email, first_name, last_name FROM users WHERE id = $1',
+        [recipientId]
+      );
+      
+      if (!recipientQuery.rows[0]?.email) {
+        return { success: false, error: 'No email found' };
+      }
+
+      const { email, first_name, last_name } = recipientQuery.rows[0];
+
+      // Mock Email sending (replace with actual email provider)
+      // For production, use:
+      // - SendGrid
+      // - AWS SES
+      // - Mailgun
+      // - Nigerian providers like SMTPLab
+      
+      const mockEmailResponse = {
+        success: true,
+        messageId: `EMAIL_${Date.now()}`,
+        provider: 'SendGrid',
+        recipient: email,
+        subject: subject,
+        template: template || 'default',
+        deliveredAt: new Date().toISOString(),
+        opened: false
+      };
+
+      // Log Email delivery
+      await pool.query(
+        `INSERT INTO email_logs (
+          communication_id, recipient_email, subject, 
+          content, template_used, status, sent_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+        [
+          communicationId,
+          email,
+          subject,
+          content,
+          template || 'default',
+          'DELIVERED'
+        ]
+      );
+
+      return mockEmailResponse;
+    } catch (error) {
+      console.error('Email sending error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Send appointment reminder
+  async sendAppointmentReminder(appointmentId) {
+    try {
+      const query = `
+        SELECT 
+          a.*, 
+          p.first_name, p.last_name, p.phone_number, p.email,
+          d.name as doctor_name,
+          dept.name as department_name,
+          h.name as hospital_name
+        FROM appointments a
+        JOIN patients p ON a.patient_id = p.id
+        LEFT JOIN staff d ON a.doctor_id = d.id
+        LEFT JOIN departments dept ON a.department_id = dept.id
+        LEFT JOIN hospitals h ON a.hospital_id = h.id
+        WHERE a.id = $1
+      `;
+      
+      const result = await pool.query(query, [appointmentId]);
+      const appointment = result.rows[0];
+
+      if (!appointment) {
+        throw new Error('Appointment not found');
+      }
+
+      // Prepare message
+      const message = {
+        content: `Dear ${appointment.first_name}, this is a reminder for your appointment with ${appointment.doctor_name} at ${appointment.hospital_name} on ${appointment.appointment_date} at ${appointment.appointment_time}. Please arrive 15 minutes early.`,
+        subject: 'Appointment Reminder - GrandPro HMSO',
+        template: 'appointment_reminder'
+      };
+
+      // Send via multiple channels
+      return await this.sendCommunication({
+        recipientId: appointment.patient_id,
+        recipientType: 'PATIENT',
+        channels: ['SMS', 'WHATSAPP', 'EMAIL'],
         message,
-        'PENDING',
-        JSON.stringify(metadata || {}),
-        scheduled_at
+        type: 'APPOINTMENT_REMINDER',
+        priority: 'HIGH'
+      });
+    } catch (error) {
+      console.error('Appointment reminder error:', error);
+      throw error;
+    }
+  }
+
+  // Send feedback request
+  async sendFeedbackRequest(encounterId) {
+    try {
+      const query = `
+        SELECT 
+          e.*, 
+          p.first_name, p.last_name, p.phone_number, p.email,
+          h.name as hospital_name
+        FROM encounters e
+        JOIN patients p ON e.patient_id = p.id
+        JOIN hospitals h ON e.hospital_id = h.id
+        WHERE e.id = $1
+      `;
+      
+      const result = await pool.query(query, [encounterId]);
+      const encounter = result.rows[0];
+
+      if (!encounter) {
+        throw new Error('Encounter not found');
+      }
+
+      // Prepare message
+      const message = {
+        content: `Dear ${encounter.first_name}, thank you for visiting ${encounter.hospital_name}. Please share your feedback to help us serve you better: https://grandpro.ng/feedback/${encounterId}`,
+        subject: 'How was your experience? - GrandPro HMSO',
+        template: 'feedback_request'
+      };
+
+      // Send via preferred channels
+      return await this.sendCommunication({
+        recipientId: encounter.patient_id,
+        recipientType: 'PATIENT',
+        channels: ['SMS', 'EMAIL'],
+        message,
+        type: 'FEEDBACK_REQUEST',
+        priority: 'NORMAL'
+      });
+    } catch (error) {
+      console.error('Feedback request error:', error);
+      throw error;
+    }
+  }
+
+  // Send loyalty points notification
+  async sendLoyaltyNotification(patientId, points, reason) {
+    try {
+      const query = `
+        SELECT 
+          p.*, 
+          lp.points_balance, lp.tier
+        FROM patients p
+        JOIN loyalty_programs lp ON p.id = lp.patient_id
+        WHERE p.id = $1
+      `;
+      
+      const result = await pool.query(query, [patientId]);
+      const patient = result.rows[0];
+
+      if (!patient) {
+        throw new Error('Patient not found');
+      }
+
+      // Prepare message
+      const message = {
+        content: `Congratulations ${patient.first_name}! You've earned ${points} loyalty points for ${reason}. Your new balance is ${patient.points_balance + points} points. Keep earning to unlock exclusive rewards!`,
+        subject: `You've earned ${points} loyalty points!`,
+        template: 'loyalty_notification'
+      };
+
+      // Send via preferred channels
+      return await this.sendCommunication({
+        recipientId: patientId,
+        recipientType: 'PATIENT',
+        channels: ['SMS', 'WHATSAPP'],
+        message,
+        type: 'LOYALTY_NOTIFICATION',
+        priority: 'LOW'
+      });
+    } catch (error) {
+      console.error('Loyalty notification error:', error);
+      throw error;
+    }
+  }
+
+  // Send campaign
+  async sendCampaign(campaignData) {
+    const { name, audienceType, filters, channels, message } = campaignData;
+    
+    try {
+      // Get target audience based on filters
+      let query = '';
+      let values = [];
+      
+      if (audienceType === 'PATIENTS') {
+        query = `
+          SELECT id, first_name, last_name, phone_number, email 
+          FROM patients 
+          WHERE 1=1
+        `;
+        
+        if (filters.ageGroup) {
+          // Add age filter
+        }
+        if (filters.location) {
+          // Add location filter
+        }
+        if (filters.loyaltyTier) {
+          // Add loyalty tier filter
+        }
+      } else if (audienceType === 'OWNERS') {
+        query = `
+          SELECT id, first_name, last_name, phone_number, email 
+          FROM hospital_owners 
+          WHERE 1=1
+        `;
+      }
+
+      const audienceResult = await pool.query(query, values);
+      const recipients = audienceResult.rows;
+
+      // Create campaign record
+      const campaignQuery = `
+        INSERT INTO campaigns (
+          name, audience_type, audience_count, 
+          channels, message, status, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        RETURNING id
+      `;
+      
+      const campaignResult = await pool.query(campaignQuery, [
+        name,
+        audienceType,
+        recipients.length,
+        JSON.stringify(channels),
+        JSON.stringify(message),
+        'IN_PROGRESS'
       ]);
+      
+      const campaignId = campaignResult.rows[0].id;
 
-      return result[0].id;
-    } catch (error) {
-      console.error('Error scheduling communication:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Process scheduled communications
-   */
-  async processScheduledCommunications() {
-    try {
-      // Get pending communications that are due
-      const pending = await sql.query(`
-        SELECT * FROM (
-          SELECT 'owner' as type, id, owner_id as recipient_id, hospital_id, 
-                 communication_type, message, metadata
-          FROM owner_communications
-          WHERE status = 'PENDING' AND scheduled_at <= NOW()
-          UNION ALL
-          SELECT 'patient' as type, id, patient_id as recipient_id, hospital_id,
-                 communication_type, message, metadata
-          FROM patient_communications
-          WHERE status = 'PENDING' AND scheduled_at <= NOW()
-        ) AS pending_comms
-        LIMIT 100
-      `);
-
+      // Send to each recipient
       const results = [];
-      for (const comm of pending) {
-        try {
-          // Get recipient details
-          const recipientData = await this.getRecipientDetails(comm.recipient_id, comm.type);
-          
-          // Send the communication
-          const result = await this.sendToChannel(
-            recipientData,
-            comm.communication_type,
-            comm.message,
-            comm.metadata ? JSON.parse(comm.metadata) : {}
-          );
-
-          // Update status
-          await this.updateCommunicationStatus(comm.id, comm.type, 'SENT', result);
-          results.push({ id: comm.id, success: true, result });
-        } catch (error) {
-          // Update status to failed
-          await this.updateCommunicationStatus(comm.id, comm.type, 'FAILED', { error: error.message });
-          results.push({ id: comm.id, success: false, error: error.message });
-        }
+      for (const recipient of recipients) {
+        const communicationResult = await this.sendCommunication({
+          recipientId: recipient.id,
+          recipientType: audienceType === 'PATIENTS' ? 'PATIENT' : 'OWNER',
+          channels,
+          message,
+          type: 'CAMPAIGN',
+          priority: 'LOW'
+        });
+        
+        results.push({
+          recipientId: recipient.id,
+          success: communicationResult.success
+        });
       }
 
-      return results;
+      // Update campaign status
+      const successCount = results.filter(r => r.success).length;
+      await pool.query(
+        `UPDATE campaigns 
+         SET status = $1, success_count = $2, completed_at = NOW() 
+         WHERE id = $3`,
+        ['COMPLETED', successCount, campaignId]
+      );
+
+      return {
+        success: true,
+        campaignId,
+        totalRecipients: recipients.length,
+        successfulDeliveries: successCount
+      };
     } catch (error) {
-      console.error('Error processing scheduled communications:', error);
+      console.error('Campaign error:', error);
       throw error;
     }
   }
 
-  /**
-   * Update communication status
-   */
-  async updateCommunicationStatus(id, type, status, metadata = {}) {
-    const table = type === 'owner' ? 'owner_communications' : 'patient_communications';
-    
+  // Get communication history
+  async getCommunicationHistory(recipientId, recipientType) {
     try {
-      await sql.query(`
-        UPDATE ${table}
-        SET status = $1, 
-            ${status === 'SENT' ? 'sent_at = NOW(),' : ''}
-            ${status === 'DELIVERED' ? 'delivered_at = NOW(),' : ''}
-            ${status === 'READ' ? 'read_at = NOW(),' : ''}
-            metadata = metadata || $2,
-            updated_at = NOW()
-        WHERE id = $3
-      `, [status, JSON.stringify(metadata), id]);
+      const query = `
+        SELECT 
+          cl.*,
+          COUNT(sl.id) as sms_count,
+          COUNT(wl.id) as whatsapp_count,
+          COUNT(el.id) as email_count
+        FROM communication_logs cl
+        LEFT JOIN sms_logs sl ON cl.id = sl.communication_id
+        LEFT JOIN whatsapp_logs wl ON cl.id = wl.communication_id
+        LEFT JOIN email_logs el ON cl.id = el.communication_id
+        WHERE cl.recipient_id = $1 AND cl.recipient_type = $2
+        GROUP BY cl.id
+        ORDER BY cl.sent_at DESC
+        LIMIT 100
+      `;
+      
+      const result = await pool.query(query, [recipientId, recipientType]);
+      
+      return {
+        success: true,
+        communications: result.rows
+      };
     } catch (error) {
-      console.error('Error updating communication status:', error);
-    }
-  }
-
-  /**
-   * Get recipient details
-   */
-  async getRecipientDetails(recipientId, type) {
-    try {
-      if (type === 'owner') {
-        const result = await sql.query(`
-          SELECT ho.id, u.email, u."phoneNumber" as phone, u."firstName", u."lastName"
-          FROM "HospitalOwner" ho
-          JOIN "User" u ON ho."userId" = u.id
-          WHERE ho.id = $1
-        `, [recipientId]);
-        return result[0];
-      } else {
-        const result = await sql.query(`
-          SELECT p.id, u.email, u."phoneNumber" as phone, u."firstName", u."lastName"
-          FROM "Patient" p
-          JOIN "User" u ON p."userId" = u.id
-          WHERE p.id = $1
-        `, [recipientId]);
-        return result[0];
-      }
-    } catch (error) {
-      console.error('Error getting recipient details:', error);
+      console.error('Communication history error:', error);
       throw error;
     }
-  }
-
-  /**
-   * Helper: Format Nigerian phone number
-   */
-  formatNigerianPhone(phone) {
-    // Remove all non-digits
-    let cleaned = phone.replace(/\D/g, '');
-    
-    // If starts with 0, replace with 234
-    if (cleaned.startsWith('0')) {
-      cleaned = '234' + cleaned.substring(1);
-    }
-    
-    // If doesn't start with 234, add it
-    if (!cleaned.startsWith('234')) {
-      cleaned = '234' + cleaned;
-    }
-    
-    // Add + prefix
-    return '+' + cleaned;
-  }
-
-  /**
-   * Helper: Strip HTML tags
-   */
-  stripHtml(html) {
-    return html.replace(/<[^>]*>/g, '');
-  }
-
-  /**
-   * Helper: Sleep function
-   */
-  sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  /**
-   * Get communication templates
-   */
-  async getTemplates(type = null) {
-    const templates = {
-      appointment_reminder: {
-        sms: 'Dear {patientName}, this is a reminder for your appointment at {hospitalName} on {date} at {time}. Please arrive 15 minutes early.',
-        whatsapp: 'Hello {patientName}! 👋\n\nThis is a friendly reminder about your upcoming appointment:\n📅 Date: {date}\n⏰ Time: {time}\n🏥 Location: {hospitalName}\n\nPlease arrive 15 minutes early for check-in.\n\nReply YES to confirm or NO to reschedule.',
-        email: {
-          subject: 'Appointment Reminder - {hospitalName}',
-          body: '<h2>Appointment Reminder</h2><p>Dear {patientName},</p><p>This is a reminder for your upcoming appointment:</p><ul><li>Date: {date}</li><li>Time: {time}</li><li>Location: {hospitalName}</li></ul><p>Please arrive 15 minutes early for check-in.</p>'
-        }
-      },
-      payment_confirmation: {
-        sms: 'Payment of ₦{amount} received for {service} at {hospitalName}. Receipt #{receiptNumber}',
-        whatsapp: 'Payment Confirmation ✅\n\nAmount: ₦{amount}\nService: {service}\nReceipt: #{receiptNumber}\n\nThank you for choosing {hospitalName}!',
-        email: {
-          subject: 'Payment Confirmation - {hospitalName}',
-          body: '<h2>Payment Confirmation</h2><p>We have received your payment of <strong>₦{amount}</strong> for {service}.</p><p>Receipt Number: {receiptNumber}</p>'
-        }
-      },
-      health_tip: {
-        sms: 'Health Tip from {hospitalName}: {tip}',
-        whatsapp: '💡 Health Tip of the Day\n\n{tip}\n\nStay healthy with {hospitalName}! 🏥',
-        email: {
-          subject: 'Health Tip from {hospitalName}',
-          body: '<h2>Health Tip of the Day</h2><p>{tip}</p><p>Best regards,<br>{hospitalName} Team</p>'
-        }
-      }
-    };
-
-    return type ? templates[type] : templates;
-  }
-
-  /**
-   * Replace template variables
-   */
-  replaceTemplateVars(template, variables) {
-    let result = template;
-    for (const [key, value] of Object.entries(variables)) {
-      result = result.replace(new RegExp(`{${key}}`, 'g'), value);
-    }
-    return result;
   }
 }
 

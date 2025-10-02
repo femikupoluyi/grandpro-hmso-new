@@ -8,16 +8,22 @@ import Login from './pages/Login';
 import OwnerDashboard from './pages/owner/Dashboard';
 import PayoutHistory from './pages/owner/PayoutHistory';
 import ContractStatus from './pages/owner/ContractStatus';
+import OwnerAnalytics from './pages/owner/Analytics';
 import PatientPortal from './pages/patient/Portal';
 import Appointments from './pages/patient/Appointments';
 import Feedback from './pages/patient/Feedback';
 import LoyaltyRewards from './pages/patient/LoyaltyRewards';
+import Reminders from './pages/patient/Reminders';
 
 // Hospital Management Pages
 import HospitalDashboard from './pages/hospital/dashboard/HospitalDashboard';
 import PatientRegistration from './pages/hospital/emr/PatientRegistration';
 import BillingDashboard from './pages/hospital/billing/BillingDashboard';
 import InventoryDashboard from './pages/hospital/inventory/InventoryDashboard';
+
+// Operations Pages
+import CommandCentre from './pages/operations/CommandCentre';
+import ProjectManagement from './pages/operations/ProjectManagement';
 
 function App() {
   const { isAuthenticated, role } = useAuthStore();
@@ -48,6 +54,11 @@ function App() {
               <ContractStatus />
             </ProtectedRoute>
           } />
+          <Route path="analytics" element={
+            <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
+              <OwnerAnalytics />
+            </ProtectedRoute>
+          } />
         </Route>
 
         {/* Patient Routes */}
@@ -72,6 +83,11 @@ function App() {
               <LoyaltyRewards />
             </ProtectedRoute>
           } />
+          <Route path="reminders" element={
+            <ProtectedRoute allowedRoles={['PATIENT']}>
+              <Reminders />
+            </ProtectedRoute>
+          } />
         </Route>
 
         {/* Hospital Management Routes */}
@@ -94,6 +110,20 @@ function App() {
           <Route path="inventory" element={
             <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
               <InventoryDashboard />
+            </ProtectedRoute>
+          } />
+        </Route>
+
+        {/* Operations Management Routes */}
+        <Route path="operations">
+          <Route index element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <CommandCentre />
+            </ProtectedRoute>
+          } />
+          <Route path="projects" element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProjectManagement />
             </ProtectedRoute>
           } />
         </Route>

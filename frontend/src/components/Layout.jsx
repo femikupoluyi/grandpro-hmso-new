@@ -15,6 +15,7 @@ export default function Layout() {
 
   const ownerNavigation = [
     { name: 'Dashboard', href: '/owner' },
+    { name: 'Analytics', href: '/owner/analytics' },
     { name: 'Payouts', href: '/owner/payouts' },
     { name: 'Contracts', href: '/owner/contracts' },
   ];
@@ -22,6 +23,7 @@ export default function Layout() {
   const patientNavigation = [
     { name: 'Portal', href: '/patient' },
     { name: 'Appointments', href: '/patient/appointments' },
+    { name: 'Reminders', href: '/patient/reminders' },
     { name: 'Feedback', href: '/patient/feedback' },
     { name: 'Rewards', href: '/patient/rewards' },
   ];
@@ -34,9 +36,9 @@ export default function Layout() {
   ];
 
   const adminNavigation = [
+    { name: 'Command Centre', href: '/operations' },
     { name: 'Hospital', href: '/hospital' },
-    { name: 'Owners', href: '/owner' },
-    { name: 'EMR', href: '/hospital/emr/register' },
+    { name: 'Projects', href: '/operations/projects' },
     { name: 'Billing', href: '/hospital/billing' },
     { name: 'Inventory', href: '/hospital/inventory' },
   ];

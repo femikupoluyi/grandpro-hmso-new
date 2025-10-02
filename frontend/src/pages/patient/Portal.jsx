@@ -78,6 +78,13 @@ export default function PatientPortal() {
       iconBackground: 'bg-primary-500'
     },
     {
+      name: 'Health Reminders',
+      description: 'View alerts & notifications',
+      href: '/patient/reminders',
+      icon: BellIcon,
+      iconBackground: 'bg-yellow-500'
+    },
+    {
       name: 'Submit Feedback',
       description: 'Share your experience',
       href: '/patient/feedback',
