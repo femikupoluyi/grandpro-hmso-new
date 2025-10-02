@@ -1,6 +1,8 @@
 #!/bin/bash
 
-echo "=== Testing GrandPro HMSO Public URLs ==="
+echo "======================================"
+echo "Testing GrandPro HMSO Public URLs"
+echo "======================================"
 echo ""
 
 # Colors for output
@@ -8,74 +10,147 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Frontend URL
+FRONTEND_URL="https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so"
+# Backend URL
+BACKEND_URL="https://hmso-api-morphvm-wz7xxc7v.http.cloud.morph.so"
+
+echo "Frontend URL: $FRONTEND_URL"
+echo "Backend URL: $BACKEND_URL"
+echo ""
+
 # Test Frontend
-echo "1. Testing Frontend URL..."
-if curl -s -o /dev/null -w "%{http_code}" https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so | grep -q "200"; then
-    echo -e "${GREEN}✓ Frontend is accessible${NC}"
-else
-    echo -e "${RED}✗ Frontend is not accessible${NC}"
-fi
-echo ""
-
-# Test Backend Health
-echo "2. Testing Backend Health Endpoint..."
-HEALTH_RESPONSE=$(curl -s https://hmso-api-morphvm-wz7xxc7v.http.cloud.morph.so/health)
-if echo "$HEALTH_RESPONSE" | grep -q "healthy"; then
-    echo -e "${GREEN}✓ Backend is healthy${NC}"
-    echo "Response: $HEALTH_RESPONSE"
-else
-    echo -e "${RED}✗ Backend health check failed${NC}"
-fi
-echo ""
-
-# Test Frontend Routes
-echo "3. Testing Frontend Routes..."
-ROUTES=(
-    "/onboarding/application"
-    "/onboarding/documents"
-    "/onboarding/dashboard"
-    "/onboarding/contract-review"
-)
-
-for route in "${ROUTES[@]}"; do
-    if curl -s -o /dev/null -w "%{http_code}" https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so$route | grep -q "200"; then
-        echo -e "${GREEN}✓ Route $route is accessible${NC}"
+echo "Testing Frontend..."
+FRONTEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $FRONTEND_URL)
+if [ "$FRONTEND_STATUS" -eq 200 ]; then
+    echo -e "${GREEN}✓ Frontend is accessible (HTTP $FRONTEND_STATUS)${NC}"
+    
+    # Check if HTML is returned
+    FRONTEND_CONTENT=$(curl -s $FRONTEND_URL | head -c 100)
+    if [[ "$FRONTEND_CONTENT" == *"<!DOCTYPE html>"* ]]; then
+        echo -e "${GREEN}✓ Frontend returns valid HTML${NC}"
     else
-        echo -e "${RED}✗ Route $route is not accessible${NC}"
+        echo -e "${RED}✗ Frontend does not return valid HTML${NC}"
     fi
-done
-echo ""
-
-# Test API Endpoints
-echo "4. Testing API Authentication Endpoints..."
-
-# Test Registration
-echo "Testing Registration..."
-REG_RESPONSE=$(curl -s -X POST https://hmso-api-morphvm-wz7xxc7v.http.cloud.morph.so/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test'$(date +%s)'@grandprohmso.ng","password":"Test123!","name":"Test User","role":"hospital_owner"}')
-
-if echo "$REG_RESPONSE" | grep -q "success"; then
-    echo -e "${GREEN}✓ Registration endpoint works${NC}"
 else
-    echo -e "${RED}✗ Registration endpoint failed${NC}"
+    echo -e "${RED}✗ Frontend is not accessible (HTTP $FRONTEND_STATUS)${NC}"
 fi
+
 echo ""
 
-# Test Login
-echo "Testing Login..."
-LOGIN_RESPONSE=$(curl -s -X POST https://hmso-api-morphvm-wz7xxc7v.http.cloud.morph.so/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@grandprohmso.ng","password":"Test123!"}')
+# Test Backend API endpoints
+echo "Testing Backend API..."
 
-if echo "$LOGIN_RESPONSE" | grep -q "token"; then
-    echo -e "${GREEN}✓ Login endpoint works${NC}"
+# Test hospitals endpoint
+echo "  Testing /api/hospitals..."
+HOSPITALS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/hospitals)
+if [ "$HOSPITALS_STATUS" -eq 200 ]; then
+    echo -e "  ${GREEN}✓ /api/hospitals endpoint is accessible (HTTP $HOSPITALS_STATUS)${NC}"
+    
+    # Check if JSON is returned
+    HOSPITALS_JSON=$(curl -s $BACKEND_URL/api/hospitals)
+    if echo "$HOSPITALS_JSON" | python3 -m json.tool > /dev/null 2>&1; then
+        echo -e "  ${GREEN}✓ /api/hospitals returns valid JSON${NC}"
+        
+        # Show hospital count
+        HOSPITAL_COUNT=$(echo "$HOSPITALS_JSON" | python3 -c "import sys, json; data=json.load(sys.stdin); print(len(data.get('hospitals', [])))" 2>/dev/null)
+        echo -e "  ${GREEN}  → Found $HOSPITAL_COUNT hospitals${NC}"
+    else
+        echo -e "  ${RED}✗ /api/hospitals does not return valid JSON${NC}"
+    fi
 else
-    echo -e "${RED}✗ Login endpoint failed${NC}"
+    echo -e "  ${RED}✗ /api/hospitals endpoint is not accessible (HTTP $HOSPITALS_STATUS)${NC}"
 fi
+
 echo ""
 
-echo "=== Test Summary ==="
-echo "Frontend URL: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so"
-echo "Backend API: https://hmso-api-morphvm-wz7xxc7v.http.cloud.morph.so"
-echo "All services are configured and running via PM2 with Nginx proxy"
+# Test users endpoint
+echo "  Testing /api/users..."
+USERS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/users)
+if [ "$USERS_STATUS" -eq 200 ]; then
+    echo -e "  ${GREEN}✓ /api/users endpoint is accessible (HTTP $USERS_STATUS)${NC}"
+else
+    echo -e "  ${RED}✗ /api/users endpoint returned (HTTP $USERS_STATUS)${NC}"
+fi
+
+echo ""
+
+# Test operations dashboard endpoint
+echo "  Testing /api/operations/dashboard..."
+OPS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/operations/dashboard)
+if [ "$OPS_STATUS" -eq 200 ]; then
+    echo -e "  ${GREEN}✓ /api/operations/dashboard endpoint is accessible (HTTP $OPS_STATUS)${NC}"
+    
+    # Check if JSON is returned
+    OPS_JSON=$(curl -s $BACKEND_URL/api/operations/dashboard)
+    if echo "$OPS_JSON" | python3 -m json.tool > /dev/null 2>&1; then
+        echo -e "  ${GREEN}✓ /api/operations/dashboard returns valid JSON${NC}"
+    else
+        echo -e "  ${RED}✗ /api/operations/dashboard does not return valid JSON${NC}"
+    fi
+else
+    echo -e "  ${RED}✗ /api/operations/dashboard endpoint returned (HTTP $OPS_STATUS)${NC}"
+fi
+
+echo ""
+
+# Test projects endpoint
+echo "  Testing /api/operations/projects..."
+PROJECTS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/operations/projects)
+if [ "$PROJECTS_STATUS" -eq 200 ]; then
+    echo -e "  ${GREEN}✓ /api/operations/projects endpoint is accessible (HTTP $PROJECTS_STATUS)${NC}"
+else
+    echo -e "  ${RED}✗ /api/operations/projects endpoint returned (HTTP $PROJECTS_STATUS)${NC}"
+fi
+
+echo ""
+
+# Test CRM endpoints
+echo "  Testing /api/crm/owners..."
+CRM_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/crm/owners)
+if [ "$CRM_STATUS" -eq 200 ]; then
+    echo -e "  ${GREEN}✓ /api/crm/owners endpoint is accessible (HTTP $CRM_STATUS)${NC}"
+else
+    echo -e "  ${RED}✗ /api/crm/owners endpoint returned (HTTP $CRM_STATUS)${NC}"
+fi
+
+echo ""
+
+# Test sourcing endpoints
+echo "  Testing /api/sourcing/applications..."
+SOURCING_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/sourcing/applications)
+if [ "$SOURCING_STATUS" -eq 200 ] || [ "$SOURCING_STATUS" -eq 401 ]; then
+    echo -e "  ${GREEN}✓ /api/sourcing/applications endpoint is accessible (HTTP $SOURCING_STATUS)${NC}"
+else
+    echo -e "  ${RED}✗ /api/sourcing/applications endpoint returned (HTTP $SOURCING_STATUS)${NC}"
+fi
+
+echo ""
+
+# Test CORS headers
+echo "Testing CORS headers..."
+CORS_HEADERS=$(curl -s -I -X OPTIONS $BACKEND_URL/api/hospitals 2>/dev/null | grep -i "access-control")
+if [[ ! -z "$CORS_HEADERS" ]]; then
+    echo -e "${GREEN}✓ CORS headers are present${NC}"
+    echo "$CORS_HEADERS" | sed 's/^/    /'
+else
+    echo -e "${RED}✗ CORS headers are not present${NC}"
+fi
+
+echo ""
+echo "======================================"
+echo "Test Complete!"
+echo ""
+
+# Summary
+echo "Public URLs Summary:"
+echo "  Frontend: $FRONTEND_URL"
+echo "  Backend API: $BACKEND_URL"
+echo ""
+echo "Key Endpoints:"
+echo "  - Dashboard: $FRONTEND_URL/dashboard"
+echo "  - Command Centre: $FRONTEND_URL/operations"
+echo "  - Hospital Management: $FRONTEND_URL/hospitals"
+echo "  - CRM: $FRONTEND_URL/crm"
+echo "  - Projects: $FRONTEND_URL/operations/projects"
+echo "======================================"

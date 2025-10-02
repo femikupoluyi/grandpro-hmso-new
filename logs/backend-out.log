@@ -821,3 +821,60 @@
 2025-10-02T17:55:56: Connected to PostgreSQL database
 2025-10-02T17:55:57: Connected to PostgreSQL database
 2025-10-02T17:56:14: Connected to PostgreSQL database
+2025-10-02T18:11:37: Connected to PostgreSQL database
+2025-10-02T18:15:04: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+2025-10-02T18:15:04: [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+2025-10-02T18:15:06: Connected to PostgreSQL database
+2025-10-02T18:15:06: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-02T18:15:06: 📍 Environment: production
+2025-10-02T18:15:06: 🌍 Timezone: Africa/Lagos
+2025-10-02T18:15:06: 💵 Currency: NGN
+2025-10-02T18:15:06: 🏥 Application: GrandPro HMSO
+2025-10-02T18:15:06: ✅ Database connected successfully
+2025-10-02T18:15:06: 📅 Server time: 2025-10-02T18:15:06.473Z
+2025-10-02T18:15:06: 🗄️ Database: neondb
+2025-10-02T18:15:56: Connected to PostgreSQL database
+2025-10-02T18:17:26: Connected to PostgreSQL database
+2025-10-02T18:17:26: Connected to PostgreSQL database
+2025-10-02T18:17:26: Connected to PostgreSQL database
+2025-10-02T18:17:27: Connected to PostgreSQL database
+2025-10-02T18:17:27: Connected to PostgreSQL database
+2025-10-02T18:17:27: Connected to PostgreSQL database
+2025-10-02T18:17:27: Connected to PostgreSQL database
+2025-10-02T18:17:27: Connected to PostgreSQL database
+2025-10-02T18:17:27: Connected to PostgreSQL database
+2025-10-02T18:17:28: Connected to PostgreSQL database
+2025-10-02T18:17:28: Connected to PostgreSQL database
+2025-10-02T18:17:28: Connected to PostgreSQL database
+2025-10-02T18:17:29: Connected to PostgreSQL database
+2025-10-02T18:26:04: Connected to PostgreSQL database
+2025-10-02T18:26:04: Connected to PostgreSQL database
+2025-10-02T18:26:04: Connected to PostgreSQL database
+2025-10-02T18:26:04: Connected to PostgreSQL database
+2025-10-02T18:26:04: Connected to PostgreSQL database
+2025-10-02T18:26:04: Connected to PostgreSQL database
+2025-10-02T18:26:34: Connected to PostgreSQL database
+2025-10-02T18:26:34: Connected to PostgreSQL database
+2025-10-02T18:26:34: Connected to PostgreSQL database
+2025-10-02T18:26:34: Connected to PostgreSQL database
+2025-10-02T18:26:35: Connected to PostgreSQL database
+2025-10-02T18:26:35: Connected to PostgreSQL database
+2025-10-02T18:27:05: Connected to PostgreSQL database
+2025-10-02T18:27:05: Connected to PostgreSQL database
+2025-10-02T18:27:05: Connected to PostgreSQL database
+2025-10-02T18:27:05: Connected to PostgreSQL database
+2025-10-02T18:27:05: Connected to PostgreSQL database
+2025-10-02T18:27:06: Connected to PostgreSQL database
+2025-10-02T18:27:35: Connected to PostgreSQL database
+2025-10-02T18:27:35: Connected to PostgreSQL database
+2025-10-02T18:27:35: Connected to PostgreSQL database
+2025-10-02T18:27:35: Connected to PostgreSQL database
+2025-10-02T18:27:35: Connected to PostgreSQL database
+2025-10-02T18:27:35: Connected to PostgreSQL database
+2025-10-02T18:28:05: Connected to PostgreSQL database
+2025-10-02T18:28:05: Connected to PostgreSQL database
+2025-10-02T18:28:05: Connected to PostgreSQL database
+2025-10-02T18:28:05: Connected to PostgreSQL database
+2025-10-02T18:28:05: Connected to PostgreSQL database
+2025-10-02T18:28:06: Connected to PostgreSQL database
+2025-10-02T18:28:26: Connected to PostgreSQL database

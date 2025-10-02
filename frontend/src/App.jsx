@@ -46,7 +46,7 @@ import HRDashboard from './pages/hospital/hr/HRDashboard';
 import PayrollManagement from './pages/hospital/hr/PayrollManagement';
 
 // Operations Pages
-import CommandCentre from './pages/operations/CommandCentre';
+import CommandCentre from './pages/CommandCentre';
 import ProjectManagement from './pages/operations/ProjectManagement';
 
 function App() {
@@ -221,6 +221,12 @@ function App() {
               <ProjectManagement />
             </ProtectedRoute>
           } />
+        </Route>
+
+        {/* Demo Routes - No Authentication Required */}
+        <Route path="demo">
+          <Route path="command-centre" element={<CommandCentre />} />
+          <Route path="projects" element={<ProjectManagement />} />
         </Route>
 
         {/* Default redirect based on role */}

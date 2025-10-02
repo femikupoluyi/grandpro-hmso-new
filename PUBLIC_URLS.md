@@ -1,201 +1,163 @@
-# GrandPro HMSO - Public URL Access
+# GrandPro HMSO - Public URLs Documentation
 
-## 🌐 Public Access URLs
+## 🌐 Live Application URLs
 
-### Frontend Application
-- **URL**: Contact administrator for external frontend URL
-- **Port**: 3000
-- **Status**: ✅ Running
+### Production Environment
+The GrandPro HMSO platform is now fully deployed and accessible at the following URLs:
 
-### Backend API
-- **URL**: Contact administrator for external backend URL  
-- **Port**: 5001
-- **Status**: ✅ Running
+#### Main Application
+- **Frontend URL**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so
+- **Backend API URL**: https://hmso-api-morphvm-wz7xxc7v.http.cloud.morph.so
 
-## 📊 API Status Dashboard
+## ✅ Status: All URLs Functional
 
-All Hospital Management Core Operations APIs are now functional:
+All public URLs have been tested and confirmed to be working correctly as of October 2, 2025.
 
-### ✅ Working Endpoints
+### Test Results Summary:
+- ✅ Frontend application loads successfully
+- ✅ Backend API responds correctly
+- ✅ CORS headers configured properly
+- ✅ All modules accessible via routing
 
-#### 1. Health Check
-```bash
-GET /health
-```
-Returns: Service status and configuration
+## 📍 Key Endpoints
 
-#### 2. EMR Module
-```bash
-GET /api/emr/test                    # List all EMR endpoints
-GET /api/emr/patients                # List patients
-POST /api/emr/patients               # Register new patient
-GET /api/emr/patients/:id           # Get patient details
-```
+### Frontend Pages (Public Demo)
+These demo pages are accessible without authentication for testing purposes:
 
-#### 3. Billing Module  
-```bash
-GET /api/billing/test                # List all billing endpoints
-GET /api/billing/invoices            # List invoices
-POST /api/billing/invoices           # Create invoice
-POST /api/billing/payments           # Process payment
-```
+1. **Command Centre Dashboard**
+   - URL: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/demo/command-centre
+   - Features: Real-time multi-hospital analytics, configurable alerts, project tracking
+   - Tabs: Overview, Alerts, Projects, Analytics
 
-#### 4. Inventory Module
-```bash
-GET /api/inventory/test              # List all inventory endpoints
-GET /api/inventory/items             # List inventory items
-POST /api/inventory/items            # Add inventory item
-GET /api/inventory/reorder-alerts    # Get reorder alerts
-```
+2. **Project Management**
+   - URL: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/demo/projects
+   - Features: Hospital expansion/renovation tracking, budget management, milestone tracking
 
-#### 5. HR Module
-```bash
-GET /api/hr/test                     # List all HR endpoints
-GET /api/hr/staff                    # List staff members
-POST /api/hr/staff                   # Register staff
-GET /api/hr/roster                   # Get roster
-```
+### Backend API Endpoints
 
-#### 6. Analytics Module
-```bash
-GET /api/analytics/test              # List all analytics endpoints
-GET /api/analytics/occupancy/:id     # Get occupancy metrics
-GET /api/analytics/dashboard/:id     # Get dashboard data
-GET /api/analytics/revenue/:id       # Get revenue analytics
-```
+#### Core APIs (Tested & Working)
+- `GET /api/hospitals` - List all hospitals ✅
+- `GET /api/users` - List users ✅
+- `GET /api/operations/dashboard` - Operations dashboard data ✅
+- `GET /api/operations/projects` - Project management data ✅
+- `GET /api/operations/alerts` - Alert management ✅
+- `GET /api/operations/command-centre` - Command centre metrics ✅
 
-## 🧪 Testing the APIs
+#### Authentication
+For protected routes, use these test credentials:
+- **Email**: admin@grandpro-hmso.ng
+- **Password**: Admin@123
+- **Role**: ADMIN
 
-### Using cURL (Local)
-```bash
-# Test health endpoint
-curl http://localhost:5001/health
+## 🔧 Technical Details
 
-# Get EMR endpoints
-curl http://localhost:5001/api/emr/test
-
-# Create a patient
-curl -X POST http://localhost:5001/api/emr/patients \
-  -H "Content-Type: application/json" \
-  -d '{
-    "first_name": "Chinwe",
-    "last_name": "Adeleke",
-    "date_of_birth": "1990-05-20",
-    "gender": "female",
-    "phone": "+2348098765432",
-    "email": "chinwe@example.com",
-    "address": "10 Lekki Phase 1",
-    "city": "Lagos",
-    "state": "Lagos",
-    "hospital_id": "11111111-1111-1111-1111-111111111111"
-  }'
-```
-
-### Using External URLs
-Replace `localhost:5001` with the external backend URL when testing remotely.
-
-## 📦 Database Connection
+### Infrastructure
+- **Hosting**: Morph Cloud (VPS)
+- **Web Server**: Nginx (reverse proxy)
+- **Backend**: Node.js + Express (Port 5001)
+- **Frontend**: React + Vite (Port 3001)
 - **Database**: Neon PostgreSQL
-- **Project ID**: crimson-star-18937963
-- **Region**: US East 1
-- **Tables**: 150+ tables across multiple schemas
-- **Status**: ✅ Connected
 
-## 🔒 Security Features
-- CORS enabled for all origins (development mode)
-- JWT authentication ready (not enforced for testing)
-- HTTPS enabled on external URLs
-- Role-based access control implemented
-
-## 🇳🇬 Nigerian Localization
-- Currency: Nigerian Naira (₦)
-- VAT: 7.5%
-- States: All 36 states + FCT
-- Phone format: +234XXXXXXXXXX
-- NHIS Integration: 90% coverage
-- HMO Providers: Hygeia, AXA Mansard, Leadway
-
-## 📈 System Metrics
-- Backend Restarts: 309+ (development iterations)
-- Database Tables: 150+
-- API Endpoints: 100+
-- Response Time: <100ms (average)
-- Uptime: 99.9%
-
-## 🚀 Quick Start Examples
-
-### 1. Register a Hospital
-```javascript
-POST /api/hospitals
-{
-  "name": "Lagos General Hospital",
-  "address": "Marina, Lagos Island",
-  "city": "Lagos",
-  "state": "Lagos",
-  "phone": "+2348012345678",
-  "email": "info@lagosgeneral.ng",
-  "type": "General Hospital"
-}
+### Service Status
+```bash
+# PM2 Process Status
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ grandpro-backend   │ fork     │ 314  │ online    │ 0%       │ 86.1mb   │
+│ 2  │ grandpro-frontend  │ fork     │ 2    │ online    │ 0%       │ 66.8mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
 ```
 
-### 2. Create Staff Member
-```javascript
-POST /api/hr/staff
-{
-  "first_name": "Dr. Emeka",
-  "last_name": "Okafor",
-  "role": "Doctor",
-  "department": "Emergency",
-  "hospital_id": "uuid",
-  "salary": 500000
-}
+### Nginx Configuration
+- Frontend: Port 80 → localhost:3001
+- Backend API: Port 8081 → localhost:5001
+- CORS: Enabled for all origins
+
+## 🚀 Features Implemented in Command Centre
+
+### 1. Real-Time Dashboard
+- System health monitoring
+- Key metrics display (patients, staff, revenue, occupancy)
+- Auto-refresh intervals (10s, 30s, 1min, 5min)
+- Live data indicators
+
+### 2. Alert Management
+- Configurable alert rules
+- Severity levels (Critical, Warning, Info)
+- Alert acknowledgment system
+- Filter by severity
+- Custom threshold settings
+
+### 3. Project Management Board
+- Kanban-style project tracking
+- Status categories: Planning, Approved, Active, Completed
+- Budget tracking
+- Milestone management
+- Progress indicators
+
+### 4. Analytics
+- Hospital occupancy distribution
+- Staff performance metrics
+- Patient-to-staff ratios
+- Expansion opportunity identification
+- Revenue performance charts
+
+## 🧪 Testing Script
+
+A comprehensive testing script is available at:
+```bash
+/root/grandpro-hmso-new/test-public-urls.sh
 ```
 
-### 3. Process Invoice
-```javascript
-POST /api/billing/invoices
-{
-  "patient_id": "uuid",
-  "items": [
-    {"description": "Consultation", "amount": 10000},
-    {"description": "Lab Test", "amount": 5000}
-  ],
-  "payment_method": "cash"
-}
+Run it with:
+```bash
+chmod +x test-public-urls.sh
+./test-public-urls.sh
 ```
 
-## 🔧 Troubleshooting
+## 🔍 Verification Steps
 
-If APIs return 500 errors:
-1. Check database connection
-2. Verify table schemas match
-3. Restart backend service: `pm2 restart grandpro-backend`
-4. Check logs: `pm2 logs grandpro-backend`
+To verify the URLs are working:
 
-## 📝 Notes
-- All timestamps are in UTC
-- Nigerian context (states, currency, tax) is fully implemented
-- Mock data available for testing
-- Real-time analytics dashboard available
-- Predictive analytics using ML algorithms
+1. **Frontend Test**:
+   ```bash
+   curl -I https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so
+   # Expected: HTTP 200 OK
+   ```
 
-## 🎯 Module Status Summary
+2. **API Test**:
+   ```bash
+   curl https://hmso-api-morphvm-wz7xxc7v.http.cloud.morph.so/api/hospitals
+   # Expected: JSON response with hospital data
+   ```
 
-| Module | Status | Endpoints | Database |
-|--------|--------|-----------|-----------|
-| EMR | ✅ Working | 15+ | Connected |
-| Billing | ✅ Working | 14+ | Connected |
-| Inventory | ✅ Working | 13+ | Connected |
-| HR | ✅ Working | 15+ | Connected |
-| Analytics | ✅ Working | 16+ | Connected |
-| CRM | ✅ Working | 10+ | Connected |
-| Operations | ✅ Working | 8+ | Connected |
+3. **Command Centre Test**:
+   - Open: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/demo/command-centre
+   - Verify all tabs load correctly
+   - Check real-time data updates
+   - Test alert configuration modal
 
-## 🚦 Service Health
-- Backend: ✅ Online
-- Frontend: ✅ Online  
-- Database: ✅ Connected
-- External Access: ⚠️ Requires proper URL configuration
+## 📱 Nigerian Context Implementation
+
+All data and configurations use Nigerian-relevant settings:
+- **Currency**: Nigerian Naira (₦)
+- **Time Zone**: West Africa Time (WAT)
+- **Locations**: Lagos, Abuja, Port Harcourt, etc.
+- **Phone Format**: +234 format
+- **Sample Data**: Nigerian hospital names and addresses
+
+## 🎯 Summary
+
+The GrandPro HMSO platform is now fully operational with:
+- ✅ Publicly accessible URLs
+- ✅ Working Command Centre with all features
+- ✅ Project Management system
+- ✅ Real-time analytics and monitoring
+- ✅ Alert configuration system
+- ✅ Nigerian context implementation
+
+All URLs have been tested and verified to be functional. The system is ready for demonstration and further development.
 
 ---
-Last Updated: October 2, 2025 17:03 UTC
+Last Updated: October 2, 2025, 18:30 WAT

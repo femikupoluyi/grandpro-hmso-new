@@ -67,7 +67,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { format, addDays, isAfter } from 'date-fns';
 import { useAuth } from '../../contexts/AuthContext';
-import { api } from '../../services/api';
+import api from '../../services/api';
 
 const PatientPortal = () => {
   const { user } = useAuth();

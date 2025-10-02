@@ -53,7 +53,7 @@ import {
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format } from 'date-fns';
 import { useAuth } from '../../contexts/AuthContext';
-import { api } from '../../services/api';
+import api from '../../services/api';
 
 const OwnerDashboard = () => {
   const { user } = useAuth();
