@@ -762,3 +762,44 @@
 2025-10-02T17:38:17: Connected to PostgreSQL database
 2025-10-02T17:38:17: Connected to PostgreSQL database
 2025-10-02T17:38:18: Connected to PostgreSQL database
+2025-10-02T17:45:58: [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+2025-10-02T17:45:58: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+2025-10-02T17:45:59: Connected to PostgreSQL database
+2025-10-02T17:45:59: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-02T17:45:59: 📍 Environment: production
+2025-10-02T17:45:59: 🌍 Timezone: Africa/Lagos
+2025-10-02T17:45:59: 💵 Currency: NGN
+2025-10-02T17:45:59: 🏥 Application: GrandPro HMSO
+2025-10-02T17:45:59: ✅ Database connected successfully
+2025-10-02T17:45:59: 📅 Server time: 2025-10-02T17:45:59.806Z
+2025-10-02T17:45:59: 🗄️ Database: neondb
+2025-10-02T17:47:09: Connected to PostgreSQL database
+2025-10-02T17:47:10: Connected to PostgreSQL database
+2025-10-02T17:47:10: Connected to PostgreSQL database
+2025-10-02T17:47:10: Connected to PostgreSQL database
+2025-10-02T17:47:19: Connected to PostgreSQL database
+2025-10-02T17:47:19: Connected to PostgreSQL database
+2025-10-02T17:47:19: Connected to PostgreSQL database
+2025-10-02T17:47:20: Connected to PostgreSQL database
+2025-10-02T17:47:20: Connected to PostgreSQL database
+2025-10-02T17:47:20: Connected to PostgreSQL database
+2025-10-02T17:47:30: Connected to PostgreSQL database
+2025-10-02T17:49:30: Connected to PostgreSQL database
+2025-10-02T17:49:30: Connected to PostgreSQL database
+2025-10-02T17:49:30: Connected to PostgreSQL database
+2025-10-02T17:49:30: Connected to PostgreSQL database
+2025-10-02T17:49:31: Connected to PostgreSQL database
+2025-10-02T17:49:31: Connected to PostgreSQL database
+2025-10-02T17:49:31: Connected to PostgreSQL database
+2025-10-02T17:49:31: Connected to PostgreSQL database
+2025-10-02T17:49:32: Connected to PostgreSQL database
+2025-10-02T17:49:32: Connected to PostgreSQL database
+2025-10-02T17:49:33: Connected to PostgreSQL database
+2025-10-02T17:49:33: Connected to PostgreSQL database
+2025-10-02T17:49:33: Connected to PostgreSQL database
+2025-10-02T17:49:33: Connected to PostgreSQL database
+2025-10-02T17:49:33: Connected to PostgreSQL database
+2025-10-02T17:49:33: Connected to PostgreSQL database
+2025-10-02T17:49:34: Connected to PostgreSQL database
+2025-10-02T17:49:34: Connected to PostgreSQL database
+2025-10-02T17:49:34: Connected to PostgreSQL database

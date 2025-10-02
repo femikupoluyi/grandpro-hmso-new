@@ -1,319 +1,450 @@
-const router = require('express').Router();
-const operationsService = require('../services/operations.service');
-// const { authenticateToken, authorizeRoles } = require('../middleware/auth');
+/**
+ * Operations Command Centre Routes
+ */
 
-// All operations routes require admin role
-// router.use(authenticateToken);
-// router.use(authorizeRoles(['admin', 'operations_manager']));
+const express = require('express');
+const router = express.Router();
+const operationsCommandService = require('../services/operations-command.service');
+const projectManagementService = require('../services/project-management.service');
+const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
-// Multi-hospital metrics dashboard
-router.get('/metrics/multi-hospital', async (req, res) => {
+// ==========================================
+// COMMAND CENTRE ENDPOINTS
+// ==========================================
+
+/**
+ * Get command centre dashboard
+ * Aggregates metrics across all hospitals
+ */
+router.get('/command-centre', async (req, res) => {
   try {
-    const { timeRange = '24h' } = req.query;
-    const metrics = await operationsService.getMultiHospitalMetrics(timeRange);
-    res.json({
-      success: true,
-      metrics
+    const { startDate, endDate, hospitalIds } = req.query;
+    const result = await operationsCommandService.getCommandCentreDashboard({
+      startDate,
+      endDate,
+      hospitalIds: hospitalIds ? hospitalIds.split(',') : null
     });
+    res.json(result);
   } catch (error) {
-    console.error('Error fetching multi-hospital metrics:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch multi-hospital metrics'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Single hospital detailed metrics
-router.get('/metrics/hospital/:hospitalId', async (req, res) => {
+/**
+ * Get aggregated patient metrics
+ */
+router.get('/metrics/patients', async (req, res) => {
   try {
-    const { hospitalId } = req.params;
-    const { timeRange = '24h' } = req.query;
-    const metrics = await operationsService.getHospitalMetrics(hospitalId, timeRange);
-    res.json({
-      success: true,
-      metrics
-    });
+    const { hospitalIds, startDate, endDate } = req.query;
+    const dateFilter = operationsCommandService.getDateFilter(startDate, endDate);
+    const hospitalFilter = hospitalIds ? `AND h.id = ANY($1)` : '';
+    const metrics = await operationsCommandService.getPatientMetrics(
+      dateFilter, 
+      hospitalFilter, 
+      hospitalIds ? hospitalIds.split(',') : null
+    );
+    res.json({ success: true, data: metrics });
   } catch (error) {
-    console.error('Error fetching hospital metrics:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch hospital metrics'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Performance KPIs
-router.get('/kpis', async (req, res) => {
+/**
+ * Get staff KPIs
+ */
+router.get('/metrics/staff', async (req, res) => {
   try {
-    const { hospitalId, period = 'month' } = req.query;
-    const kpis = await operationsService.getPerformanceKPIs(hospitalId, period);
-    res.json({
-      success: true,
-      kpis
-    });
+    const { hospitalIds, startDate, endDate } = req.query;
+    const dateFilter = operationsCommandService.getDateFilter(startDate, endDate);
+    const hospitalFilter = hospitalIds ? `AND h.id = ANY($1)` : '';
+    const kpis = await operationsCommandService.getStaffKPIs(
+      dateFilter,
+      hospitalFilter,
+      hospitalIds ? hospitalIds.split(',') : null
+    );
+    res.json({ success: true, data: kpis });
   } catch (error) {
-    console.error('Error fetching KPIs:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch performance KPIs'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Comparative analytics
-router.get('/analytics/compare', async (req, res) => {
+/**
+ * Get financial summary
+ */
+router.get('/metrics/financial', async (req, res) => {
   try {
-    const { hospitalIds = [], metric = 'revenue' } = req.query;
-    const hospitalIdArray = Array.isArray(hospitalIds) ? hospitalIds : [hospitalIds].filter(Boolean);
-    const comparison = await operationsService.getComparativeAnalytics(hospitalIdArray, metric);
-    res.json({
-      success: true,
-      comparison
-    });
+    const { hospitalIds, startDate, endDate } = req.query;
+    const dateFilter = operationsCommandService.getDateFilter(startDate, endDate);
+    const hospitalFilter = hospitalIds ? `AND h.id = ANY($1)` : '';
+    const summary = await operationsCommandService.getFinancialSummary(
+      dateFilter,
+      hospitalFilter,
+      hospitalIds ? hospitalIds.split(',') : null
+    );
+    res.json({ success: true, data: summary });
   } catch (error) {
-    console.error('Error fetching comparative analytics:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch comparative analytics'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// System alerts
+/**
+ * Get hospital performance scores
+ */
+router.get('/performance-scores', async (req, res) => {
+  try {
+    const { hospitalIds } = req.query;
+    const scores = await operationsCommandService.getHospitalPerformanceScores(
+      hospitalIds ? hospitalIds.split(',') : null
+    );
+    res.json({ success: true, data: scores });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Get real-time occupancy data
+ */
+router.get('/occupancy', async (req, res) => {
+  try {
+    const { hospitalIds } = req.query;
+    const occupancy = await operationsCommandService.getRealTimeOccupancy(
+      hospitalIds ? hospitalIds.split(',') : null
+    );
+    res.json({ success: true, data: occupancy });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// ALERTS ENDPOINTS
+// ==========================================
+
+/**
+ * Get active alerts
+ */
 router.get('/alerts', async (req, res) => {
   try {
-    const { severity, resolved = false } = req.query;
-    const alerts = await operationsService.getRealTimeAlerts(severity, resolved === 'true');
-    res.json({
-      success: true,
-      alerts
+    const { hospitalIds, severity, type } = req.query;
+    const alerts = await operationsCommandService.getActiveAlerts(
+      hospitalIds ? hospitalIds.split(',') : null
+    );
+    
+    // Filter by severity if provided
+    let filteredAlerts = alerts;
+    if (severity) {
+      filteredAlerts = alerts.filter(a => a.severity === severity);
+    }
+    if (type) {
+      filteredAlerts = filteredAlerts.filter(a => a.type === type);
+    }
+    
+    res.json({ 
+      success: true, 
+      data: filteredAlerts,
+      summary: {
+        total: filteredAlerts.length,
+        critical: filteredAlerts.filter(a => a.severity === 'critical').length,
+        warning: filteredAlerts.filter(a => a.severity === 'warning').length,
+        info: filteredAlerts.filter(a => a.severity === 'info').length
+      }
     });
   } catch (error) {
-    console.error('Error fetching alerts:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch alerts'
-    });
+    res.status(500).json({ success: false, error: 'Failed to fetch alerts' });
   }
 });
 
-// Create alert
+/**
+ * Create manual alert
+ */
 router.post('/alerts', async (req, res) => {
   try {
-    const alert = await operationsService.createAlert(req.body);
-    res.json({
-      success: true,
-      alert
-    });
+    const alert = await operationsCommandService.createAlert(req.body);
+    res.status(201).json({ success: true, data: alert });
   } catch (error) {
-    console.error('Error creating alert:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create alert'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Resolve alert
+/**
+ * Acknowledge alert
+ */
+router.put('/alerts/:alertId/acknowledge', async (req, res) => {
+  try {
+    const { alertId } = req.params;
+    const { acknowledgedBy, notes } = req.body;
+    const result = await operationsCommandService.acknowledgeAlert(
+      alertId,
+      acknowledgedBy,
+      notes
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Resolve alert
+ */
 router.put('/alerts/:alertId/resolve', async (req, res) => {
   try {
     const { alertId } = req.params;
-    const resolution = {
-      notes: req.body.notes,
-      resolved_by: req.user.id
-    };
-    const alert = await operationsService.resolveAlert(alertId, resolution);
-    res.json({
-      success: true,
-      alert
-    });
+    const { resolvedBy, resolutionNotes } = req.body;
+    const result = await operationsCommandService.resolveAlert(
+      alertId,
+      resolvedBy,
+      resolutionNotes
+    );
+    res.json(result);
   } catch (error) {
-    console.error('Error resolving alert:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to resolve alert'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Expansion projects
+/**
+ * Run automated alert checks
+ */
+router.post('/alerts/check', async (req, res) => {
+  try {
+    const result = await operationsCommandService.runAutomatedAlertChecks();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Check specific alert types
+ */
+router.post('/alerts/check/low-stock', async (req, res) => {
+  try {
+    const alerts = await operationsCommandService.checkLowStockAlerts();
+    res.json({ success: true, data: alerts });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/alerts/check/performance', async (req, res) => {
+  try {
+    const alerts = await operationsCommandService.checkPerformanceAnomalies();
+    res.json({ success: true, data: alerts });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/alerts/check/revenue', async (req, res) => {
+  try {
+    const alerts = await operationsCommandService.checkRevenueGaps();
+    res.json({ success: true, data: alerts });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// PROJECT MANAGEMENT ENDPOINTS
+// ==========================================
+
+/**
+ * Get all projects
+ */
 router.get('/projects', async (req, res) => {
   try {
-    const { status } = req.query;
-    const projects = await operationsService.getExpansionProjects(status);
-    res.json({
-      success: true,
-      projects
-    });
+    const result = await projectManagementService.getProjects(req.query);
+    res.json(result);
   } catch (error) {
-    console.error('Error fetching projects:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch expansion projects'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Create or update project
+/**
+ * Get project details
+ */
+router.get('/projects/:projectId', async (req, res) => {
+  try {
+    const result = await projectManagementService.getProjectDetails(req.params.projectId);
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Create new project
+ */
 router.post('/projects', async (req, res) => {
   try {
-    const project = await operationsService.createExpansionProject(req.body);
-    res.json({
-      success: true,
-      project
-    });
+    const result = await projectManagementService.createProject(req.body);
+    res.status(201).json(result);
   } catch (error) {
-    console.error('Error creating project:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create expansion project'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Real-time metrics stream (WebSocket endpoint)
-router.get('/stream/metrics', async (req, res) => {
-  // Set headers for SSE (Server-Sent Events)
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive'
-  });
-
-  // Send metrics every 5 seconds
-  const intervalId = setInterval(async () => {
-    try {
-      const metrics = await operationsService.getMultiHospitalMetrics('1h');
-      res.write(`data: ${JSON.stringify(metrics)}\n\n`);
-    } catch (error) {
-      console.error('Error streaming metrics:', error);
-    }
-  }, 5000);
-
-  // Clean up on client disconnect
-  req.on('close', () => {
-    clearInterval(intervalId);
-  });
-});
-
-// Hospital ranking by metric
-router.get('/rankings/:metric', async (req, res) => {
+/**
+ * Update project status
+ */
+router.put('/projects/:projectId/status', async (req, res) => {
   try {
-    const { metric } = req.params;
-    const { period = '30d' } = req.query;
-    
-    const validMetrics = ['revenue', 'occupancy', 'satisfaction', 'efficiency', 'quality'];
-    if (!validMetrics.includes(metric)) {
-      return res.status(400).json({
-        success: false,
-        error: `Invalid metric. Must be one of: ${validMetrics.join(', ')}`
-      });
-    }
-
-    const rankings = await operationsService.getComparativeAnalytics([], metric);
-    res.json({
-      success: true,
-      metric,
-      period,
-      rankings: rankings.hospitals
-    });
+    const { projectId } = req.params;
+    const { status, updatedBy, notes } = req.body;
+    const result = await projectManagementService.updateProjectStatus(
+      projectId,
+      status,
+      updatedBy,
+      notes
+    );
+    res.json(result);
   } catch (error) {
-    console.error('Error fetching rankings:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch hospital rankings'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Predictive analytics
-router.get('/analytics/predictions', async (req, res) => {
+/**
+ * Create project task
+ */
+router.post('/projects/:projectId/tasks', async (req, res) => {
   try {
-    const { hospitalId, metric, days = 30 } = req.query;
-    
-    // Placeholder for predictive analytics
-    // In production, this would use ML models
-    const predictions = {
-      hospitalId,
-      metric,
-      predictions: Array.from({ length: parseInt(days) }, (_, i) => ({
-        date: new Date(Date.now() + i * 24 * 60 * 60 * 1000),
-        value: Math.random() * 100,
-        confidence: 0.85 + Math.random() * 0.15
-      }))
-    };
-
-    res.json({
-      success: true,
-      predictions
-    });
+    const taskData = { ...req.body, projectId: req.params.projectId };
+    const result = await projectManagementService.createTask(taskData);
+    res.status(201).json(result);
   } catch (error) {
-    console.error('Error generating predictions:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to generate predictions'
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Resource optimization suggestions
-router.get('/optimize/resources', async (req, res) => {
+/**
+ * Update task status
+ */
+router.put('/tasks/:taskId/status', async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { status, updatedBy, actualHours } = req.body;
+    const result = await projectManagementService.updateTaskStatus(
+      taskId,
+      status,
+      updatedBy,
+      actualHours
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Add project expense
+ */
+router.post('/projects/:projectId/expenses', async (req, res) => {
+  try {
+    const expenseData = { ...req.body, projectId: req.params.projectId };
+    const result = await projectManagementService.addExpense(expenseData);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Get project analytics
+ */
+router.get('/projects/:projectId/analytics', async (req, res) => {
+  try {
+    const result = await projectManagementService.getProjectAnalytics(req.params.projectId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Get overall project analytics
+ */
+router.get('/analytics/projects', async (req, res) => {
+  try {
+    const result = await projectManagementService.getProjectAnalytics();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Get expansion opportunities
+ */
+router.get('/expansion-opportunities', async (req, res) => {
   try {
     const { hospitalId } = req.query;
-    
-    // Generate optimization suggestions based on current metrics
-    const metrics = await operationsService.getHospitalMetrics(hospitalId, '7d');
-    
-    const suggestions = [];
-    
-    // Staffing optimization
-    if (metrics.staffing.attendanceRate < 85) {
-      suggestions.push({
-        category: 'staffing',
-        priority: 'high',
-        suggestion: 'Consider hiring additional staff or implementing attendance incentives',
-        impact: 'Could improve patient care quality by 15%',
-        estimatedSavings: 50000
-      });
-    }
-    
-    // Bed management
-    if (metrics.occupancy.percentage > 90) {
-      suggestions.push({
-        category: 'capacity',
-        priority: 'critical',
-        suggestion: 'Optimize discharge planning to improve bed turnover',
-        impact: 'Could increase patient throughput by 20%',
-        estimatedRevenue: 200000
-      });
-    }
-    
-    // Inventory optimization
-    if (metrics.inventory.lowStockItems > 5) {
-      suggestions.push({
-        category: 'inventory',
-        priority: 'medium',
-        suggestion: 'Implement automatic reordering for critical items',
-        impact: 'Prevent stockouts and emergency purchases',
-        estimatedSavings: 30000
-      });
-    }
+    const result = await projectManagementService.getExpansionOpportunities(hospitalId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
+// ==========================================
+// DASHBOARD SUMMARY ENDPOINT
+// ==========================================
+
+/**
+ * Get operations dashboard summary
+ * This is the main endpoint for the operations dashboard UI
+ */
+router.get('/dashboard', async (req, res) => {
+  try {
+    const { hospitalIds } = req.query;
+    const hospitalFilter = hospitalIds ? hospitalIds.split(',') : null;
+    
+    // Get all required data in parallel
+    const [
+      commandCentre,
+      projects,
+      expansionOpportunities
+    ] = await Promise.all([
+      operationsCommandService.getCommandCentreDashboard({ hospitalIds: hospitalFilter }),
+      projectManagementService.getProjects({ status: 'active' }),
+      projectManagementService.getExpansionOpportunities()
+    ]);
+    
     res.json({
       success: true,
-      hospitalId,
-      suggestions,
-      totalPotentialSavings: suggestions.reduce((sum, s) => sum + (s.estimatedSavings || 0), 0),
-      totalPotentialRevenue: suggestions.reduce((sum, s) => sum + (s.estimatedRevenue || 0), 0)
+      data: {
+        commandCentre: commandCentre.data,
+        activeProjects: projects.data,
+        expansionOpportunities: expansionOpportunities.data,
+        timestamp: new Date().toISOString()
+      }
     });
   } catch (error) {
-    console.error('Error generating optimization suggestions:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to generate optimization suggestions'
-    });
+    res.status(404).json({ success: false, error: 'Dashboard data not available' });
   }
+});
+
+// Test endpoint
+router.get('/test', (req, res) => {
+  res.json({
+    status: 'success',
+    message: 'Operations Command Centre API is working',
+    endpoints: {
+      commandCentre: '/api/operations/command-centre',
+      alerts: '/api/operations/alerts',
+      projects: '/api/operations/projects',
+      dashboard: '/api/operations/dashboard',
+      metrics: {
+        patients: '/api/operations/metrics/patients',
+        staff: '/api/operations/metrics/staff',
+        financial: '/api/operations/metrics/financial'
+      },
+      expansion: '/api/operations/expansion-opportunities'
+    }
+  });
 });
 
 module.exports = router;

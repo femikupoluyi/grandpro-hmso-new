@@ -4980,3 +4980,700 @@
 2025-10-02T17:38:18:   line: '3716',
 2025-10-02T17:38:18:   routine: 'errorMissingColumn'
 2025-10-02T17:38:18: }
+2025-10-02T17:47:09: Error getting patient metrics: error: operator does not exist: uuid = integer
+2025-10-02T17:47:09:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:47:09:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:47:09:     at async OperationsCommandService.getPatientMetrics (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:87:22)
+2025-10-02T17:47:09:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:20:30)
+2025-10-02T17:47:09:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:22:20 {
+2025-10-02T17:47:09:   length: 200,
+2025-10-02T17:47:09:   severity: 'ERROR',
+2025-10-02T17:47:09:   code: '42883',
+2025-10-02T17:47:09:   detail: undefined,
+2025-10-02T17:47:09:   hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
+2025-10-02T17:47:09:   position: '976',
+2025-10-02T17:47:09:   internalPosition: undefined,
+2025-10-02T17:47:09:   internalQuery: undefined,
+2025-10-02T17:47:09:   where: undefined,
+2025-10-02T17:47:09:   schema: undefined,
+2025-10-02T17:47:09:   table: undefined,
+2025-10-02T17:47:09:   column: undefined,
+2025-10-02T17:47:09:   dataType: undefined,
+2025-10-02T17:47:09:   constraint: undefined,
+2025-10-02T17:47:09:   file: 'parse_oper.c',
+2025-10-02T17:47:09:   line: '635',
+2025-10-02T17:47:09:   routine: 'op_error'
+2025-10-02T17:47:09: }
+2025-10-02T17:47:10: Error getting staff KPIs: error: relation "performance_reviews" does not exist
+2025-10-02T17:47:10:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:47:10:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:47:10:     at async OperationsCommandService.getStaffKPIs (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:132:22)
+2025-10-02T17:47:10:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:23:25)
+2025-10-02T17:47:10:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:22:20 {
+2025-10-02T17:47:10:   length: 119,
+2025-10-02T17:47:10:   severity: 'ERROR',
+2025-10-02T17:47:10:   code: '42P01',
+2025-10-02T17:47:10:   detail: undefined,
+2025-10-02T17:47:10:   hint: undefined,
+2025-10-02T17:47:10:   position: '912',
+2025-10-02T17:47:10:   internalPosition: undefined,
+2025-10-02T17:47:10:   internalQuery: undefined,
+2025-10-02T17:47:10:   where: undefined,
+2025-10-02T17:47:10:   schema: undefined,
+2025-10-02T17:47:10:   table: undefined,
+2025-10-02T17:47:10:   column: undefined,
+2025-10-02T17:47:10:   dataType: undefined,
+2025-10-02T17:47:10:   constraint: undefined,
+2025-10-02T17:47:10:   file: 'parse_relation.c',
+2025-10-02T17:47:10:   line: '1449',
+2025-10-02T17:47:10:   routine: 'parserOpenTable'
+2025-10-02T17:47:10: }
+2025-10-02T17:47:10: Error getting financial summary: error: column ic.invoice_id does not exist
+2025-10-02T17:47:10:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:47:10:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:47:10:     at async OperationsCommandService.getFinancialSummary (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:180:22)
+2025-10-02T17:47:10:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:26:32)
+2025-10-02T17:47:10:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:22:20 {
+2025-10-02T17:47:10:   length: 112,
+2025-10-02T17:47:10:   severity: 'ERROR',
+2025-10-02T17:47:10:   code: '42703',
+2025-10-02T17:47:10:   detail: undefined,
+2025-10-02T17:47:10:   hint: undefined,
+2025-10-02T17:47:10:   position: '930',
+2025-10-02T17:47:10:   internalPosition: undefined,
+2025-10-02T17:47:10:   internalQuery: undefined,
+2025-10-02T17:47:10:   where: undefined,
+2025-10-02T17:47:10:   schema: undefined,
+2025-10-02T17:47:10:   table: undefined,
+2025-10-02T17:47:10:   column: undefined,
+2025-10-02T17:47:10:   dataType: undefined,
+2025-10-02T17:47:10:   constraint: undefined,
+2025-10-02T17:47:10:   file: 'parse_relation.c',
+2025-10-02T17:47:10:   line: '3716',
+2025-10-02T17:47:10:   routine: 'errorMissingColumn'
+2025-10-02T17:47:10: }
+2025-10-02T17:47:10: Error getting occupancy data: error: column mr.hospital_id does not exist
+2025-10-02T17:47:10:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:47:10:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:47:10:     at async OperationsCommandService.getRealTimeOccupancy (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:683:22)
+2025-10-02T17:47:10:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:35:29)
+2025-10-02T17:47:10:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:22:20 {
+2025-10-02T17:47:10:   length: 113,
+2025-10-02T17:47:10:   severity: 'ERROR',
+2025-10-02T17:47:10:   code: '42703',
+2025-10-02T17:47:10:   detail: undefined,
+2025-10-02T17:47:10:   hint: undefined,
+2025-10-02T17:47:10:   position: '616',
+2025-10-02T17:47:10:   internalPosition: undefined,
+2025-10-02T17:47:10:   internalQuery: undefined,
+2025-10-02T17:47:10:   where: undefined,
+2025-10-02T17:47:10:   schema: undefined,
+2025-10-02T17:47:10:   table: undefined,
+2025-10-02T17:47:10:   column: undefined,
+2025-10-02T17:47:10:   dataType: undefined,
+2025-10-02T17:47:10:   constraint: undefined,
+2025-10-02T17:47:10:   file: 'parse_relation.c',
+2025-10-02T17:47:10:   line: '3716',
+2025-10-02T17:47:10:   routine: 'errorMissingColumn'
+2025-10-02T17:47:10: }
+2025-10-02T17:47:19: Error getting expansion opportunities: error: column mr.hospital_id does not exist
+2025-10-02T17:47:19:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:47:19:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:47:19:     at async ProjectManagementService.getExpansionOpportunities (/root/grandpro-hmso-new/backend/src/services/project-management.service.js:730:22)
+2025-10-02T17:47:19:     at async Promise.all (index 2)
+2025-10-02T17:47:19:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:47:19:   length: 203,
+2025-10-02T17:47:19:   severity: 'ERROR',
+2025-10-02T17:47:19:   code: '42703',
+2025-10-02T17:47:19:   detail: undefined,
+2025-10-02T17:47:19:   hint: 'Perhaps you meant to reference the column "p.hospital_id" or the column "s.hospital_id".',
+2025-10-02T17:47:19:   position: '583',
+2025-10-02T17:47:19:   internalPosition: undefined,
+2025-10-02T17:47:19:   internalQuery: undefined,
+2025-10-02T17:47:19:   where: undefined,
+2025-10-02T17:47:19:   schema: undefined,
+2025-10-02T17:47:19:   table: undefined,
+2025-10-02T17:47:19:   column: undefined,
+2025-10-02T17:47:19:   dataType: undefined,
+2025-10-02T17:47:19:   constraint: undefined,
+2025-10-02T17:47:19:   file: 'parse_relation.c',
+2025-10-02T17:47:19:   line: '3737',
+2025-10-02T17:47:19:   routine: 'errorMissingColumn'
+2025-10-02T17:47:19: }
+2025-10-02T17:47:19: Error getting projects: error: operator does not exist: uuid = integer
+2025-10-02T17:47:19:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:47:19:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:47:19:     at async ProjectManagementService.getProjects (/root/grandpro-hmso-new/backend/src/services/project-management.service.js:191:22)
+2025-10-02T17:47:19:     at async Promise.all (index 1)
+2025-10-02T17:47:19:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:47:19:   length: 200,
+2025-10-02T17:47:19:   severity: 'ERROR',
+2025-10-02T17:47:19:   code: '42883',
+2025-10-02T17:47:19:   detail: undefined,
+2025-10-02T17:47:19:   hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
+2025-10-02T17:47:19:   position: '937',
+2025-10-02T17:47:19:   internalPosition: undefined,
+2025-10-02T17:47:19:   internalQuery: undefined,
+2025-10-02T17:47:19:   where: undefined,
+2025-10-02T17:47:19:   schema: undefined,
+2025-10-02T17:47:19:   table: undefined,
+2025-10-02T17:47:19:   column: undefined,
+2025-10-02T17:47:19:   dataType: undefined,
+2025-10-02T17:47:19:   constraint: undefined,
+2025-10-02T17:47:19:   file: 'parse_oper.c',
+2025-10-02T17:47:19:   line: '635',
+2025-10-02T17:47:19:   routine: 'op_error'
+2025-10-02T17:47:19: }
+2025-10-02T17:47:19: Error getting patient metrics: error: operator does not exist: uuid = integer
+2025-10-02T17:47:19:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:47:19:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:47:19:     at async OperationsCommandService.getPatientMetrics (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:87:22)
+2025-10-02T17:47:19:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:20:30)
+2025-10-02T17:47:19:     at async Promise.all (index 0)
+2025-10-02T17:47:19:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:47:19:   length: 200,
+2025-10-02T17:47:19:   severity: 'ERROR',
+2025-10-02T17:47:19:   code: '42883',
+2025-10-02T17:47:19:   detail: undefined,
+2025-10-02T17:47:19:   hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
+2025-10-02T17:47:19:   position: '976',
+2025-10-02T17:47:19:   internalPosition: undefined,
+2025-10-02T17:47:19:   internalQuery: undefined,
+2025-10-02T17:47:19:   where: undefined,
+2025-10-02T17:47:19:   schema: undefined,
+2025-10-02T17:47:19:   table: undefined,
+2025-10-02T17:47:19:   column: undefined,
+2025-10-02T17:47:19:   dataType: undefined,
+2025-10-02T17:47:19:   constraint: undefined,
+2025-10-02T17:47:19:   file: 'parse_oper.c',
+2025-10-02T17:47:19:   line: '635',
+2025-10-02T17:47:19:   routine: 'op_error'
+2025-10-02T17:47:19: }
+2025-10-02T17:47:20: Error getting staff KPIs: error: relation "performance_reviews" does not exist
+2025-10-02T17:47:20:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:47:20:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:47:20:     at async OperationsCommandService.getStaffKPIs (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:132:22)
+2025-10-02T17:47:20:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:23:25)
+2025-10-02T17:47:20:     at async Promise.all (index 0)
+2025-10-02T17:47:20:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:47:20:   length: 119,
+2025-10-02T17:47:20:   severity: 'ERROR',
+2025-10-02T17:47:20:   code: '42P01',
+2025-10-02T17:47:20:   detail: undefined,
+2025-10-02T17:47:20:   hint: undefined,
+2025-10-02T17:47:20:   position: '912',
+2025-10-02T17:47:20:   internalPosition: undefined,
+2025-10-02T17:47:20:   internalQuery: undefined,
+2025-10-02T17:47:20:   where: undefined,
+2025-10-02T17:47:20:   schema: undefined,
+2025-10-02T17:47:20:   table: undefined,
+2025-10-02T17:47:20:   column: undefined,
+2025-10-02T17:47:20:   dataType: undefined,
+2025-10-02T17:47:20:   constraint: undefined,
+2025-10-02T17:47:20:   file: 'parse_relation.c',
+2025-10-02T17:47:20:   line: '1449',
+2025-10-02T17:47:20:   routine: 'parserOpenTable'
+2025-10-02T17:47:20: }
+2025-10-02T17:47:20: Error getting financial summary: error: column ic.invoice_id does not exist
+2025-10-02T17:47:20:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:47:20:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:47:20:     at async OperationsCommandService.getFinancialSummary (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:180:22)
+2025-10-02T17:47:20:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:26:32)
+2025-10-02T17:47:20:     at async Promise.all (index 0)
+2025-10-02T17:47:20:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:47:20:   length: 112,
+2025-10-02T17:47:20:   severity: 'ERROR',
+2025-10-02T17:47:20:   code: '42703',
+2025-10-02T17:47:20:   detail: undefined,
+2025-10-02T17:47:20:   hint: undefined,
+2025-10-02T17:47:20:   position: '930',
+2025-10-02T17:47:20:   internalPosition: undefined,
+2025-10-02T17:47:20:   internalQuery: undefined,
+2025-10-02T17:47:20:   where: undefined,
+2025-10-02T17:47:20:   schema: undefined,
+2025-10-02T17:47:20:   table: undefined,
+2025-10-02T17:47:20:   column: undefined,
+2025-10-02T17:47:20:   dataType: undefined,
+2025-10-02T17:47:20:   constraint: undefined,
+2025-10-02T17:47:20:   file: 'parse_relation.c',
+2025-10-02T17:47:20:   line: '3716',
+2025-10-02T17:47:20:   routine: 'errorMissingColumn'
+2025-10-02T17:47:20: }
+2025-10-02T17:47:20: Error getting occupancy data: error: column mr.hospital_id does not exist
+2025-10-02T17:47:20:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:47:20:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:47:20:     at async OperationsCommandService.getRealTimeOccupancy (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:683:22)
+2025-10-02T17:47:20:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:35:29)
+2025-10-02T17:47:20:     at async Promise.all (index 0)
+2025-10-02T17:47:20:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:47:20:   length: 113,
+2025-10-02T17:47:20:   severity: 'ERROR',
+2025-10-02T17:47:20:   code: '42703',
+2025-10-02T17:47:20:   detail: undefined,
+2025-10-02T17:47:20:   hint: undefined,
+2025-10-02T17:47:20:   position: '616',
+2025-10-02T17:47:20:   internalPosition: undefined,
+2025-10-02T17:47:20:   internalQuery: undefined,
+2025-10-02T17:47:20:   where: undefined,
+2025-10-02T17:47:20:   schema: undefined,
+2025-10-02T17:47:20:   table: undefined,
+2025-10-02T17:47:20:   column: undefined,
+2025-10-02T17:47:20:   dataType: undefined,
+2025-10-02T17:47:20:   constraint: undefined,
+2025-10-02T17:47:20:   file: 'parse_relation.c',
+2025-10-02T17:47:20:   line: '3716',
+2025-10-02T17:47:20:   routine: 'errorMissingColumn'
+2025-10-02T17:47:20: }
+2025-10-02T17:49:30: Error getting patient metrics: error: operator does not exist: uuid = integer
+2025-10-02T17:49:30:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:30:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:30:     at async OperationsCommandService.getPatientMetrics (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:87:22)
+2025-10-02T17:49:30:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:20:30)
+2025-10-02T17:49:30:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:22:20 {
+2025-10-02T17:49:30:   length: 200,
+2025-10-02T17:49:30:   severity: 'ERROR',
+2025-10-02T17:49:30:   code: '42883',
+2025-10-02T17:49:30:   detail: undefined,
+2025-10-02T17:49:30:   hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
+2025-10-02T17:49:30:   position: '976',
+2025-10-02T17:49:30:   internalPosition: undefined,
+2025-10-02T17:49:30:   internalQuery: undefined,
+2025-10-02T17:49:30:   where: undefined,
+2025-10-02T17:49:30:   schema: undefined,
+2025-10-02T17:49:30:   table: undefined,
+2025-10-02T17:49:30:   column: undefined,
+2025-10-02T17:49:30:   dataType: undefined,
+2025-10-02T17:49:30:   constraint: undefined,
+2025-10-02T17:49:30:   file: 'parse_oper.c',
+2025-10-02T17:49:30:   line: '635',
+2025-10-02T17:49:30:   routine: 'op_error'
+2025-10-02T17:49:30: }
+2025-10-02T17:49:30: Error getting staff KPIs: error: relation "performance_reviews" does not exist
+2025-10-02T17:49:30:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:30:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:30:     at async OperationsCommandService.getStaffKPIs (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:132:22)
+2025-10-02T17:49:30:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:23:25)
+2025-10-02T17:49:30:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:22:20 {
+2025-10-02T17:49:30:   length: 119,
+2025-10-02T17:49:30:   severity: 'ERROR',
+2025-10-02T17:49:30:   code: '42P01',
+2025-10-02T17:49:30:   detail: undefined,
+2025-10-02T17:49:30:   hint: undefined,
+2025-10-02T17:49:30:   position: '912',
+2025-10-02T17:49:30:   internalPosition: undefined,
+2025-10-02T17:49:30:   internalQuery: undefined,
+2025-10-02T17:49:30:   where: undefined,
+2025-10-02T17:49:30:   schema: undefined,
+2025-10-02T17:49:30:   table: undefined,
+2025-10-02T17:49:30:   column: undefined,
+2025-10-02T17:49:30:   dataType: undefined,
+2025-10-02T17:49:30:   constraint: undefined,
+2025-10-02T17:49:30:   file: 'parse_relation.c',
+2025-10-02T17:49:30:   line: '1449',
+2025-10-02T17:49:30:   routine: 'parserOpenTable'
+2025-10-02T17:49:30: }
+2025-10-02T17:49:30: Error getting financial summary: error: column ic.invoice_id does not exist
+2025-10-02T17:49:30:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:30:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:30:     at async OperationsCommandService.getFinancialSummary (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:180:22)
+2025-10-02T17:49:30:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:26:32)
+2025-10-02T17:49:30:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:22:20 {
+2025-10-02T17:49:30:   length: 112,
+2025-10-02T17:49:30:   severity: 'ERROR',
+2025-10-02T17:49:30:   code: '42703',
+2025-10-02T17:49:30:   detail: undefined,
+2025-10-02T17:49:30:   hint: undefined,
+2025-10-02T17:49:30:   position: '930',
+2025-10-02T17:49:30:   internalPosition: undefined,
+2025-10-02T17:49:30:   internalQuery: undefined,
+2025-10-02T17:49:30:   where: undefined,
+2025-10-02T17:49:30:   schema: undefined,
+2025-10-02T17:49:30:   table: undefined,
+2025-10-02T17:49:30:   column: undefined,
+2025-10-02T17:49:30:   dataType: undefined,
+2025-10-02T17:49:30:   constraint: undefined,
+2025-10-02T17:49:30:   file: 'parse_relation.c',
+2025-10-02T17:49:30:   line: '3716',
+2025-10-02T17:49:30:   routine: 'errorMissingColumn'
+2025-10-02T17:49:30: }
+2025-10-02T17:49:30: Error getting occupancy data: error: column mr.hospital_id does not exist
+2025-10-02T17:49:30:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:30:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:30:     at async OperationsCommandService.getRealTimeOccupancy (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:683:22)
+2025-10-02T17:49:30:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:35:29)
+2025-10-02T17:49:30:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:22:20 {
+2025-10-02T17:49:30:   length: 113,
+2025-10-02T17:49:30:   severity: 'ERROR',
+2025-10-02T17:49:30:   code: '42703',
+2025-10-02T17:49:30:   detail: undefined,
+2025-10-02T17:49:30:   hint: undefined,
+2025-10-02T17:49:30:   position: '616',
+2025-10-02T17:49:30:   internalPosition: undefined,
+2025-10-02T17:49:30:   internalQuery: undefined,
+2025-10-02T17:49:30:   where: undefined,
+2025-10-02T17:49:30:   schema: undefined,
+2025-10-02T17:49:30:   table: undefined,
+2025-10-02T17:49:30:   column: undefined,
+2025-10-02T17:49:30:   dataType: undefined,
+2025-10-02T17:49:30:   constraint: undefined,
+2025-10-02T17:49:30:   file: 'parse_relation.c',
+2025-10-02T17:49:30:   line: '3716',
+2025-10-02T17:49:30:   routine: 'errorMissingColumn'
+2025-10-02T17:49:30: }
+2025-10-02T17:49:31: Error getting patient metrics: error: operator does not exist: uuid = integer
+2025-10-02T17:49:31:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:31:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:31:     at async OperationsCommandService.getPatientMetrics (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:87:22)
+2025-10-02T17:49:31:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:41:21 {
+2025-10-02T17:49:31:   length: 200,
+2025-10-02T17:49:31:   severity: 'ERROR',
+2025-10-02T17:49:31:   code: '42883',
+2025-10-02T17:49:31:   detail: undefined,
+2025-10-02T17:49:31:   hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
+2025-10-02T17:49:31:   position: '976',
+2025-10-02T17:49:31:   internalPosition: undefined,
+2025-10-02T17:49:31:   internalQuery: undefined,
+2025-10-02T17:49:31:   where: undefined,
+2025-10-02T17:49:31:   schema: undefined,
+2025-10-02T17:49:31:   table: undefined,
+2025-10-02T17:49:31:   column: undefined,
+2025-10-02T17:49:31:   dataType: undefined,
+2025-10-02T17:49:31:   constraint: undefined,
+2025-10-02T17:49:31:   file: 'parse_oper.c',
+2025-10-02T17:49:31:   line: '635',
+2025-10-02T17:49:31:   routine: 'op_error'
+2025-10-02T17:49:31: }
+2025-10-02T17:49:31: Error getting staff KPIs: error: relation "performance_reviews" does not exist
+2025-10-02T17:49:31:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:31:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:31:     at async OperationsCommandService.getStaffKPIs (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:132:22)
+2025-10-02T17:49:31:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:60:18 {
+2025-10-02T17:49:31:   length: 119,
+2025-10-02T17:49:31:   severity: 'ERROR',
+2025-10-02T17:49:31:   code: '42P01',
+2025-10-02T17:49:31:   detail: undefined,
+2025-10-02T17:49:31:   hint: undefined,
+2025-10-02T17:49:31:   position: '912',
+2025-10-02T17:49:31:   internalPosition: undefined,
+2025-10-02T17:49:31:   internalQuery: undefined,
+2025-10-02T17:49:31:   where: undefined,
+2025-10-02T17:49:31:   schema: undefined,
+2025-10-02T17:49:31:   table: undefined,
+2025-10-02T17:49:31:   column: undefined,
+2025-10-02T17:49:31:   dataType: undefined,
+2025-10-02T17:49:31:   constraint: undefined,
+2025-10-02T17:49:31:   file: 'parse_relation.c',
+2025-10-02T17:49:31:   line: '1449',
+2025-10-02T17:49:31:   routine: 'parserOpenTable'
+2025-10-02T17:49:31: }
+2025-10-02T17:49:31: Error getting financial summary: error: column ic.invoice_id does not exist
+2025-10-02T17:49:31:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:31:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:31:     at async OperationsCommandService.getFinancialSummary (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:180:22)
+2025-10-02T17:49:31:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:79:21 {
+2025-10-02T17:49:31:   length: 112,
+2025-10-02T17:49:31:   severity: 'ERROR',
+2025-10-02T17:49:31:   code: '42703',
+2025-10-02T17:49:31:   detail: undefined,
+2025-10-02T17:49:31:   hint: undefined,
+2025-10-02T17:49:31:   position: '930',
+2025-10-02T17:49:31:   internalPosition: undefined,
+2025-10-02T17:49:31:   internalQuery: undefined,
+2025-10-02T17:49:31:   where: undefined,
+2025-10-02T17:49:31:   schema: undefined,
+2025-10-02T17:49:31:   table: undefined,
+2025-10-02T17:49:31:   column: undefined,
+2025-10-02T17:49:31:   dataType: undefined,
+2025-10-02T17:49:31:   constraint: undefined,
+2025-10-02T17:49:31:   file: 'parse_relation.c',
+2025-10-02T17:49:31:   line: '3716',
+2025-10-02T17:49:31:   routine: 'errorMissingColumn'
+2025-10-02T17:49:31: }
+2025-10-02T17:49:32: Error checking low stock alerts: error: column ii.quantity_in_stock does not exist
+2025-10-02T17:49:32:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:32:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:32:     at async OperationsCommandService.checkLowStockAlerts (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:302:22)
+2025-10-02T17:49:32:     at async OperationsCommandService.runAutomatedAlertChecks (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:833:30)
+2025-10-02T17:49:32:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:211:20 {
+2025-10-02T17:49:32:   length: 118,
+2025-10-02T17:49:32:   severity: 'ERROR',
+2025-10-02T17:49:32:   code: '42703',
+2025-10-02T17:49:32:   detail: undefined,
+2025-10-02T17:49:32:   hint: undefined,
+2025-10-02T17:49:32:   position: '92',
+2025-10-02T17:49:32:   internalPosition: undefined,
+2025-10-02T17:49:32:   internalQuery: undefined,
+2025-10-02T17:49:32:   where: undefined,
+2025-10-02T17:49:32:   schema: undefined,
+2025-10-02T17:49:32:   table: undefined,
+2025-10-02T17:49:32:   column: undefined,
+2025-10-02T17:49:32:   dataType: undefined,
+2025-10-02T17:49:32:   constraint: undefined,
+2025-10-02T17:49:32:   file: 'parse_relation.c',
+2025-10-02T17:49:32:   line: '3716',
+2025-10-02T17:49:32:   routine: 'errorMissingColumn'
+2025-10-02T17:49:32: }
+2025-10-02T17:49:32: Error checking performance anomalies: error: column mr.hospital_id does not exist
+2025-10-02T17:49:32:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:32:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:32:     at async OperationsCommandService.checkPerformanceAnomalies (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:350:30)
+2025-10-02T17:49:32:     at async OperationsCommandService.runAutomatedAlertChecks (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:834:33)
+2025-10-02T17:49:32:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:211:20 {
+2025-10-02T17:49:32:   length: 113,
+2025-10-02T17:49:32:   severity: 'ERROR',
+2025-10-02T17:49:32:   code: '42703',
+2025-10-02T17:49:32:   detail: undefined,
+2025-10-02T17:49:32:   hint: undefined,
+2025-10-02T17:49:32:   position: '241',
+2025-10-02T17:49:32:   internalPosition: undefined,
+2025-10-02T17:49:32:   internalQuery: undefined,
+2025-10-02T17:49:32:   where: undefined,
+2025-10-02T17:49:32:   schema: undefined,
+2025-10-02T17:49:32:   table: undefined,
+2025-10-02T17:49:32:   column: undefined,
+2025-10-02T17:49:32:   dataType: undefined,
+2025-10-02T17:49:32:   constraint: undefined,
+2025-10-02T17:49:32:   file: 'parse_relation.c',
+2025-10-02T17:49:32:   line: '3716',
+2025-10-02T17:49:32:   routine: 'errorMissingColumn'
+2025-10-02T17:49:32: }
+2025-10-02T17:49:32: Error getting projects: error: operator does not exist: uuid = integer
+2025-10-02T17:49:32:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:32:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:32:     at async ProjectManagementService.getProjects (/root/grandpro-hmso-new/backend/src/services/project-management.service.js:191:22)
+2025-10-02T17:49:32:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:257:20 {
+2025-10-02T17:49:32:   length: 200,
+2025-10-02T17:49:32:   severity: 'ERROR',
+2025-10-02T17:49:32:   code: '42883',
+2025-10-02T17:49:32:   detail: undefined,
+2025-10-02T17:49:32:   hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
+2025-10-02T17:49:32:   position: '937',
+2025-10-02T17:49:32:   internalPosition: undefined,
+2025-10-02T17:49:32:   internalQuery: undefined,
+2025-10-02T17:49:32:   where: undefined,
+2025-10-02T17:49:32:   schema: undefined,
+2025-10-02T17:49:32:   table: undefined,
+2025-10-02T17:49:32:   column: undefined,
+2025-10-02T17:49:32:   dataType: undefined,
+2025-10-02T17:49:32:   constraint: undefined,
+2025-10-02T17:49:32:   file: 'parse_oper.c',
+2025-10-02T17:49:32:   line: '635',
+2025-10-02T17:49:32:   routine: 'op_error'
+2025-10-02T17:49:32: }
+2025-10-02T17:49:33: Error getting project analytics: error: function pg_catalog.extract(unknown, integer) does not exist
+2025-10-02T17:49:33:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:33:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:33:     at async ProjectManagementService.getProjectAnalytics (/root/grandpro-hmso-new/backend/src/services/project-management.service.js:613:27)
+2025-10-02T17:49:33:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:372:20 {
+2025-10-02T17:49:33:   length: 230,
+2025-10-02T17:49:33:   severity: 'ERROR',
+2025-10-02T17:49:33:   code: '42883',
+2025-10-02T17:49:33:   detail: undefined,
+2025-10-02T17:49:33:   hint: 'No function matches the given name and argument types. You might need to add explicit type casts.',
+2025-10-02T17:49:33:   position: '590',
+2025-10-02T17:49:33:   internalPosition: undefined,
+2025-10-02T17:49:33:   internalQuery: undefined,
+2025-10-02T17:49:33:   where: undefined,
+2025-10-02T17:49:33:   schema: undefined,
+2025-10-02T17:49:33:   table: undefined,
+2025-10-02T17:49:33:   column: undefined,
+2025-10-02T17:49:33:   dataType: undefined,
+2025-10-02T17:49:33:   constraint: undefined,
+2025-10-02T17:49:33:   file: 'parse_func.c',
+2025-10-02T17:49:33:   line: '629',
+2025-10-02T17:49:33:   routine: 'ParseFuncOrColumn'
+2025-10-02T17:49:33: }
+2025-10-02T17:49:33: Error getting expansion opportunities: error: column mr.hospital_id does not exist
+2025-10-02T17:49:33:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:33:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:33:     at async ProjectManagementService.getExpansionOpportunities (/root/grandpro-hmso-new/backend/src/services/project-management.service.js:730:22)
+2025-10-02T17:49:33:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:385:20 {
+2025-10-02T17:49:33:   length: 203,
+2025-10-02T17:49:33:   severity: 'ERROR',
+2025-10-02T17:49:33:   code: '42703',
+2025-10-02T17:49:33:   detail: undefined,
+2025-10-02T17:49:33:   hint: 'Perhaps you meant to reference the column "p.hospital_id" or the column "s.hospital_id".',
+2025-10-02T17:49:33:   position: '583',
+2025-10-02T17:49:33:   internalPosition: undefined,
+2025-10-02T17:49:33:   internalQuery: undefined,
+2025-10-02T17:49:33:   where: undefined,
+2025-10-02T17:49:33:   schema: undefined,
+2025-10-02T17:49:33:   table: undefined,
+2025-10-02T17:49:33:   column: undefined,
+2025-10-02T17:49:33:   dataType: undefined,
+2025-10-02T17:49:33:   constraint: undefined,
+2025-10-02T17:49:33:   file: 'parse_relation.c',
+2025-10-02T17:49:33:   line: '3737',
+2025-10-02T17:49:33:   routine: 'errorMissingColumn'
+2025-10-02T17:49:33: }
+2025-10-02T17:49:33: Error getting occupancy data: error: column mr.hospital_id does not exist
+2025-10-02T17:49:33:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:33:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:33:     at async OperationsCommandService.getRealTimeOccupancy (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:683:22)
+2025-10-02T17:49:33:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:111:23 {
+2025-10-02T17:49:33:   length: 113,
+2025-10-02T17:49:33:   severity: 'ERROR',
+2025-10-02T17:49:33:   code: '42703',
+2025-10-02T17:49:33:   detail: undefined,
+2025-10-02T17:49:33:   hint: undefined,
+2025-10-02T17:49:33:   position: '616',
+2025-10-02T17:49:33:   internalPosition: undefined,
+2025-10-02T17:49:33:   internalQuery: undefined,
+2025-10-02T17:49:33:   where: undefined,
+2025-10-02T17:49:33:   schema: undefined,
+2025-10-02T17:49:33:   table: undefined,
+2025-10-02T17:49:33:   column: undefined,
+2025-10-02T17:49:33:   dataType: undefined,
+2025-10-02T17:49:33:   constraint: undefined,
+2025-10-02T17:49:33:   file: 'parse_relation.c',
+2025-10-02T17:49:33:   line: '3716',
+2025-10-02T17:49:33:   routine: 'errorMissingColumn'
+2025-10-02T17:49:33: }
+2025-10-02T17:49:33: Error getting projects: error: operator does not exist: uuid = integer
+2025-10-02T17:49:33:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:33:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:33:     at async ProjectManagementService.getProjects (/root/grandpro-hmso-new/backend/src/services/project-management.service.js:191:22)
+2025-10-02T17:49:33:     at async Promise.all (index 1)
+2025-10-02T17:49:33:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:49:33:   length: 200,
+2025-10-02T17:49:33:   severity: 'ERROR',
+2025-10-02T17:49:33:   code: '42883',
+2025-10-02T17:49:33:   detail: undefined,
+2025-10-02T17:49:33:   hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
+2025-10-02T17:49:33:   position: '937',
+2025-10-02T17:49:33:   internalPosition: undefined,
+2025-10-02T17:49:33:   internalQuery: undefined,
+2025-10-02T17:49:33:   where: undefined,
+2025-10-02T17:49:33:   schema: undefined,
+2025-10-02T17:49:33:   table: undefined,
+2025-10-02T17:49:33:   column: undefined,
+2025-10-02T17:49:33:   dataType: undefined,
+2025-10-02T17:49:33:   constraint: undefined,
+2025-10-02T17:49:33:   file: 'parse_oper.c',
+2025-10-02T17:49:33:   line: '635',
+2025-10-02T17:49:33:   routine: 'op_error'
+2025-10-02T17:49:33: }
+2025-10-02T17:49:33: Error getting expansion opportunities: error: column mr.hospital_id does not exist
+2025-10-02T17:49:33:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:33:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:33:     at async ProjectManagementService.getExpansionOpportunities (/root/grandpro-hmso-new/backend/src/services/project-management.service.js:730:22)
+2025-10-02T17:49:33:     at async Promise.all (index 2)
+2025-10-02T17:49:33:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:49:33:   length: 203,
+2025-10-02T17:49:33:   severity: 'ERROR',
+2025-10-02T17:49:33:   code: '42703',
+2025-10-02T17:49:33:   detail: undefined,
+2025-10-02T17:49:33:   hint: 'Perhaps you meant to reference the column "p.hospital_id" or the column "s.hospital_id".',
+2025-10-02T17:49:33:   position: '583',
+2025-10-02T17:49:33:   internalPosition: undefined,
+2025-10-02T17:49:33:   internalQuery: undefined,
+2025-10-02T17:49:33:   where: undefined,
+2025-10-02T17:49:33:   schema: undefined,
+2025-10-02T17:49:33:   table: undefined,
+2025-10-02T17:49:33:   column: undefined,
+2025-10-02T17:49:33:   dataType: undefined,
+2025-10-02T17:49:33:   constraint: undefined,
+2025-10-02T17:49:33:   file: 'parse_relation.c',
+2025-10-02T17:49:33:   line: '3737',
+2025-10-02T17:49:33:   routine: 'errorMissingColumn'
+2025-10-02T17:49:33: }
+2025-10-02T17:49:33: Error getting patient metrics: error: operator does not exist: uuid = integer
+2025-10-02T17:49:33:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:33:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:33:     at async OperationsCommandService.getPatientMetrics (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:87:22)
+2025-10-02T17:49:33:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:20:30)
+2025-10-02T17:49:33:     at async Promise.all (index 0)
+2025-10-02T17:49:33:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:49:33:   length: 200,
+2025-10-02T17:49:33:   severity: 'ERROR',
+2025-10-02T17:49:33:   code: '42883',
+2025-10-02T17:49:33:   detail: undefined,
+2025-10-02T17:49:33:   hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
+2025-10-02T17:49:33:   position: '976',
+2025-10-02T17:49:33:   internalPosition: undefined,
+2025-10-02T17:49:33:   internalQuery: undefined,
+2025-10-02T17:49:33:   where: undefined,
+2025-10-02T17:49:33:   schema: undefined,
+2025-10-02T17:49:33:   table: undefined,
+2025-10-02T17:49:33:   column: undefined,
+2025-10-02T17:49:33:   dataType: undefined,
+2025-10-02T17:49:33:   constraint: undefined,
+2025-10-02T17:49:33:   file: 'parse_oper.c',
+2025-10-02T17:49:33:   line: '635',
+2025-10-02T17:49:33:   routine: 'op_error'
+2025-10-02T17:49:33: }
+2025-10-02T17:49:34: Error getting staff KPIs: error: relation "performance_reviews" does not exist
+2025-10-02T17:49:34:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:34:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:34:     at async OperationsCommandService.getStaffKPIs (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:132:22)
+2025-10-02T17:49:34:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:23:25)
+2025-10-02T17:49:34:     at async Promise.all (index 0)
+2025-10-02T17:49:34:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:49:34:   length: 119,
+2025-10-02T17:49:34:   severity: 'ERROR',
+2025-10-02T17:49:34:   code: '42P01',
+2025-10-02T17:49:34:   detail: undefined,
+2025-10-02T17:49:34:   hint: undefined,
+2025-10-02T17:49:34:   position: '912',
+2025-10-02T17:49:34:   internalPosition: undefined,
+2025-10-02T17:49:34:   internalQuery: undefined,
+2025-10-02T17:49:34:   where: undefined,
+2025-10-02T17:49:34:   schema: undefined,
+2025-10-02T17:49:34:   table: undefined,
+2025-10-02T17:49:34:   column: undefined,
+2025-10-02T17:49:34:   dataType: undefined,
+2025-10-02T17:49:34:   constraint: undefined,
+2025-10-02T17:49:34:   file: 'parse_relation.c',
+2025-10-02T17:49:34:   line: '1449',
+2025-10-02T17:49:34:   routine: 'parserOpenTable'
+2025-10-02T17:49:34: }
+2025-10-02T17:49:34: Error getting financial summary: error: column ic.invoice_id does not exist
+2025-10-02T17:49:34:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:34:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:34:     at async OperationsCommandService.getFinancialSummary (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:180:22)
+2025-10-02T17:49:34:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:26:32)
+2025-10-02T17:49:34:     at async Promise.all (index 0)
+2025-10-02T17:49:34:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:49:34:   length: 112,
+2025-10-02T17:49:34:   severity: 'ERROR',
+2025-10-02T17:49:34:   code: '42703',
+2025-10-02T17:49:34:   detail: undefined,
+2025-10-02T17:49:34:   hint: undefined,
+2025-10-02T17:49:34:   position: '930',
+2025-10-02T17:49:34:   internalPosition: undefined,
+2025-10-02T17:49:34:   internalQuery: undefined,
+2025-10-02T17:49:34:   where: undefined,
+2025-10-02T17:49:34:   schema: undefined,
+2025-10-02T17:49:34:   table: undefined,
+2025-10-02T17:49:34:   column: undefined,
+2025-10-02T17:49:34:   dataType: undefined,
+2025-10-02T17:49:34:   constraint: undefined,
+2025-10-02T17:49:34:   file: 'parse_relation.c',
+2025-10-02T17:49:34:   line: '3716',
+2025-10-02T17:49:34:   routine: 'errorMissingColumn'
+2025-10-02T17:49:34: }
+2025-10-02T17:49:34: Error getting occupancy data: error: column mr.hospital_id does not exist
+2025-10-02T17:49:34:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:49:34:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:49:34:     at async OperationsCommandService.getRealTimeOccupancy (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:683:22)
+2025-10-02T17:49:34:     at async OperationsCommandService.getCommandCentreDashboard (/root/grandpro-hmso-new/backend/src/services/operations-command.service.js:35:29)
+2025-10-02T17:49:34:     at async Promise.all (index 0)
+2025-10-02T17:49:34:     at async /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:410:9 {
+2025-10-02T17:49:34:   length: 113,
+2025-10-02T17:49:34:   severity: 'ERROR',
+2025-10-02T17:49:34:   code: '42703',
+2025-10-02T17:49:34:   detail: undefined,
+2025-10-02T17:49:34:   hint: undefined,
+2025-10-02T17:49:34:   position: '616',
+2025-10-02T17:49:34:   internalPosition: undefined,
+2025-10-02T17:49:34:   internalQuery: undefined,
+2025-10-02T17:49:34:   where: undefined,
+2025-10-02T17:49:34:   schema: undefined,
+2025-10-02T17:49:34:   table: undefined,
+2025-10-02T17:49:34:   column: undefined,
+2025-10-02T17:49:34:   dataType: undefined,
+2025-10-02T17:49:34:   constraint: undefined,
+2025-10-02T17:49:34:   file: 'parse_relation.c',
+2025-10-02T17:49:34:   line: '3716',
+2025-10-02T17:49:34:   routine: 'errorMissingColumn'
+2025-10-02T17:49:34: }
