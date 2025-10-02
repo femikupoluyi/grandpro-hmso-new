@@ -22,6 +22,11 @@ import OnboardingDashboard from './pages/onboarding/OnboardingDashboard';
 import ContractReview from './pages/onboarding/ContractReview';
 import Landing from './pages/Landing';
 
+// CRM Pages
+import OwnerManagement from './pages/crm/OwnerManagement';
+import PatientManagement from './pages/crm/PatientManagement';
+import CommunicationCampaigns from './pages/crm/CommunicationCampaigns';
+
 // Hospital Management Pages
 import HospitalDashboard from './pages/hospital/dashboard/HospitalDashboard';
 import PatientRegistration from './pages/hospital/emr/PatientRegistration';
@@ -179,6 +184,25 @@ function App() {
               </ProtectedRoute>
             } />
           </Route>
+        </Route>
+
+        {/* CRM Routes */}
+        <Route path="crm">
+          <Route path="owners" element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
+              <OwnerManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="patients" element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
+              <PatientManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="campaigns" element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
+              <CommunicationCampaigns />
+            </ProtectedRoute>
+          } />
         </Route>
 
         {/* Operations Management Routes */}
