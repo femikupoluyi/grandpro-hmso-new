@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@prisma/client": "^6.16.3",
+    "axios": "^1.12.2",
+    "form-data": "^4.0.4",
+    "prisma": "^6.16.3"
+  }
+}
