@@ -593,4 +593,4 @@ class PharmacyIntegration {
   }
 }
 
-module.exports = new PharmacyIntegration();
+module.exports = PharmacyIntegration;

@@ -753,4 +753,4 @@ class TelemedicineIntegration {
   }
 }
 
-module.exports = new TelemedicineIntegration();
+module.exports = TelemedicineIntegration;

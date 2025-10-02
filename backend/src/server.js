@@ -35,6 +35,11 @@ const operationsRoutes = require('./routes/operations.routes');
 const hospitalAnalyticsRoutes = require('./routes/hospital-analytics.routes');
 const analyticsEnhancedRoutes = require('./routes/analytics-enhanced.routes');
 
+// Partner Integration Routes
+const insuranceRoutes = require('./routes/insurance.routes');
+const pharmacyRoutes = require('./routes/pharmacy.routes');
+const telemedicineRoutes = require('./routes/telemedicine.routes');
+
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -91,6 +96,11 @@ app.use('/api/operations', operationsRoutes);
 app.use('/api/analytics', analyticsEnhancedRoutes); // Use enhanced implementation
 // Legacy analytics route for backward compatibility
 app.use('/api/analytics-legacy', hospitalAnalyticsRoutes);
+
+// Partner Integration Routes
+app.use('/api/insurance', insuranceRoutes);
+app.use('/api/pharmacy', pharmacyRoutes);
+app.use('/api/telemedicine', telemedicineRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

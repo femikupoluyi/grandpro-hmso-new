@@ -409,4 +409,4 @@ class InsuranceIntegration {
   }
 }
 
-module.exports = new InsuranceIntegration();
+module.exports = InsuranceIntegration;
