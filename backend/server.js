@@ -32,6 +32,7 @@ const crmRouter = require('./src/routes/crm.routes');
 const ownerCrmRouter = require('./src/routes/owner-crm.routes');
 const patientCrmRouter = require('./src/routes/patient-crm.routes');
 const communicationRouter = require('./src/routes/communication.routes');
+const hospitalRouter = require('./src/routes/hospital.routes');
 const hospitalManagementRouter = require('./modules/hospital-management');
 const operationsRouter = require('./modules/operations/operationsRoutes');
 
@@ -39,7 +40,8 @@ app.use('/api/crm', crmRouter);
 app.use('/api/crm/owners', ownerCrmRouter);
 app.use('/api/crm/patients', patientCrmRouter);
 app.use('/api/crm/communications', communicationRouter);
-app.use('/api/hospital', hospitalManagementRouter);
+app.use('/api/hospital', hospitalRouter);
+app.use('/api/hospital-management', hospitalManagementRouter);
 app.use('/api/operations', operationsRouter);
 
 // Error handling middleware
