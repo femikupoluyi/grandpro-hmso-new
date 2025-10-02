@@ -13,6 +13,7 @@ const userRoutes = require('./routes/user.routes');
 const contractRoutes = require('./routes/contract.routes');
 const applicationRoutes = require('./routes/application.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const onboardingRoutes = require('./routes/onboarding.routes');
 
 // Initialize Express app
 const app = express();
@@ -48,6 +49,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/onboarding', onboardingRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -61,7 +63,8 @@ app.get('/', (req, res) => {
       users: '/api/users',
       contracts: '/api/contracts',
       applications: '/api/applications',
-      dashboard: '/api/dashboard'
+      dashboard: '/api/dashboard',
+      onboarding: '/api/onboarding'
     }
   });
 });

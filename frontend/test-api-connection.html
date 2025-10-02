@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrandPro HMSO - API Connection Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #111827;
+            border-bottom: 2px solid #22c55e;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f3f4f6;
+            border-radius: 6px;
+        }
+        .success {
+            color: #059669;
+            background: #d1fae5;
+        }
+        .error {
+            color: #dc2626;
+            background: #fee2e2;
+        }
+        .info {
+            color: #1f2937;
+            background: #e5e7eb;
+        }
+        button {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #16a34a;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 GrandPro HMSO - Frontend-Backend Communication Test</h1>
+        
+        <div class="test-section info">
+            <h2>Configuration</h2>
+            <p><strong>Frontend URL:</strong> <span id="frontendUrl"></span></p>
+            <p><strong>Backend API URL:</strong> https://grandpro-api-v2-morphvm-wz7xxc7v.http.cloud.morph.so</p>
+            <p><strong>Environment:</strong> Development</p>
+            <p><strong>Region:</strong> Nigeria (Lagos)</p>
+        </div>
+
+        <div class="test-section">
+            <h2>1. Health Check Test</h2>
+            <button onclick="testHealthCheck()">Test Health Endpoint</button>
+            <div id="healthResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Public API Test</h2>
+            <button onclick="testPublicAPI()">Test Hospitals Endpoint</button>
+            <div id="publicResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Authentication Test</h2>
+            <button onclick="testAuth()">Test Login Endpoint</button>
+            <div id="authResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://grandpro-api-v2-morphvm-wz7xxc7v.http.cloud.morph.so';
+        
+        // Display current frontend URL
+        document.getElementById('frontendUrl').textContent = window.location.href;
+
+        async function testHealthCheck() {
+            const resultDiv = document.getElementById('healthResult');
+            resultDiv.textContent = 'Testing...';
+            resultDiv.className = 'result info';
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <strong>✅ SUCCESS</strong><br>
+                    Status: ${response.status}<br>
+                    Service: ${data.service}<br>
+                    Timezone: ${data.timezone}<br>
+                    Currency: ${data.currency}<br>
+                    Timestamp: ${data.timestamp}
+                `;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ ERROR: ${error.message}`;
+            }
+        }
+
+        async function testPublicAPI() {
+            const resultDiv = document.getElementById('publicResult');
+            resultDiv.textContent = 'Testing...';
+            resultDiv.className = 'result info';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/hospitals`);
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <strong>✅ SUCCESS</strong><br>
+                    Status: ${response.status}<br>
+                    Hospitals Found: ${data.hospitals.length}<br>
+                    Sample Hospital: ${data.hospitals[0]?.name || 'N/A'}<br>
+                    Location: ${data.hospitals[0]?.city || 'N/A'}, ${data.hospitals[0]?.state || 'N/A'}
+                `;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ ERROR: ${error.message}`;
+            }
+        }
+
+        async function testAuth() {
+            const resultDiv = document.getElementById('authResult');
+            resultDiv.textContent = 'Testing...';
+            resultDiv.className = 'result info';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@grandpro.ng',
+                        password: 'demo123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ SUCCESS</strong><br>
+                        Status: ${response.status}<br>
+                        Message: ${data.message}<br>
+                        User: ${data.user.firstName} ${data.user.lastName}<br>
+                        Role: ${data.user.role}<br>
+                        Token: ${data.token ? 'Generated (JWT)' : 'N/A'}
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ AUTH FAILED: ${data.error || 'Unknown error'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ ERROR: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
