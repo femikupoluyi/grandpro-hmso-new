@@ -761,3 +761,58 @@
 2025-10-02T15:40:23:     at OwnerCRMService.getOwnerProfile (/root/grandpro-hmso-new/backend/src/services/owner-crm.service.js:30:15)
 2025-10-02T15:40:23:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
 2025-10-02T15:40:23:     at async /root/grandpro-hmso-new/backend/src/routes/owner-crm.routes.js:24:21
+2025-10-02T15:45:17: Error fetching occupancy metrics: TypeError: pool.query is not a function
+2025-10-02T15:45:17:     at HospitalAnalyticsService.getOccupancyMetrics (/root/grandpro-hmso-new/backend/src/services/hospital-analytics.service.js:26:33)
+2025-10-02T15:45:17:     at HospitalAnalyticsService.getDashboardMetrics (/root/grandpro-hmso-new/backend/src/services/hospital-analytics.service.js:386:14)
+2025-10-02T15:45:17:     at /root/grandpro-hmso-new/backend/src/routes/hospital-analytics.routes.js:143:54
+2025-10-02T15:45:17:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T15:45:17:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T15:45:17:     at authMiddleware (/root/grandpro-hmso-new/backend/src/middleware/auth.js:21:5)
+2025-10-02T15:45:17:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T15:45:17:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T15:45:17:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T15:45:17:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T15:45:17: Error fetching revenue metrics: TypeError: pool.query is not a function
+2025-10-02T15:45:17:     at HospitalAnalyticsService.getRevenueMetrics (/root/grandpro-hmso-new/backend/src/services/hospital-analytics.service.js:100:33)
+2025-10-02T15:45:17:     at HospitalAnalyticsService.getDashboardMetrics (/root/grandpro-hmso-new/backend/src/services/hospital-analytics.service.js:387:14)
+2025-10-02T15:45:17:     at /root/grandpro-hmso-new/backend/src/routes/hospital-analytics.routes.js:143:54
+2025-10-02T15:45:17:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T15:45:17:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T15:45:17:     at authMiddleware (/root/grandpro-hmso-new/backend/src/middleware/auth.js:21:5)
+2025-10-02T15:45:17:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T15:45:17:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T15:45:17:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T15:45:17:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T15:45:17: Error fetching department metrics: TypeError: pool.query is not a function
+2025-10-02T15:45:17:     at HospitalAnalyticsService.getDepartmentMetrics (/root/grandpro-hmso-new/backend/src/services/hospital-analytics.service.js:271:33)
+2025-10-02T15:45:17:     at HospitalAnalyticsService.getDashboardMetrics (/root/grandpro-hmso-new/backend/src/services/hospital-analytics.service.js:388:14)
+2025-10-02T15:45:17:     at /root/grandpro-hmso-new/backend/src/routes/hospital-analytics.routes.js:143:54
+2025-10-02T15:45:17:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T15:45:17:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T15:45:17:     at authMiddleware (/root/grandpro-hmso-new/backend/src/middleware/auth.js:21:5)
+2025-10-02T15:45:17:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T15:45:17:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T15:45:17:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T15:45:17:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T15:45:17: Error fetching predictive metrics: TypeError: pool.query is not a function
+2025-10-02T15:45:17:     at HospitalAnalyticsService.getPredictiveMetrics (/root/grandpro-hmso-new/backend/src/services/hospital-analytics.service.js:325:39)
+2025-10-02T15:45:17:     at HospitalAnalyticsService.getDashboardMetrics (/root/grandpro-hmso-new/backend/src/services/hospital-analytics.service.js:389:14)
+2025-10-02T15:45:17:     at /root/grandpro-hmso-new/backend/src/routes/hospital-analytics.routes.js:143:54
+2025-10-02T15:45:17:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T15:45:17:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T15:45:17:     at authMiddleware (/root/grandpro-hmso-new/backend/src/middleware/auth.js:21:5)
+2025-10-02T15:45:17:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T15:45:17:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T15:45:17:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T15:45:17:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T15:45:17: Error fetching dashboard metrics: TypeError: pool.query is not a function
+2025-10-02T15:45:17:     at HospitalAnalyticsService.getOccupancyMetrics (/root/grandpro-hmso-new/backend/src/services/hospital-analytics.service.js:26:33)
+2025-10-02T15:45:17:     at HospitalAnalyticsService.getDashboardMetrics (/root/grandpro-hmso-new/backend/src/services/hospital-analytics.service.js:386:14)
+2025-10-02T15:45:17:     at /root/grandpro-hmso-new/backend/src/routes/hospital-analytics.routes.js:143:54
+2025-10-02T15:45:17:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T15:45:17:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T15:45:17:     at authMiddleware (/root/grandpro-hmso-new/backend/src/middleware/auth.js:21:5)
+2025-10-02T15:45:17:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T15:45:17:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T15:45:17:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T15:45:17:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)

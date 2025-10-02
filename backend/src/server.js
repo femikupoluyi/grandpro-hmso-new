@@ -31,6 +31,9 @@ const hrRoutes = require('./routes/hr.routes');
 // Operations Routes
 const operationsRoutes = require('./routes/operations.routes');
 
+// Hospital Analytics Routes
+const hospitalAnalyticsRoutes = require('./routes/hospital-analytics.routes');
+
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -82,6 +85,9 @@ app.use('/api/hr', hrRoutes);
 
 // Operations Routes
 app.use('/api/operations', operationsRoutes);
+
+// Hospital Analytics Routes
+app.use('/api/analytics', hospitalAnalyticsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

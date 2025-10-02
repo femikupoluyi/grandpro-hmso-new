@@ -151,3 +151,25 @@
 2025-10-02T15:27:09: 🗄️ Database: neondb
 2025-10-02T15:28:04: Connected to PostgreSQL database
 2025-10-02T15:29:46: Connected to PostgreSQL database
+2025-10-02T15:44:57: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+2025-10-02T15:44:57: [dotenv@17.2.3] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+2025-10-02T15:44:58: Connected to PostgreSQL database
+2025-10-02T15:44:58: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-02T15:44:58: 📍 Environment: production
+2025-10-02T15:44:58: 🌍 Timezone: Africa/Lagos
+2025-10-02T15:44:58: 💵 Currency: NGN
+2025-10-02T15:44:58: 🏥 Application: GrandPro HMSO
+2025-10-02T15:44:58: ✅ Database connected successfully
+2025-10-02T15:44:58: 📅 Server time: 2025-10-02T15:44:58.430Z
+2025-10-02T15:44:58: 🗄️ Database: neondb
+2025-10-02T15:45:41: [dotenv@17.2.3] injecting env (0) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+2025-10-02T15:45:41: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+2025-10-02T15:45:42: Connected to PostgreSQL database
+2025-10-02T15:45:42: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-02T15:45:42: 📍 Environment: production
+2025-10-02T15:45:42: 🌍 Timezone: Africa/Lagos
+2025-10-02T15:45:42: 💵 Currency: NGN
+2025-10-02T15:45:42: 🏥 Application: GrandPro HMSO
+2025-10-02T15:45:42: ✅ Database connected successfully
+2025-10-02T15:45:42: 📅 Server time: 2025-10-02T15:45:42.666Z
+2025-10-02T15:45:42: 🗄️ Database: neondb
