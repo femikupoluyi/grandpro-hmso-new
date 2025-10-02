@@ -4,6 +4,7 @@
     "@tensorflow/tfjs-node": "^4.22.0",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
+    "colors": "^1.4.0",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^4.2.1",
     "ws": "^8.18.3"
