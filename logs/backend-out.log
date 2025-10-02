@@ -710,3 +710,36 @@
 2025-10-02T17:03:08: ✅ Database connected successfully
 2025-10-02T17:03:08: 📅 Server time: 2025-10-02T17:03:08.701Z
 2025-10-02T17:03:08: 🗄️ Database: neondb
+2025-10-02T17:10:53: Connected to PostgreSQL database
+2025-10-02T17:10:54: Connected to PostgreSQL database
+2025-10-02T17:13:42: [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+2025-10-02T17:13:42: [dotenv@17.2.3] injecting env (0) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+2025-10-02T17:13:43: Connected to PostgreSQL database
+2025-10-02T17:13:43: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-02T17:13:43: 📍 Environment: production
+2025-10-02T17:13:43: 🌍 Timezone: Africa/Lagos
+2025-10-02T17:13:43: 💵 Currency: NGN
+2025-10-02T17:13:43: 🏥 Application: GrandPro HMSO
+2025-10-02T17:13:43: ✅ Database connected successfully
+2025-10-02T17:13:43: 📅 Server time: 2025-10-02T17:13:43.123Z
+2025-10-02T17:13:43: 🗄️ Database: neondb
+2025-10-02T17:13:57: Connected to PostgreSQL database
+2025-10-02T17:13:57: Connected to PostgreSQL database
+2025-10-02T17:13:57: Connected to PostgreSQL database
+2025-10-02T17:13:58: Connected to PostgreSQL database
+2025-10-02T17:13:58: Connected to PostgreSQL database
+2025-10-02T17:14:19: Connected to PostgreSQL database
+2025-10-02T17:14:38: Connected to PostgreSQL database
+2025-10-02T17:15:32: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+2025-10-02T17:15:32: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+2025-10-02T17:15:32: Connected to PostgreSQL database
+2025-10-02T17:15:32: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-02T17:15:32: 📍 Environment: production
+2025-10-02T17:15:32: 🌍 Timezone: Africa/Lagos
+2025-10-02T17:15:32: 💵 Currency: NGN
+2025-10-02T17:15:32: 🏥 Application: GrandPro HMSO
+2025-10-02T17:15:32: ✅ Database connected successfully
+2025-10-02T17:15:32: 📅 Server time: 2025-10-02T17:15:32.945Z
+2025-10-02T17:15:32: 🗄️ Database: neondb
+2025-10-02T17:15:54: Connected to PostgreSQL database
+2025-10-02T17:15:54: Connected to PostgreSQL database

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const billingService = require('../services/billing-enhanced.service');
 const { authenticateToken } = require('../middleware/auth');
+const { pool } = require('../config/database');
 
 // Test endpoint
 router.get('/test', (req, res) => {
@@ -61,8 +62,25 @@ router.get('/accounts/:patientId', async (req, res) => {
 // Create invoice
 router.post('/invoices', async (req, res) => {
   try {
-    const result = await billingService.createInvoice(req.body);
-    res.status(201).json(result);
+    const { patient_id, hospital_id, items, payment_method, total_amount } = req.body;
+    
+    // Generate invoice number
+    const invoice_number = `INV${Date.now()}`;
+    
+    const query = `
+      INSERT INTO invoices (patient_id, invoice_number, items, total_amount, payment_method, status, created_at)
+      VALUES ($1, $2, $3, $4, $5, 'pending', NOW())
+      RETURNING *
+    `;
+    
+    const values = [patient_id, invoice_number, JSON.stringify(items), total_amount || 0, payment_method];
+    const result = await pool.query(query, values);
+    
+    res.status(201).json({
+      status: 'success',
+      message: 'Invoice created successfully',
+      data: result.rows[0]
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

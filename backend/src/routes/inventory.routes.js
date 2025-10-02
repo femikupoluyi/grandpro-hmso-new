@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const inventoryService = require('../services/inventory-enhanced.service');
 const { authenticateToken } = require('../middleware/auth');
+const { pool } = require('../config/database');
 
 // Test endpoint
 router.get('/test', (req, res) => {
@@ -36,8 +37,34 @@ router.get('/test', (req, res) => {
 // Add inventory item
 router.post('/items', async (req, res) => {
   try {
-    const result = await inventoryService.addInventoryItem(req.body);
-    res.status(201).json(result);
+    const { hospital_id, name, category, quantity, unit, reorder_level, unit_price, expiry_date } = req.body;
+    
+    // Generate item code
+    const item_code = `ITEM${Date.now()}`;
+    
+    const query = `
+      INSERT INTO inventory_items (
+        hospital_id, item_code, item_name, name, category, item_type, 
+        unit_of_measure, unit, reorder_level, reorder_quantity, minimum_stock, 
+        current_stock, unit_cost, unit_price, expiry_date, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+      RETURNING *
+    `;
+    
+    const values = [
+      hospital_id, item_code, name, name, category || 'medication', 'drug',
+      unit || 'tablets', unit, reorder_level || 10, reorder_level || 10, 5,
+      quantity || 0, unit_price || 0, unit_price || 0, expiry_date
+    ];
+    
+    const result = await pool.query(query, values);
+    
+    res.status(201).json({
+      status: 'success',
+      message: 'Inventory item added successfully',
+      data: result.rows[0]
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

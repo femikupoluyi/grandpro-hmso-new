@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const hrService = require('../services/hr-enhanced.service');
 const { authenticateToken } = require('../middleware/auth');
+const { pool } = require('../config/database');
 
 // Test endpoint
 router.get('/test', (req, res) => {
@@ -43,8 +44,34 @@ router.get('/test', (req, res) => {
 // Register staff
 router.post('/staff', async (req, res) => {
   try {
-    const result = await hrService.registerStaff(req.body);
-    res.status(201).json(result);
+    const { hospital_id, first_name, last_name, employee_id, role, department, phone, email, hire_date, salary } = req.body;
+    
+    const query = `
+      INSERT INTO staff (hospital_id, first_name, last_name, employee_id, role, department, phone, email, hire_date, salary, status, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'active', NOW())
+      RETURNING *
+    `;
+    
+    const values = [
+      hospital_id, 
+      first_name, 
+      last_name, 
+      employee_id || `EMP${Date.now()}`,
+      role, 
+      department, 
+      phone || '', 
+      email || '', 
+      hire_date || new Date(), 
+      salary || 0
+    ];
+    
+    const result = await pool.query(query, values);
+    
+    res.status(201).json({
+      status: 'success',
+      message: 'Staff registered successfully',
+      data: result.rows[0]
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
