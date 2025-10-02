@@ -18,7 +18,7 @@ module.exports = {
     {
       name: 'grandpro-frontend',
       script: 'npx',
-      args: 'serve -s dist -l 3000',
+      args: 'serve -s dist -l 3001',
       cwd: '/root/grandpro-hmso-new/frontend',
       env: {
         NODE_ENV: 'production'

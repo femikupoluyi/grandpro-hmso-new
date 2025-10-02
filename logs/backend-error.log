@@ -4791,3 +4791,146 @@
 2025-10-02T16:55:34:     '/root/grandpro-hmso-new/backend/src/server.js'
 2025-10-02T16:55:34:   ]
 2025-10-02T16:55:34: }
+2025-10-02T17:23:02: Error getting owner profile: Error: Owner not found
+2025-10-02T17:23:02:     at OwnerCRMService.getOwnerProfile (/root/grandpro-hmso-new/backend/src/services/owner-crm.service.js:30:15)
+2025-10-02T17:23:02:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:23:02:     at async /root/grandpro-hmso-new/backend/src/routes/owner-crm.routes.js:24:21
+2025-10-02T17:23:02: Error fetching real-time alerts: TypeError: db.query is not a function
+2025-10-02T17:23:02:     at OperationsService.getRealTimeAlerts (/root/grandpro-hmso-new/backend/src/services/operations.service.js:679:31)
+2025-10-02T17:23:02:     at /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:87:44
+2025-10-02T17:23:02:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:23:02:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T17:23:02:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T17:23:02:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T17:23:02:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:23:02:     at /root/grandpro-hmso-new/backend/node_modules/router/index.js:295:15
+2025-10-02T17:23:02:     at processParams (/root/grandpro-hmso-new/backend/node_modules/router/index.js:582:12)
+2025-10-02T17:23:02:     at next (/root/grandpro-hmso-new/backend/node_modules/router/index.js:291:5)
+2025-10-02T17:23:02: Error fetching alerts: TypeError: db.query is not a function
+2025-10-02T17:23:02:     at OperationsService.getRealTimeAlerts (/root/grandpro-hmso-new/backend/src/services/operations.service.js:679:31)
+2025-10-02T17:23:02:     at /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:87:44
+2025-10-02T17:23:02:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:23:02:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T17:23:02:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T17:23:02:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T17:23:02:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:23:02:     at /root/grandpro-hmso-new/backend/node_modules/router/index.js:295:15
+2025-10-02T17:23:02:     at processParams (/root/grandpro-hmso-new/backend/node_modules/router/index.js:582:12)
+2025-10-02T17:23:02:     at next (/root/grandpro-hmso-new/backend/node_modules/router/index.js:291:5)
+2025-10-02T17:28:22: Error fetching real-time alerts: TypeError: db.query is not a function
+2025-10-02T17:28:22:     at OperationsService.getRealTimeAlerts (/root/grandpro-hmso-new/backend/src/services/operations.service.js:679:31)
+2025-10-02T17:28:22:     at /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:87:44
+2025-10-02T17:28:22:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:28:22:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T17:28:22:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T17:28:22:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T17:28:22:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:28:22:     at /root/grandpro-hmso-new/backend/node_modules/router/index.js:295:15
+2025-10-02T17:28:22:     at processParams (/root/grandpro-hmso-new/backend/node_modules/router/index.js:582:12)
+2025-10-02T17:28:22:     at next (/root/grandpro-hmso-new/backend/node_modules/router/index.js:291:5)
+2025-10-02T17:28:22: Error fetching alerts: TypeError: db.query is not a function
+2025-10-02T17:28:22:     at OperationsService.getRealTimeAlerts (/root/grandpro-hmso-new/backend/src/services/operations.service.js:679:31)
+2025-10-02T17:28:22:     at /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:87:44
+2025-10-02T17:28:22:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:28:22:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T17:28:22:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T17:28:22:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T17:28:22:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:28:22:     at /root/grandpro-hmso-new/backend/node_modules/router/index.js:295:15
+2025-10-02T17:28:22:     at processParams (/root/grandpro-hmso-new/backend/node_modules/router/index.js:582:12)
+2025-10-02T17:28:22:     at next (/root/grandpro-hmso-new/backend/node_modules/router/index.js:291:5)
+2025-10-02T17:28:52: Error getting owner profile: Error: Owner not found
+2025-10-02T17:28:52:     at OwnerCRMService.getOwnerProfile (/root/grandpro-hmso-new/backend/src/services/owner-crm.service.js:30:15)
+2025-10-02T17:28:52:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:28:52:     at async /root/grandpro-hmso-new/backend/src/routes/owner-crm.routes.js:24:21
+2025-10-02T17:28:52: Error getting reorder alerts: error: column ii.quantity_in_stock does not exist
+2025-10-02T17:28:52:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:28:52:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:28:52:     at async InventoryEnhancedService.getReorderAlerts (/root/grandpro-hmso-new/backend/src/services/inventory-enhanced.service.js:596:22)
+2025-10-02T17:28:52:     at async /root/grandpro-hmso-new/backend/src/routes/inventory.routes.js:116:20 {
+2025-10-02T17:28:52:   length: 118,
+2025-10-02T17:28:52:   severity: 'ERROR',
+2025-10-02T17:28:52:   code: '42703',
+2025-10-02T17:28:52:   detail: undefined,
+2025-10-02T17:28:52:   hint: undefined,
+2025-10-02T17:28:52:   position: '45',
+2025-10-02T17:28:52:   internalPosition: undefined,
+2025-10-02T17:28:52:   internalQuery: undefined,
+2025-10-02T17:28:52:   where: undefined,
+2025-10-02T17:28:52:   schema: undefined,
+2025-10-02T17:28:52:   table: undefined,
+2025-10-02T17:28:52:   column: undefined,
+2025-10-02T17:28:52:   dataType: undefined,
+2025-10-02T17:28:52:   constraint: undefined,
+2025-10-02T17:28:52:   file: 'parse_relation.c',
+2025-10-02T17:28:52:   line: '3716',
+2025-10-02T17:28:52:   routine: 'errorMissingColumn'
+2025-10-02T17:28:52: }
+2025-10-02T17:28:52: Error getting staff: error: column "last_name" does not exist
+2025-10-02T17:28:52:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:28:52:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:28:52:     at async HREnhancedService.getStaff (/root/grandpro-hmso-new/backend/src/services/hr-enhanced.service.js:649:22)
+2025-10-02T17:28:52:     at async /root/grandpro-hmso-new/backend/src/routes/hr.routes.js:86:20 {
+2025-10-02T17:28:52:   length: 109,
+2025-10-02T17:28:52:   severity: 'ERROR',
+2025-10-02T17:28:52:   code: '42703',
+2025-10-02T17:28:52:   detail: undefined,
+2025-10-02T17:28:52:   hint: undefined,
+2025-10-02T17:28:52:   position: '56',
+2025-10-02T17:28:52:   internalPosition: undefined,
+2025-10-02T17:28:52:   internalQuery: undefined,
+2025-10-02T17:28:52:   where: undefined,
+2025-10-02T17:28:52:   schema: undefined,
+2025-10-02T17:28:52:   table: undefined,
+2025-10-02T17:28:52:   column: undefined,
+2025-10-02T17:28:52:   dataType: undefined,
+2025-10-02T17:28:52:   constraint: undefined,
+2025-10-02T17:28:52:   file: 'parse_relation.c',
+2025-10-02T17:28:52:   line: '3716',
+2025-10-02T17:28:52:   routine: 'errorMissingColumn'
+2025-10-02T17:28:52: }
+2025-10-02T17:28:53: Error getting roster: error: column s.first_name does not exist
+2025-10-02T17:28:53:     at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+2025-10-02T17:28:53:     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-10-02T17:28:53:     at async HREnhancedService.getRoster (/root/grandpro-hmso-new/backend/src/services/hr-enhanced.service.js:685:22)
+2025-10-02T17:28:53:     at async /root/grandpro-hmso-new/backend/src/routes/hr.routes.js:133:20 {
+2025-10-02T17:28:53:   length: 110,
+2025-10-02T17:28:53:   severity: 'ERROR',
+2025-10-02T17:28:53:   code: '42703',
+2025-10-02T17:28:53:   detail: undefined,
+2025-10-02T17:28:53:   hint: undefined,
+2025-10-02T17:28:53:   position: '44',
+2025-10-02T17:28:53:   internalPosition: undefined,
+2025-10-02T17:28:53:   internalQuery: undefined,
+2025-10-02T17:28:53:   where: undefined,
+2025-10-02T17:28:53:   schema: undefined,
+2025-10-02T17:28:53:   table: undefined,
+2025-10-02T17:28:53:   column: undefined,
+2025-10-02T17:28:53:   dataType: undefined,
+2025-10-02T17:28:53:   constraint: undefined,
+2025-10-02T17:28:53:   file: 'parse_relation.c',
+2025-10-02T17:28:53:   line: '3716',
+2025-10-02T17:28:53:   routine: 'errorMissingColumn'
+2025-10-02T17:28:53: }
+2025-10-02T17:28:53: Error fetching real-time alerts: TypeError: db.query is not a function
+2025-10-02T17:28:53:     at OperationsService.getRealTimeAlerts (/root/grandpro-hmso-new/backend/src/services/operations.service.js:679:31)
+2025-10-02T17:28:53:     at /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:87:44
+2025-10-02T17:28:53:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:28:53:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T17:28:53:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T17:28:53:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T17:28:53:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:28:53:     at /root/grandpro-hmso-new/backend/node_modules/router/index.js:295:15
+2025-10-02T17:28:53:     at processParams (/root/grandpro-hmso-new/backend/node_modules/router/index.js:582:12)
+2025-10-02T17:28:53:     at next (/root/grandpro-hmso-new/backend/node_modules/router/index.js:291:5)
+2025-10-02T17:28:53: Error fetching alerts: TypeError: db.query is not a function
+2025-10-02T17:28:53:     at OperationsService.getRealTimeAlerts (/root/grandpro-hmso-new/backend/src/services/operations.service.js:679:31)
+2025-10-02T17:28:53:     at /root/grandpro-hmso-new/backend/src/routes/operations.routes.js:87:44
+2025-10-02T17:28:53:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:28:53:     at next (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:157:13)
+2025-10-02T17:28:53:     at Route.dispatch (/root/grandpro-hmso-new/backend/node_modules/router/lib/route.js:117:3)
+2025-10-02T17:28:53:     at handle (/root/grandpro-hmso-new/backend/node_modules/router/index.js:435:11)
+2025-10-02T17:28:53:     at Layer.handleRequest (/root/grandpro-hmso-new/backend/node_modules/router/lib/layer.js:152:17)
+2025-10-02T17:28:53:     at /root/grandpro-hmso-new/backend/node_modules/router/index.js:295:15
+2025-10-02T17:28:53:     at processParams (/root/grandpro-hmso-new/backend/node_modules/router/index.js:582:12)
+2025-10-02T17:28:53:     at next (/root/grandpro-hmso-new/backend/node_modules/router/index.js:291:5)

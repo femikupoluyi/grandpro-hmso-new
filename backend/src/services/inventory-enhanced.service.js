@@ -525,6 +525,90 @@ class InventoryEnhancedService {
       client.release();
     }
   }
+
+  /**
+   * Get inventory items
+   */
+  async getInventoryItems(params = {}) {
+    try {
+      const { hospital_id, category, status, limit = 50, offset = 0 } = params;
+      
+      let query = 'SELECT * FROM inventory_items WHERE 1=1';
+      const queryParams = [];
+      let paramCount = 0;
+
+      if (hospital_id) {
+        queryParams.push(hospital_id);
+        query += ` AND hospital_id = $${++paramCount}`;
+      }
+      
+      if (category) {
+        queryParams.push(category);
+        query += ` AND category = $${++paramCount}`;
+      }
+      
+      if (status) {
+        queryParams.push(status);
+        query += ` AND status = $${++paramCount}`;
+      }
+
+      query += ' ORDER BY item_name ASC';
+      
+      queryParams.push(limit);
+      query += ` LIMIT $${++paramCount}`;
+      
+      queryParams.push(offset);
+      query += ` OFFSET $${++paramCount}`;
+
+      const result = await pool.query(query, queryParams);
+      
+      return {
+        success: true,
+        data: result.rows,
+        total: result.rowCount
+      };
+    } catch (error) {
+      console.error('Error getting inventory items:', error);
+      return { 
+        success: false, 
+        data: [], 
+        error: error.message 
+      };
+    }
+  }
+
+  /**
+   * Get reorder alerts
+   */
+  async getReorderAlerts(hospitalId) {
+    try {
+      const query = `
+        SELECT 
+          ii.*,
+          (ii.quantity_in_stock - ii.reorder_level) as stock_deficit
+        FROM inventory_items ii
+        WHERE ii.hospital_id = $1
+          AND ii.quantity_in_stock <= ii.reorder_level
+          AND ii.status = 'active'
+        ORDER BY stock_deficit ASC
+      `;
+      
+      const result = await pool.query(query, [hospitalId || null]);
+      
+      return {
+        success: true,
+        data: result.rows,
+        total: result.rowCount
+      };
+    } catch (error) {
+      console.error('Error getting reorder alerts:', error);
+      return {
+        success: false,
+        data: [],
+        error: error.message
+      };
+    }
+  }
 }
 
 module.exports = new InventoryEnhancedService();

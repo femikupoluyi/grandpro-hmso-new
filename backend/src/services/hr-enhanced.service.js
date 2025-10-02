@@ -606,6 +606,101 @@ class HREnhancedService {
     const result = await pool.query(query, [hospitalId]);
     return result.rows;
   }
+
+  /**
+   * Get staff list
+   */
+  async getStaff(params = {}) {
+    try {
+      const { hospital_id, department, role, status = 'active', limit = 50, offset = 0 } = params;
+      
+      let query = 'SELECT * FROM staff WHERE 1=1';
+      const queryParams = [];
+      let paramCount = 0;
+
+      if (hospital_id) {
+        queryParams.push(hospital_id);
+        query += ` AND hospital_id = $${++paramCount}`;
+      }
+      
+      if (department) {
+        queryParams.push(department);
+        query += ` AND department = $${++paramCount}`;
+      }
+      
+      if (role) {
+        queryParams.push(role);
+        query += ` AND role = $${++paramCount}`;
+      }
+      
+      if (status) {
+        queryParams.push(status);
+        query += ` AND status = $${++paramCount}`;
+      }
+
+      query += ' ORDER BY last_name, first_name ASC';
+      
+      queryParams.push(limit);
+      query += ` LIMIT $${++paramCount}`;
+      
+      queryParams.push(offset);
+      query += ` OFFSET $${++paramCount}`;
+
+      const result = await pool.query(query, queryParams);
+      
+      return {
+        success: true,
+        data: result.rows,
+        total: result.rowCount
+      };
+    } catch (error) {
+      console.error('Error getting staff:', error);
+      return { 
+        success: false, 
+        data: [], 
+        error: error.message 
+      };
+    }
+  }
+
+  /**
+   * Get staff roster
+   */
+  async getRoster(hospitalId, startDate, endDate) {
+    try {
+      const query = `
+        SELECT 
+          sr.*,
+          s.first_name,
+          s.last_name,
+          s.department,
+          s.role
+        FROM staff_roster sr
+        JOIN staff s ON sr.staff_id = s.id
+        WHERE s.hospital_id = $1
+          AND sr.shift_date BETWEEN $2 AND $3
+        ORDER BY sr.shift_date, sr.shift_type
+      `;
+      
+      const result = await pool.query(query, [
+        hospitalId || null,
+        startDate || new Date(),
+        endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      ]);
+      
+      return {
+        success: true,
+        data: result.rows
+      };
+    } catch (error) {
+      console.error('Error getting roster:', error);
+      return {
+        success: false,
+        data: [],
+        error: error.message
+      };
+    }
+  }
 }
 
 module.exports = new HREnhancedService();

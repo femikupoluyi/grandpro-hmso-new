@@ -743,3 +743,17 @@
 2025-10-02T17:15:32: 🗄️ Database: neondb
 2025-10-02T17:15:54: Connected to PostgreSQL database
 2025-10-02T17:15:54: Connected to PostgreSQL database
+2025-10-02T17:23:02: Connected to PostgreSQL database
+2025-10-02T17:28:31: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+2025-10-02T17:28:31: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+2025-10-02T17:28:32: Connected to PostgreSQL database
+2025-10-02T17:28:32: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-02T17:28:32: 📍 Environment: production
+2025-10-02T17:28:32: 🌍 Timezone: Africa/Lagos
+2025-10-02T17:28:32: 💵 Currency: NGN
+2025-10-02T17:28:32: 🏥 Application: GrandPro HMSO
+2025-10-02T17:28:32: ✅ Database connected successfully
+2025-10-02T17:28:32: 📅 Server time: 2025-10-02T17:28:32.504Z
+2025-10-02T17:28:32: 🗄️ Database: neondb
+2025-10-02T17:28:52: Connected to PostgreSQL database
+2025-10-02T17:28:52: Connected to PostgreSQL database

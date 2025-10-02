@@ -517,6 +517,190 @@ class BillingEnhancedService {
     const result = await pool.query(query, [hospitalId, startDate, endDate]);
     return result.rows;
   }
+
+  /**
+   * Get invoices list
+   */
+  async getInvoices(params = {}) {
+    try {
+      const { hospital_id, patient_id, status, limit = 20, offset = 0 } = params;
+      
+      let query = 'SELECT * FROM invoices WHERE 1=1';
+      const queryParams = [];
+      let paramCount = 0;
+
+      if (hospital_id) {
+        queryParams.push(hospital_id);
+        query += ` AND hospital_id = $${++paramCount}`;
+      }
+      
+      if (patient_id) {
+        queryParams.push(patient_id);
+        query += ` AND patient_id = $${++paramCount}`;
+      }
+      
+      if (status) {
+        queryParams.push(status);
+        query += ` AND status = $${++paramCount}`;
+      }
+
+      query += ' ORDER BY created_at DESC';
+      
+      queryParams.push(limit);
+      query += ` LIMIT $${++paramCount}`;
+      
+      queryParams.push(offset);
+      query += ` OFFSET $${++paramCount}`;
+
+      const result = await pool.query(query, queryParams);
+      
+      return {
+        data: result.rows,
+        total: result.rowCount,
+        limit,
+        offset
+      };
+    } catch (error) {
+      console.error('Error getting invoices:', error);
+      return { data: [], total: 0, error: 'Failed to fetch invoices' };
+    }
+  }
+
+  /**
+   * Get payments list
+   */
+  async getPayments(params = {}) {
+    try {
+      const { invoice_id, limit = 20, offset = 0 } = params;
+      
+      let query = 'SELECT * FROM payments WHERE 1=1';
+      const queryParams = [];
+      let paramCount = 0;
+
+      if (invoice_id) {
+        queryParams.push(invoice_id);
+        query += ` AND invoice_id = $${++paramCount}`;
+      }
+
+      query += ' ORDER BY payment_date DESC';
+      
+      queryParams.push(limit);
+      query += ` LIMIT $${++paramCount}`;
+      
+      queryParams.push(offset);
+      query += ` OFFSET $${++paramCount}`;
+
+      const result = await pool.query(query, queryParams);
+      
+      return {
+        data: result.rows,
+        total: result.rowCount,
+        limit,
+        offset
+      };
+    } catch (error) {
+      console.error('Error getting payments:', error);
+      return { data: [], total: 0, error: 'Failed to fetch payments' };
+    }
+  }
+
+  /**
+   * Create billing account
+   */
+  async createBillingAccount(accountData) {
+    try {
+      const { patient_id, hospital_id, credit_limit = 0, payment_terms = 'immediate' } = accountData;
+      
+      const query = `
+        INSERT INTO billing_accounts (patient_id, hospital_id, credit_limit, payment_terms, balance, status, created_at)
+        VALUES ($1, $2, $3, $4, 0, 'active', NOW())
+        RETURNING *
+      `;
+      
+      const result = await pool.query(query, [patient_id, hospital_id, credit_limit, payment_terms]);
+      
+      return {
+        success: true,
+        data: result.rows[0]
+      };
+    } catch (error) {
+      console.error('Error creating billing account:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Submit insurance claim
+   */
+  async submitInsuranceClaim(claimData) {
+    try {
+      const { invoice_id, insurance_provider, policy_number, claim_amount, diagnosis_codes = [] } = claimData;
+      
+      const query = `
+        INSERT INTO insurance_claims (
+          invoice_id, insurance_provider, policy_number, 
+          claim_amount, diagnosis_codes, submission_date, status
+        )
+        VALUES ($1, $2, $3, $4, $5, NOW(), 'pending')
+        RETURNING *
+      `;
+      
+      const result = await pool.query(query, [
+        invoice_id, 
+        insurance_provider, 
+        policy_number, 
+        claim_amount, 
+        JSON.stringify(diagnosis_codes)
+      ]);
+      
+      return {
+        success: true,
+        data: result.rows[0]
+      };
+    } catch (error) {
+      console.error('Error submitting insurance claim:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Get payment history
+   */
+  async getPaymentHistory(patientId) {
+    try {
+      const query = `
+        SELECT 
+          p.*,
+          i.invoice_number,
+          i.total_amount as invoice_amount
+        FROM payments p
+        JOIN invoices i ON p.invoice_id = i.id
+        WHERE i.patient_id = $1
+        ORDER BY p.payment_date DESC
+        LIMIT 50
+      `;
+      
+      const result = await pool.query(query, [patientId]);
+      
+      return {
+        success: true,
+        data: result.rows
+      };
+    } catch (error) {
+      console.error('Error getting payment history:', error);
+      return {
+        success: false,
+        error: error.message,
+        data: []
+      };
+    }
+  }
 }
 
 module.exports = new BillingEnhancedService();
