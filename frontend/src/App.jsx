@@ -13,6 +13,12 @@ import Appointments from './pages/patient/Appointments';
 import Feedback from './pages/patient/Feedback';
 import LoyaltyRewards from './pages/patient/LoyaltyRewards';
 
+// Hospital Management Pages
+import HospitalDashboard from './pages/hospital/dashboard/HospitalDashboard';
+import PatientRegistration from './pages/hospital/emr/PatientRegistration';
+import BillingDashboard from './pages/hospital/billing/BillingDashboard';
+import InventoryDashboard from './pages/hospital/inventory/InventoryDashboard';
+
 function App() {
   const { isAuthenticated, role } = useAuthStore();
 
@@ -64,6 +70,30 @@ function App() {
           <Route path="rewards" element={
             <ProtectedRoute allowedRoles={['PATIENT']}>
               <LoyaltyRewards />
+            </ProtectedRoute>
+          } />
+        </Route>
+
+        {/* Hospital Management Routes */}
+        <Route path="hospital">
+          <Route index element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
+              <HospitalDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="emr/register" element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
+              <PatientRegistration />
+            </ProtectedRoute>
+          } />
+          <Route path="billing" element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
+              <BillingDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="inventory" element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
+              <InventoryDashboard />
             </ProtectedRoute>
           } />
         </Route>

@@ -26,7 +26,25 @@ export default function Layout() {
     { name: 'Rewards', href: '/patient/rewards' },
   ];
 
-  const navigation = role === 'PATIENT' ? patientNavigation : ownerNavigation;
+  const staffNavigation = [
+    { name: 'Dashboard', href: '/hospital' },
+    { name: 'Patient Registration', href: '/hospital/emr/register' },
+    { name: 'Billing', href: '/hospital/billing' },
+    { name: 'Inventory', href: '/hospital/inventory' },
+  ];
+
+  const adminNavigation = [
+    { name: 'Hospital', href: '/hospital' },
+    { name: 'Owners', href: '/owner' },
+    { name: 'EMR', href: '/hospital/emr/register' },
+    { name: 'Billing', href: '/hospital/billing' },
+    { name: 'Inventory', href: '/hospital/inventory' },
+  ];
+
+  const navigation = role === 'PATIENT' ? patientNavigation : 
+                    role === 'STAFF' ? staffNavigation :
+                    role === 'ADMIN' ? adminNavigation : 
+                    ownerNavigation;
 
   const handleLogout = () => {
     logout();

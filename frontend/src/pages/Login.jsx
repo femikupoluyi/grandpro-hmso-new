@@ -83,6 +83,30 @@ export default function Login() {
                 </div>
               </div>
 
+              {/* Staff Login Card */}
+              <div 
+                onClick={() => handleMockLogin('STAFF')}
+                className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:border-primary-400 hover:shadow-md cursor-pointer transition-all"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-lg font-medium text-gray-900">
+                      Hospital Staff
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Access EMR, billing, inventory, and operations
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Admin Login Card */}
               <div 
                 onClick={() => handleMockLogin('ADMIN')}

@@ -82,6 +82,16 @@ export const useAuthStore = create(
             lastName: 'User',
             email: 'admin@grandpro.ng',
             role: 'ADMIN'
+          },
+          STAFF: {
+            id: '4',
+            firstName: 'Dr. Adewale',
+            lastName: 'Ogundimu',
+            email: 'staff@grandpro.ng',
+            role: 'STAFF',
+            hospitalId: 'hosp-001',
+            staffId: 'staff-001',
+            department: 'General Medicine'
           }
         };
         
