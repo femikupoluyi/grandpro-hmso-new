@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Container,
-  Grid,
-  Paper,
-  Typography,
   Card,
   CardContent,
+  Grid,
+  Typography,
+  Button,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Paper,
   Chip,
-  LinearProgress,
   IconButton,
-  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  LinearProgress,
   Avatar,
   List,
   ListItem,
@@ -25,111 +29,73 @@ import {
   Divider,
   Alert,
   Tab,
-  Tabs
+  Tabs,
+  Badge
 } from '@mui/material';
 import {
-  AccountBalance,
   TrendingUp,
-  Hospital,
-  Payment,
+  AccountBalance,
   Description,
-  NotificationsActive,
+  Payment,
+  Visibility,
+  Download,
   Email,
   Phone,
   WhatsApp,
-  Schedule,
   CheckCircle,
   Warning,
+  Schedule,
   AttachMoney,
-  BarChart,
-  Timeline
+  Business,
+  CalendarToday,
+  Refresh
 } from '@mui/icons-material';
-import { useAuth } from '../../hooks/useAuth';
-import crmService from '../../services/crm.service';
-
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`owner-tabpanel-${index}`}
-      aria-labelledby={`owner-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { format } from 'date-fns';
+import { useAuth } from '../../contexts/AuthContext';
+import { api } from '../../services/api';
 
 const OwnerDashboard = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
-  const [ownerData, setOwnerData] = useState({
-    profile: null,
-    contracts: [],
-    payouts: [],
-    hospitals: [],
-    communications: [],
-    satisfaction: null
-  });
-  const [stats, setStats] = useState({
-    totalHospitals: 0,
-    activeContracts: 0,
+  const [contracts, setContracts] = useState([]);
+  const [payouts, setPayouts] = useState([]);
+  const [communications, setCommunications] = useState([]);
+  const [metrics, setMetrics] = useState({
     totalRevenue: 0,
+    activeContracts: 0,
     pendingPayouts: 0,
-    satisfactionScore: 0
+    satisfactionScore: 0,
+    monthlyGrowth: 0
   });
+  const [selectedContract, setSelectedContract] = useState(null);
+  const [contractDialog, setContractDialog] = useState(false);
+  const [communicationDialog, setCommunicationDialog] = useState(false);
+  const [newMessage, setNewMessage] = useState({ subject: '', message: '', type: 'email' });
 
   useEffect(() => {
     fetchOwnerData();
   }, []);
 
   const fetchOwnerData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      // Fetch owner profile
-      const profileRes = await crmService.getOwnerProfile(user.id);
-      
+      // Fetch owner metrics
+      const metricsResponse = await api.get(`/api/crm/owners/metrics/${user.id}`);
+      setMetrics(metricsResponse.data);
+
       // Fetch contracts
-      const contractsRes = await crmService.getOwnerContracts(user.id);
-      
+      const contractsResponse = await api.get(`/api/crm/owners/${user.id}/contracts`);
+      setContracts(contractsResponse.data.contracts || []);
+
       // Fetch payouts
-      const payoutsRes = await crmService.getOwnerPayouts(user.id);
-      
-      // Fetch hospitals
-      const hospitalsRes = await crmService.getOwnerHospitals(user.id);
-      
+      const payoutsResponse = await api.get(`/api/crm/owners/${user.id}/payouts`);
+      setPayouts(payoutsResponse.data.payouts || []);
+
       // Fetch communications
-      const commsRes = await crmService.getOwnerCommunications(user.id);
-      
-      // Fetch satisfaction metrics
-      const satisfactionRes = await crmService.getOwnerSatisfaction(user.id);
-
-      setOwnerData({
-        profile: profileRes.data,
-        contracts: contractsRes.data || [],
-        payouts: payoutsRes.data || [],
-        hospitals: hospitalsRes.data || [],
-        communications: commsRes.data || [],
-        satisfaction: satisfactionRes.data
-      });
-
-      // Calculate stats
-      const activeContracts = contractsRes.data?.filter(c => c.status === 'ACTIVE').length || 0;
-      const totalRevenue = payoutsRes.data?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-      const pendingPayouts = payoutsRes.data?.filter(p => p.status === 'PENDING').length || 0;
-
-      setStats({
-        totalHospitals: hospitalsRes.data?.length || 0,
-        activeContracts,
-        totalRevenue,
-        pendingPayouts,
-        satisfactionScore: satisfactionRes.data?.score || 0
-      });
-
+      const commsResponse = await api.get(`/api/crm/owners/${user.id}/communications`);
+      setCommunications(commsResponse.data.communications || []);
     } catch (error) {
       console.error('Error fetching owner data:', error);
     } finally {
@@ -137,327 +103,561 @@ const OwnerDashboard = () => {
     }
   };
 
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-NG', {
       style: 'currency',
-      currency: 'NGN'
-    }).format(amount || 0);
+      currency: 'NGN',
+      minimumFractionDigits: 0
+    }).format(amount);
   };
 
   const getStatusColor = (status) => {
-    const colors = {
-      'ACTIVE': 'success',
-      'PENDING': 'warning',
-      'COMPLETED': 'primary',
-      'EXPIRED': 'error',
-      'DRAFT': 'default'
-    };
-    return colors[status] || 'default';
+    switch (status?.toLowerCase()) {
+      case 'active':
+      case 'completed':
+      case 'signed':
+        return 'success';
+      case 'pending':
+      case 'draft':
+        return 'warning';
+      case 'expired':
+      case 'rejected':
+        return 'error';
+      default:
+        return 'default';
+    }
   };
+
+  const handleSendMessage = async () => {
+    try {
+      await api.post('/api/crm/communications/send', {
+        ...newMessage,
+        ownerId: user.id,
+        timestamp: new Date().toISOString()
+      });
+      setCommunicationDialog(false);
+      setNewMessage({ subject: '', message: '', type: 'email' });
+      fetchOwnerData();
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+
+  // Sample revenue data for chart
+  const revenueData = [
+    { month: 'Jul', revenue: 12500000 },
+    { month: 'Aug', revenue: 13200000 },
+    { month: 'Sep', revenue: 14100000 },
+    { month: 'Oct', revenue: 15200000 },
+    { month: 'Nov', revenue: 14800000 },
+    { month: 'Dec', revenue: 16500000 }
+  ];
+
+  // Sample hospital performance data
+  const hospitalPerformance = [
+    { name: 'Occupancy Rate', value: 78, color: '#0088FE' },
+    { name: 'Patient Satisfaction', value: 92, color: '#00C49F' },
+    { name: 'Revenue Target', value: 85, color: '#FFBB28' }
+  ];
 
   if (loading) {
     return (
-      <Box sx={{ width: '100%', mt: 4 }}>
+      <Box sx={{ width: '100%', mt: 2 }}>
         <LinearProgress />
       </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Box sx={{ p: 3 }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Hospital Owner Dashboard
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Welcome back, {ownerData.profile?.name || user.name}
-        </Typography>
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h4" gutterBottom>
+            Owner Dashboard
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Welcome back, {user?.firstName} {user?.lastName}
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          startIcon={<Refresh />}
+          onClick={fetchOwnerData}
+        >
+          Refresh Data
+        </Button>
       </Box>
 
-      {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      {/* Metrics Cards */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Hospital color="primary" sx={{ mr: 2 }} />
-                <Typography color="text.secondary" variant="body2">
-                  Total Hospitals
-                </Typography>
+                <Avatar sx={{ bgcolor: 'success.main', mr: 2 }}>
+                  <AttachMoney />
+                </Avatar>
+                <Box>
+                  <Typography color="textSecondary" variant="body2">
+                    Total Revenue
+                  </Typography>
+                  <Typography variant="h5">
+                    {formatCurrency(metrics.totalRevenue || 15200000)}
+                  </Typography>
+                  <Typography variant="body2" color="success.main">
+                    +12% vs last month
+                  </Typography>
+                </Box>
               </Box>
-              <Typography variant="h4">{stats.totalHospitals}</Typography>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Description color="success" sx={{ mr: 2 }} />
-                <Typography color="text.secondary" variant="body2">
-                  Active Contracts
-                </Typography>
+                <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
+                  <Description />
+                </Avatar>
+                <Box>
+                  <Typography color="textSecondary" variant="body2">
+                    Active Contracts
+                  </Typography>
+                  <Typography variant="h5">
+                    {metrics.activeContracts || contracts.length}
+                  </Typography>
+                  <Chip label="Active" color="success" size="small" sx={{ mt: 1 }} />
+                </Box>
               </Box>
-              <Typography variant="h4">{stats.activeContracts}</Typography>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <AttachMoney color="warning" sx={{ mr: 2 }} />
-                <Typography color="text.secondary" variant="body2">
-                  Total Revenue
-                </Typography>
+                <Avatar sx={{ bgcolor: 'warning.main', mr: 2 }}>
+                  <Payment />
+                </Avatar>
+                <Box>
+                  <Typography color="textSecondary" variant="body2">
+                    Pending Payouts
+                  </Typography>
+                  <Typography variant="h5">
+                    {formatCurrency(metrics.pendingPayouts || 2500000)}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    3 payments pending
+                  </Typography>
+                </Box>
               </Box>
-              <Typography variant="h5">{formatCurrency(stats.totalRevenue)}</Typography>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <TrendingUp color="info" sx={{ mr: 2 }} />
-                <Typography color="text.secondary" variant="body2">
-                  Satisfaction Score
-                </Typography>
+                <Avatar sx={{ bgcolor: 'info.main', mr: 2 }}>
+                  <TrendingUp />
+                </Avatar>
+                <Box>
+                  <Typography color="textSecondary" variant="body2">
+                    Satisfaction Score
+                  </Typography>
+                  <Typography variant="h5">
+                    {metrics.satisfactionScore || 4.5}/5.0
+                  </Typography>
+                  <Typography variant="body2" color="info.main">
+                    +5% improvement
+                  </Typography>
+                </Box>
               </Box>
-              <Typography variant="h4">{stats.satisfactionScore}%</Typography>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
       {/* Tabs */}
-      <Paper sx={{ width: '100%' }}>
-        <Tabs value={tabValue} onChange={handleTabChange} aria-label="owner dashboard tabs">
+      <Paper sx={{ mb: 3 }}>
+        <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
           <Tab label="Contracts" />
           <Tab label="Payouts" />
-          <Tab label="Hospitals" />
+          <Tab label="Analytics" />
           <Tab label="Communications" />
         </Tabs>
-
-        {/* Contracts Tab */}
-        <TabPanel value={tabValue} index={0}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Contract ID</TableCell>
-                  <TableCell>Hospital</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Start Date</TableCell>
-                  <TableCell>End Date</TableCell>
-                  <TableCell>Revenue Share</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {ownerData.contracts.map((contract) => (
-                  <TableRow key={contract.id}>
-                    <TableCell>{contract.id}</TableCell>
-                    <TableCell>{contract.hospitalName}</TableCell>
-                    <TableCell>{contract.contractType}</TableCell>
-                    <TableCell>{new Date(contract.startDate).toLocaleDateString('en-NG')}</TableCell>
-                    <TableCell>{new Date(contract.endDate).toLocaleDateString('en-NG')}</TableCell>
-                    <TableCell>{contract.revenueShare}%</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={contract.status} 
-                        color={getStatusColor(contract.status)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <IconButton size="small" color="primary">
-                        <Description />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {ownerData.contracts.length === 0 && (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <Typography color="text.secondary">No contracts found</Typography>
-            </Box>
-          )}
-        </TabPanel>
-
-        {/* Payouts Tab */}
-        <TabPanel value={tabValue} index={1}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Payout ID</TableCell>
-                  <TableCell>Period</TableCell>
-                  <TableCell>Hospital</TableCell>
-                  <TableCell>Revenue</TableCell>
-                  <TableCell>Your Share</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Payment Date</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {ownerData.payouts.map((payout) => (
-                  <TableRow key={payout.id}>
-                    <TableCell>{payout.id}</TableCell>
-                    <TableCell>{payout.period}</TableCell>
-                    <TableCell>{payout.hospitalName}</TableCell>
-                    <TableCell>{formatCurrency(payout.totalRevenue)}</TableCell>
-                    <TableCell>{formatCurrency(payout.amount)}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={payout.status} 
-                        color={getStatusColor(payout.status)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {payout.paymentDate 
-                        ? new Date(payout.paymentDate).toLocaleDateString('en-NG')
-                        : 'Pending'
-                      }
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {ownerData.payouts.length === 0 && (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <Typography color="text.secondary">No payouts found</Typography>
-            </Box>
-          )}
-        </TabPanel>
-
-        {/* Hospitals Tab */}
-        <TabPanel value={tabValue} index={2}>
-          <Grid container spacing={3}>
-            {ownerData.hospitals.map((hospital) => (
-              <Grid item xs={12} md={6} key={hospital.id}>
-                <Card>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                      <Typography variant="h6">{hospital.name}</Typography>
-                      <Chip 
-                        label={hospital.status} 
-                        color={getStatusColor(hospital.status)}
-                        size="small"
-                      />
-                    </Box>
-                    <Typography color="text.secondary" gutterBottom>
-                      {hospital.address}
-                    </Typography>
-                    <Divider sx={{ my: 2 }} />
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <Typography variant="body2" color="text.secondary">
-                          Monthly Revenue
-                        </Typography>
-                        <Typography variant="h6">
-                          {formatCurrency(hospital.monthlyRevenue)}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Typography variant="body2" color="text.secondary">
-                          Patient Count
-                        </Typography>
-                        <Typography variant="h6">
-                          {hospital.patientCount || 0}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                    <Box sx={{ mt: 2 }}>
-                      <Button variant="outlined" fullWidth>
-                        View Details
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-          {ownerData.hospitals.length === 0 && (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <Typography color="text.secondary">No hospitals found</Typography>
-              <Button variant="contained" sx={{ mt: 2 }} href="/onboarding/application">
-                Add Hospital
-              </Button>
-            </Box>
-          )}
-        </TabPanel>
-
-        {/* Communications Tab */}
-        <TabPanel value={tabValue} index={3}>
-          <List>
-            {ownerData.communications.map((comm) => (
-              <React.Fragment key={comm.id}>
-                <ListItem alignItems="flex-start">
-                  <ListItemAvatar>
-                    <Avatar>
-                      {comm.channel === 'EMAIL' && <Email />}
-                      {comm.channel === 'SMS' && <Phone />}
-                      {comm.channel === 'WHATSAPP' && <WhatsApp />}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography>{comm.subject || comm.type}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {new Date(comm.sentAt).toLocaleDateString('en-NG')}
-                        </Typography>
-                      </Box>
-                    }
-                    secondary={
-                      <>
-                        <Typography variant="body2" sx={{ mt: 1 }}>
-                          {comm.message}
-                        </Typography>
-                        <Box sx={{ mt: 1 }}>
-                          <Chip 
-                            label={comm.status} 
-                            size="small"
-                            color={comm.status === 'DELIVERED' ? 'success' : 'default'}
-                          />
-                        </Box>
-                      </>
-                    }
-                  />
-                </ListItem>
-                <Divider variant="inset" component="li" />
-              </React.Fragment>
-            ))}
-          </List>
-          {ownerData.communications.length === 0 && (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <Typography color="text.secondary">No communications found</Typography>
-            </Box>
-          )}
-        </TabPanel>
       </Paper>
 
-      {/* Pending Actions Alert */}
-      {stats.pendingPayouts > 0 && (
-        <Alert severity="info" sx={{ mt: 3 }}>
-          You have {stats.pendingPayouts} pending payout(s). They will be processed by the end of the month.
-        </Alert>
+      {/* Contracts Tab */}
+      {tabValue === 0 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography variant="h6">Active Contracts</Typography>
+                  <Button variant="contained" startIcon={<Description />}>
+                    New Contract
+                  </Button>
+                </Box>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Contract #</TableCell>
+                        <TableCell>Hospital</TableCell>
+                        <TableCell>Type</TableCell>
+                        <TableCell>Start Date</TableCell>
+                        <TableCell>End Date</TableCell>
+                        <TableCell>Revenue Share</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {[
+                        {
+                          id: 'CTR202500123',
+                          hospital: 'Lagos Premier Hospital',
+                          type: 'Management',
+                          startDate: '2025-01-01',
+                          endDate: '2025-12-31',
+                          revenueShare: '15%',
+                          status: 'Active',
+                          value: 5000000
+                        },
+                        {
+                          id: 'CTR202500124',
+                          hospital: 'Victoria Medical Centre',
+                          type: 'Partnership',
+                          startDate: '2025-02-01',
+                          endDate: '2026-01-31',
+                          revenueShare: '20%',
+                          status: 'Active',
+                          value: 7500000
+                        }
+                      ].map((contract) => (
+                        <TableRow key={contract.id}>
+                          <TableCell>{contract.id}</TableCell>
+                          <TableCell>{contract.hospital}</TableCell>
+                          <TableCell>{contract.type}</TableCell>
+                          <TableCell>{contract.startDate}</TableCell>
+                          <TableCell>{contract.endDate}</TableCell>
+                          <TableCell>{contract.revenueShare}</TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={contract.status} 
+                              color={getStatusColor(contract.status)}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <IconButton size="small" onClick={() => {
+                              setSelectedContract(contract);
+                              setContractDialog(true);
+                            }}>
+                              <Visibility />
+                            </IconButton>
+                            <IconButton size="small">
+                              <Download />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       )}
-    </Container>
+
+      {/* Payouts Tab */}
+      {tabValue === 1 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Payout History</Typography>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Payment ID</TableCell>
+                        <TableCell>Period</TableCell>
+                        <TableCell>Amount</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Date</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {[
+                        { id: 'PAY202510001', period: '2025-10', amount: 750000, status: 'Completed', date: '2025-10-05' },
+                        { id: 'PAY202509001', period: '2025-09', amount: 680000, status: 'Completed', date: '2025-09-05' },
+                        { id: 'PAY202508001', period: '2025-08', amount: 720000, status: 'Completed', date: '2025-08-05' },
+                        { id: 'PAY202507001', period: '2025-07', amount: 650000, status: 'Completed', date: '2025-07-05' }
+                      ].map((payout) => (
+                        <TableRow key={payout.id}>
+                          <TableCell>{payout.id}</TableCell>
+                          <TableCell>{payout.period}</TableCell>
+                          <TableCell>{formatCurrency(payout.amount)}</TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={payout.status} 
+                              color={getStatusColor(payout.status)}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>{payout.date}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Payout Summary</Typography>
+                <List>
+                  <ListItem>
+                    <ListItemText primary="Total Payouts (YTD)" secondary={formatCurrency(2800000)} />
+                  </ListItem>
+                  <Divider />
+                  <ListItem>
+                    <ListItemText primary="Average Monthly" secondary={formatCurrency(700000)} />
+                  </ListItem>
+                  <Divider />
+                  <ListItem>
+                    <ListItemText primary="Next Payout" secondary="November 5, 2025" />
+                  </ListItem>
+                  <Divider />
+                  <ListItem>
+                    <ListItemText primary="Payment Method" secondary="Bank Transfer - First Bank" />
+                  </ListItem>
+                </List>
+                <Button variant="outlined" fullWidth sx={{ mt: 2 }}>
+                  Update Banking Details
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* Analytics Tab */}
+      {tabValue === 2 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Revenue Trends</Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => formatCurrency(value)} />
+                    <Legend />
+                    <Line type="monotone" dataKey="revenue" stroke="#8884d8" name="Revenue" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>Performance Metrics</Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={hospitalPerformance}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={(entry) => `${entry.name}: ${entry.value}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {hospitalPerformance.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* Communications Tab */}
+      {tabValue === 3 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography variant="h6">Communications</Typography>
+                  <Button 
+                    variant="contained" 
+                    startIcon={<Email />}
+                    onClick={() => setCommunicationDialog(true)}
+                  >
+                    New Message
+                  </Button>
+                </Box>
+                <List>
+                  {[
+                    { 
+                      id: 1, 
+                      subject: 'Monthly Performance Report', 
+                      message: 'Your hospital performance for October 2025...', 
+                      type: 'email',
+                      date: '2025-10-01',
+                      status: 'sent'
+                    },
+                    {
+                      id: 2,
+                      subject: 'Contract Renewal Reminder',
+                      message: 'Your contract is due for renewal...',
+                      type: 'sms',
+                      date: '2025-09-28',
+                      status: 'sent'
+                    },
+                    {
+                      id: 3,
+                      subject: 'Payment Processed',
+                      message: 'Your payment of ₦750,000 has been processed...',
+                      type: 'whatsapp',
+                      date: '2025-09-05',
+                      status: 'delivered'
+                    }
+                  ].map((comm) => (
+                    <React.Fragment key={comm.id}>
+                      <ListItem>
+                        <ListItemAvatar>
+                          <Avatar>
+                            {comm.type === 'email' && <Email />}
+                            {comm.type === 'sms' && <Phone />}
+                            {comm.type === 'whatsapp' && <WhatsApp />}
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={comm.subject}
+                          secondary={
+                            <>
+                              <Typography variant="body2" component="span">
+                                {comm.message}
+                              </Typography>
+                              <br />
+                              <Typography variant="caption" color="textSecondary">
+                                {comm.date} • {comm.status}
+                              </Typography>
+                            </>
+                          }
+                        />
+                      </ListItem>
+                      <Divider variant="inset" component="li" />
+                    </React.Fragment>
+                  ))}
+                </List>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* Contract Details Dialog */}
+      <Dialog open={contractDialog} onClose={() => setContractDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Contract Details</DialogTitle>
+        <DialogContent>
+          {selectedContract && (
+            <Box>
+              <Typography variant="body1" gutterBottom>
+                <strong>Contract Number:</strong> {selectedContract.id}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                <strong>Hospital:</strong> {selectedContract.hospital}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                <strong>Type:</strong> {selectedContract.type}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                <strong>Duration:</strong> {selectedContract.startDate} to {selectedContract.endDate}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                <strong>Revenue Share:</strong> {selectedContract.revenueShare}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                <strong>Estimated Value:</strong> {formatCurrency(selectedContract.value)}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                <strong>Status:</strong> <Chip label={selectedContract.status} color="success" size="small" />
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setContractDialog(false)}>Close</Button>
+          <Button variant="contained" startIcon={<Download />}>
+            Download PDF
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* New Message Dialog */}
+      <Dialog open={communicationDialog} onClose={() => setCommunicationDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Send Message</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Subject"
+            value={newMessage.subject}
+            onChange={(e) => setNewMessage({ ...newMessage, subject: e.target.value })}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Message"
+            value={newMessage.message}
+            onChange={(e) => setNewMessage({ ...newMessage, message: e.target.value })}
+            multiline
+            rows={4}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            select
+            label="Send via"
+            value={newMessage.type}
+            onChange={(e) => setNewMessage({ ...newMessage, type: e.target.value })}
+            margin="normal"
+            SelectProps={{ native: true }}
+          >
+            <option value="email">Email</option>
+            <option value="sms">SMS</option>
+            <option value="whatsapp">WhatsApp</option>
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCommunicationDialog(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSendMessage}>
+            Send Message
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

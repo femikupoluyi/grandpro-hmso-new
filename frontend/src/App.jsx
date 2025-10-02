@@ -5,11 +5,14 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
 import Login from './pages/Login';
-import OwnerDashboard from './pages/owner/Dashboard';
+// Updated CRM Components
+import OwnerDashboard from './components/crm/OwnerDashboard';
+import PatientPortal from './components/crm/PatientPortal';
+// Legacy owner pages (fallback)
 import PayoutHistory from './pages/owner/PayoutHistory';
 import ContractStatus from './pages/owner/ContractStatus';
 import OwnerAnalytics from './pages/owner/Analytics';
-import PatientPortal from './pages/patient/Portal';
+// Legacy patient pages (fallback)
 import Appointments from './pages/patient/Appointments';
 import Feedback from './pages/patient/Feedback';
 import LoyaltyRewards from './pages/patient/LoyaltyRewards';
