@@ -15,6 +15,13 @@ import Feedback from './pages/patient/Feedback';
 import LoyaltyRewards from './pages/patient/LoyaltyRewards';
 import Reminders from './pages/patient/Reminders';
 
+// Onboarding Pages
+import ApplicationForm from './pages/onboarding/ApplicationForm';
+import DocumentUpload from './pages/onboarding/DocumentUpload';
+import OnboardingDashboard from './pages/onboarding/OnboardingDashboard';
+import ContractReview from './pages/onboarding/ContractReview';
+import Landing from './pages/Landing';
+
 // Hospital Management Pages
 import HospitalDashboard from './pages/hospital/dashboard/HospitalDashboard';
 import PatientRegistration from './pages/hospital/emr/PatientRegistration';
@@ -39,7 +46,17 @@ function App() {
 
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
+      
+      {/* Onboarding Routes - Public */}
+      <Route path="/onboarding">
+        <Route path="apply" element={<ApplicationForm />} />
+        <Route path="documents" element={<DocumentUpload />} />
+        <Route path="status" element={<OnboardingDashboard />} />
+        <Route path="contract" element={<ContractReview />} />
+        <Route path="sign" element={<ContractReview />} />
+      </Route>
       
       <Route path="/" element={
         <ProtectedRoute>
