@@ -1,480 +1,516 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  CheckCircleIcon,
-  ClockIcon,
-  DocumentTextIcon,
-  DocumentCheckIcon,
-  ClipboardDocumentCheckIcon,
-  PencilSquareIcon,
-  CheckBadgeIcon,
-  ArrowPathIcon,
-  ExclamationTriangleIcon,
-  ChevronRightIcon
-} from '@heroicons/react/24/outline';
+  Box,
+  Container,
+  Paper,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Button,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent,
+  LinearProgress,
+  Chip,
+  Alert,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  IconButton,
+  Divider,
+  CircularProgress,
+  Avatar,
+  Tooltip
+} from '@mui/material';
+import {
+  Dashboard,
+  CheckCircle,
+  RadioButtonUnchecked,
+  Assignment,
+  CloudUpload,
+  Description,
+  Draw,
+  Settings,
+  School,
+  Refresh,
+  ArrowForward,
+  Business,
+  Schedule,
+  TrendingUp,
+  Warning,
+  Info,
+  LocalHospital,
+  CalendarToday
+} from '@mui/icons-material';
+import {
+  getOnboardingStatus,
+  getOnboardingChecklist,
+  getAllHospitals,
+  getAllContracts
+} from '../../services/onboarding.service';
 
-const OnboardingDashboard = () => {
+const onboardingSteps = [
+  {
+    label: 'Application Submission',
+    description: 'Complete and submit hospital application form',
+    icon: <Assignment />,
+    route: '/onboarding/application',
+    field: 'application_submitted'
+  },
+  {
+    label: 'Document Upload',
+    description: 'Upload required documents and certificates',
+    icon: <CloudUpload />,
+    route: '/onboarding/documents',
+    field: 'documents_uploaded'
+  },
+  {
+    label: 'Evaluation & Review',
+    description: 'Application review and scoring by our team',
+    icon: <TrendingUp />,
+    route: null,
+    field: 'evaluation_completed'
+  },
+  {
+    label: 'Contract Generation',
+    description: 'Review and accept service agreement',
+    icon: <Description />,
+    route: '/onboarding/contract-review',
+    field: 'contract_generated'
+  },
+  {
+    label: 'Contract Signing',
+    description: 'Digitally sign the service contract',
+    icon: <Draw />,
+    route: '/onboarding/contract-sign',
+    field: 'contract_signed'
+  },
+  {
+    label: 'System Setup',
+    description: 'Configure hospital settings and user accounts',
+    icon: <Settings />,
+    route: null,
+    field: 'setup_completed'
+  }
+];
+
+function OnboardingDashboard() {
   const navigate = useNavigate();
-  const [applicationData, setApplicationData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [onboardingData, setOnboardingData] = useState(null);
+  const [hospitals, setHospitals] = useState([]);
+  const [contracts, setContracts] = useState([]);
+  const [selectedHospital, setSelectedHospital] = useState(null);
   const [error, setError] = useState('');
-
-  const stages = [
-    {
-      id: 'application',
-      name: 'Application Submitted',
-      description: 'Initial application form completed',
-      icon: DocumentTextIcon,
-      percentage: 10
-    },
-    {
-      id: 'document_submission',
-      name: 'Document Submission',
-      description: 'Required documents uploaded for verification',
-      icon: DocumentCheckIcon,
-      percentage: 25
-    },
-    {
-      id: 'evaluation',
-      name: 'Evaluation',
-      description: 'Application and documents under review',
-      icon: ClipboardDocumentCheckIcon,
-      percentage: 50
-    },
-    {
-      id: 'contract_negotiation',
-      name: 'Contract Negotiation',
-      description: 'Contract terms being finalized',
-      icon: PencilSquareIcon,
-      percentage: 70
-    },
-    {
-      id: 'signature',
-      name: 'Contract Signature',
-      description: 'Contract ready for digital signature',
-      icon: CheckBadgeIcon,
-      percentage: 90
-    },
-    {
-      id: 'completed',
-      name: 'Onboarding Complete',
-      description: 'Welcome to GrandPro HMSO network',
-      icon: CheckCircleIcon,
-      percentage: 100
-    }
-  ];
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    fetchApplicationStatus();
-    const interval = setInterval(fetchApplicationStatus, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
+    fetchDashboardData();
   }, []);
 
-  const fetchApplicationStatus = async () => {
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError('');
+    
     try {
-      const applicationId = localStorage.getItem('applicationId');
-      
-      if (!applicationId) {
-        navigate('/onboarding/apply');
-        return;
+      // Fetch all data in parallel
+      const [statusResponse, hospitalsResponse, contractsResponse] = await Promise.all([
+        getOnboardingStatus(),
+        getAllHospitals(),
+        getAllContracts()
+      ]);
+
+      if (statusResponse.success) {
+        setOnboardingData(statusResponse.onboardingStatuses);
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/onboarding/status/${applicationId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+      if (hospitalsResponse.success) {
+        setHospitals(hospitalsResponse.hospitals);
+        
+        // Set the most recent hospital as selected if available
+        if (hospitalsResponse.hospitals.length > 0) {
+          const currentHospitalId = localStorage.getItem('currentHospitalId');
+          const hospital = hospitalsResponse.hospitals.find(h => h.id === currentHospitalId) 
+            || hospitalsResponse.hospitals[0];
+          setSelectedHospital(hospital);
         }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch application status');
       }
 
-      const data = await response.json();
-      setApplicationData(data);
+      if (contractsResponse.success) {
+        setContracts(contractsResponse.contracts);
+      }
     } catch (err) {
-      setError(err.message);
+      setError('Failed to load dashboard data. Please refresh the page.');
+      console.error('Dashboard error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const getCurrentStageIndex = () => {
-    if (!applicationData) return -1;
-    return stages.findIndex(stage => stage.id === applicationData.status.current_stage);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchDashboardData();
+    setRefreshing(false);
   };
 
-  const getStageStatus = (index) => {
-    const currentIndex = getCurrentStageIndex();
-    if (index < currentIndex) return 'completed';
-    if (index === currentIndex) return 'current';
-    return 'pending';
+  const getStepStatus = (stepField) => {
+    if (!selectedHospital || !onboardingData) return false;
+    
+    const hospitalStatus = onboardingData.find(
+      status => status.hospital_id === selectedHospital.id
+    );
+    
+    return hospitalStatus ? hospitalStatus[stepField] : false;
   };
 
-  const getTaskIcon = (completed) => {
-    if (completed) {
-      return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
+  const calculateProgress = () => {
+    if (!selectedHospital || !onboardingData) return 0;
+    
+    const hospitalStatus = onboardingData.find(
+      status => status.hospital_id === selectedHospital.id
+    );
+    
+    return hospitalStatus ? hospitalStatus.completion_percentage : 0;
+  };
+
+  const getCurrentStep = () => {
+    for (let i = 0; i < onboardingSteps.length; i++) {
+      if (!getStepStatus(onboardingSteps[i].field)) {
+        return i;
+      }
     }
-    return <ClockIcon className="h-5 w-5 text-gray-400" />;
+    return onboardingSteps.length;
   };
 
-  const handleActionClick = (action) => {
-    switch (action) {
-      case 'upload_documents':
-        navigate('/onboarding/documents');
-        break;
-      case 'review_contract':
-        navigate('/onboarding/contract');
-        break;
-      case 'sign_contract':
-        navigate('/onboarding/sign');
-        break;
-      default:
-        break;
-    }
+  const getHospitalContract = () => {
+    if (!selectedHospital) return null;
+    return contracts.find(c => c.hospital_id === selectedHospital.id);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-NG', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <ArrowPathIcon className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading application status...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600">{error}</p>
-          <button
-            onClick={() => navigate('/onboarding/apply')}
-            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Start New Application
-          </button>
-        </div>
-      </div>
+      <Container>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <CircularProgress />
+        </Box>
+      </Container>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+    <Container maxWidth="xl">
+      <Box sx={{ mb: 4, mt: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4">
+            <Dashboard sx={{ mr: 1, verticalAlign: 'middle' }} />
             Onboarding Dashboard
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Track your hospital onboarding progress
-          </p>
-        </div>
+          </Typography>
+          <Button
+            startIcon={refreshing ? <CircularProgress size={20} /> : <Refresh />}
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            Refresh
+          </Button>
+        </Box>
 
-        {/* Application Info Card */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-gray-500">Application ID</p>
-              <p className="font-semibold text-gray-900">
-                {applicationData?.application.id}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Hospital Name</p>
-              <p className="font-semibold text-gray-900">
-                {applicationData?.application.hospital_name}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Submitted On</p>
-              <p className="font-semibold text-gray-900">
-                {new Date(applicationData?.application.created_at).toLocaleDateString('en-NG')}
-              </p>
-            </div>
-          </div>
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
 
-          {/* Overall Progress Bar */}
-          <div className="mt-6">
-            <div className="flex justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">
-                Overall Progress
-              </span>
-              <span className="text-sm font-medium text-blue-600">
-                {applicationData?.status.progress_percentage}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div
-                className="bg-blue-600 h-3 rounded-full transition-all duration-500"
-                style={{ width: `${applicationData?.status.progress_percentage}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Progress Timeline */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Onboarding Progress
-          </h2>
-          
-          <div className="relative">
-            {stages.map((stage, index) => {
-              const status = getStageStatus(index);
-              const Icon = stage.icon;
-              
-              return (
-                <div key={stage.id} className="relative flex items-start mb-8 last:mb-0">
-                  {/* Timeline Line */}
-                  {index < stages.length - 1 && (
-                    <div
-                      className={`absolute left-6 top-12 w-0.5 h-full ${
-                        status === 'completed' ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                    />
-                  )}
-
-                  {/* Stage Icon */}
-                  <div
-                    className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full ${
-                      status === 'completed'
-                        ? 'bg-green-100 border-2 border-green-500'
-                        : status === 'current'
-                        ? 'bg-blue-100 border-2 border-blue-500'
-                        : 'bg-gray-100 border-2 border-gray-300'
-                    }`}
+        {/* Hospital Selector */}
+        {hospitals.length > 0 && (
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Select Hospital
+            </Typography>
+            <Grid container spacing={2}>
+              {hospitals.map(hospital => (
+                <Grid item xs={12} sm={6} md={4} key={hospital.id}>
+                  <Card
+                    variant={selectedHospital?.id === hospital.id ? 'elevation' : 'outlined'}
+                    sx={{
+                      cursor: 'pointer',
+                      borderColor: selectedHospital?.id === hospital.id ? 'primary.main' : 'divider',
+                      borderWidth: selectedHospital?.id === hospital.id ? 2 : 1
+                    }}
+                    onClick={() => setSelectedHospital(hospital)}
                   >
-                    <Icon
-                      className={`h-6 w-6 ${
-                        status === 'completed'
-                          ? 'text-green-600'
-                          : status === 'current'
-                          ? 'text-blue-600'
-                          : 'text-gray-400'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Stage Content */}
-                  <div className="ml-6 flex-1">
-                    <div className="flex items-center">
-                      <h3
-                        className={`text-lg font-medium ${
-                          status === 'completed'
-                            ? 'text-green-700'
-                            : status === 'current'
-                            ? 'text-blue-700'
-                            : 'text-gray-500'
-                        }`}
-                      >
-                        {stage.name}
-                      </h3>
-                      {status === 'current' && (
-                        <span className="ml-3 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                          Current Stage
-                        </span>
-                      )}
-                      {status === 'completed' && (
-                        <CheckCircleIcon className="ml-3 h-5 w-5 text-green-500" />
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {stage.description}
-                    </p>
-                    {status === 'completed' && applicationData?.status.stage_dates?.[stage.id] && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Completed on {new Date(applicationData.status.stage_dates[stage.id]).toLocaleDateString('en-NG')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Task Checklist */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Checklist */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Onboarding Checklist
-            </h2>
-            
-            <div className="space-y-3">
-              {applicationData?.checklist?.map(task => (
-                <div
-                  key={task.id}
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    task.completed ? 'bg-green-50' : 'bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    {getTaskIcon(task.completed)}
-                    <span
-                      className={`text-sm ${
-                        task.completed ? 'text-gray-700 line-through' : 'text-gray-900'
-                      }`}
-                    >
-                      {task.task_name}
-                    </span>
-                  </div>
-                  {task.completed && task.completed_at && (
-                    <span className="text-xs text-gray-500">
-                      {new Date(task.completed_at).toLocaleDateString('en-NG')}
-                    </span>
-                  )}
-                </div>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
+                          <LocalHospital />
+                        </Avatar>
+                        <Box sx={{ flexGrow: 1 }}>
+                          <Typography variant="subtitle1" noWrap>
+                            {hospital.name}
+                          </Typography>
+                          <Typography variant="caption" color="textSecondary">
+                            {hospital.code}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Typography variant="body2" color="textSecondary">
+                        {hospital.city}, {hospital.state}
+                      </Typography>
+                      <Chip
+                        label={hospital.status || 'Active'}
+                        size="small"
+                        color="success"
+                        sx={{ mt: 1 }}
+                      />
+                    </CardContent>
+                  </Card>
+                </Grid>
               ))}
-            </div>
-          </div>
+            </Grid>
+          </Paper>
+        )}
 
-          {/* Actions & Next Steps */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Next Steps
-            </h2>
+        {selectedHospital ? (
+          <Grid container spacing={3}>
+            {/* Progress Overview */}
+            <Grid item xs={12} md={4}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Overall Progress
+                  </Typography>
+                  <Box sx={{ position: 'relative', display: 'inline-flex', width: '100%', justifyContent: 'center', my: 3 }}>
+                    <CircularProgress
+                      variant="determinate"
+                      value={calculateProgress()}
+                      size={120}
+                      thickness={4}
+                    />
+                    <Box
+                      sx={{
+                        top: 0,
+                        left: 0,
+                        bottom: 0,
+                        right: 0,
+                        position: 'absolute',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Typography variant="h4" component="div" color="text.secondary">
+                        {calculateProgress()}%
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Typography variant="body2" align="center" color="textSecondary">
+                    {getCurrentStep()} of {onboardingSteps.length} steps completed
+                  </Typography>
+                </CardContent>
+              </Card>
 
-            {applicationData?.status.current_stage === 'application' && (
-              <div className="space-y-4">
-                <p className="text-gray-600">
-                  Your application has been submitted. Please upload the required documents.
-                </p>
-                <button
-                  onClick={() => handleActionClick('upload_documents')}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  <span>Upload Documents</span>
-                  <ChevronRightIcon className="h-5 w-5" />
-                </button>
-              </div>
-            )}
+              {/* Hospital Info */}
+              <Card sx={{ mt: 3 }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Hospital Information
+                  </Typography>
+                  <List dense>
+                    <ListItem>
+                      <ListItemIcon>
+                        <Business />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Name"
+                        secondary={selectedHospital.name}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        <Info />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Code"
+                        secondary={selectedHospital.code}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        <CalendarToday />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Applied On"
+                        secondary={formatDate(selectedHospital.created_at)}
+                      />
+                    </ListItem>
+                  </List>
+                </CardContent>
+              </Card>
 
-            {applicationData?.status.current_stage === 'document_submission' && (
-              <div className="space-y-4">
-                <p className="text-gray-600">
-                  Please ensure all required documents are uploaded for verification.
-                </p>
-                <button
-                  onClick={() => handleActionClick('upload_documents')}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  <span>Manage Documents</span>
-                  <ChevronRightIcon className="h-5 w-5" />
-                </button>
-              </div>
-            )}
+              {/* Contract Info */}
+              {getHospitalContract() && (
+                <Card sx={{ mt: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Contract Details
+                    </Typography>
+                    <List dense>
+                      <ListItem>
+                        <ListItemText
+                          primary="Contract Number"
+                          secondary={getHospitalContract().contract_number}
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText
+                          primary="Status"
+                          secondary={
+                            <Chip
+                              label={getHospitalContract().status}
+                              size="small"
+                              color={getHospitalContract().status === 'signed' ? 'success' : 'warning'}
+                            />
+                          }
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemText
+                          primary="Commission Rate"
+                          secondary={`${getHospitalContract().commission_rate || 15}%`}
+                        />
+                      </ListItem>
+                    </List>
+                  </CardContent>
+                </Card>
+              )}
+            </Grid>
 
-            {applicationData?.status.current_stage === 'evaluation' && (
-              <div className="space-y-4">
-                <p className="text-gray-600">
-                  Your application is being evaluated by our team. We'll notify you once the review is complete.
-                </p>
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    <ClockIcon className="inline h-4 w-4 mr-1" />
-                    Estimated review time: 3-5 business days
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* Onboarding Steps */}
+            <Grid item xs={12} md={8}>
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Onboarding Steps
+                </Typography>
+                
+                <Stepper activeStep={getCurrentStep()} orientation="vertical">
+                  {onboardingSteps.map((step, index) => {
+                    const completed = getStepStatus(step.field);
+                    const active = index === getCurrentStep();
+                    
+                    return (
+                      <Step key={step.label} completed={completed}>
+                        <StepLabel
+                          StepIconComponent={() => (
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              {completed ? (
+                                <CheckCircle color="success" />
+                              ) : active ? (
+                                <RadioButtonUnchecked color="primary" />
+                              ) : (
+                                <RadioButtonUnchecked color="disabled" />
+                              )}
+                            </Box>
+                          )}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            {step.icon}
+                            <Box sx={{ ml: 2 }}>
+                              <Typography variant="subtitle1">
+                                {step.label}
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                {step.description}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </StepLabel>
+                        <StepContent>
+                          <Box sx={{ mb: 2 }}>
+                            {active && step.route && (
+                              <Button
+                                variant="contained"
+                                size="small"
+                                endIcon={<ArrowForward />}
+                                onClick={() => navigate(step.route)}
+                                sx={{ mt: 1 }}
+                              >
+                                Continue
+                              </Button>
+                            )}
+                            {active && !step.route && (
+                              <Alert severity="info" sx={{ mt: 1 }}>
+                                This step will be completed by our team. We'll notify you once it's done.
+                              </Alert>
+                            )}
+                            {completed && (
+                              <Chip
+                                label="Completed"
+                                size="small"
+                                color="success"
+                                sx={{ mt: 1 }}
+                              />
+                            )}
+                          </Box>
+                        </StepContent>
+                      </Step>
+                    );
+                  })}
+                </Stepper>
 
-            {applicationData?.status.current_stage === 'contract_negotiation' && (
-              <div className="space-y-4">
-                <p className="text-gray-600">
-                  Contract terms are being prepared. You'll be able to review them soon.
-                </p>
-                <button
-                  onClick={() => handleActionClick('review_contract')}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  <span>Review Contract</span>
-                  <ChevronRightIcon className="h-5 w-5" />
-                </button>
-              </div>
-            )}
-
-            {applicationData?.status.current_stage === 'signature' && (
-              <div className="space-y-4">
-                <p className="text-gray-600">
-                  Your contract is ready for signature. Please review and sign digitally.
-                </p>
-                <button
-                  onClick={() => handleActionClick('sign_contract')}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                  <span>Sign Contract</span>
-                  <ChevronRightIcon className="h-5 w-5" />
-                </button>
-              </div>
-            )}
-
-            {applicationData?.status.current_stage === 'completed' && (
-              <div className="space-y-4">
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <CheckCircleIcon className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <p className="text-center text-green-800 font-medium">
-                    Congratulations! Your onboarding is complete.
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate('/owner/dashboard')}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  <span>Go to Dashboard</span>
-                  <ChevronRightIcon className="h-5 w-5" />
-                </button>
-              </div>
-            )}
-
-            {/* Evaluation Scores (if available) */}
-            {applicationData?.evaluation && (
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h3 className="text-sm font-semibold text-blue-900 mb-2">
-                  Evaluation Summary
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-blue-700">Infrastructure</span>
-                    <span className="font-medium text-blue-900">
-                      {applicationData.evaluation.infrastructure_score}/100
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-blue-700">Clinical Services</span>
-                    <span className="font-medium text-blue-900">
-                      {applicationData.evaluation.clinical_score}/100
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-blue-700">Financial Health</span>
-                    <span className="font-medium text-blue-900">
-                      {applicationData.evaluation.financial_score}/100
-                    </span>
-                  </div>
-                  <div className="pt-2 border-t border-blue-200">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-semibold text-blue-700">Total Score</span>
-                      <span className="font-bold text-blue-900">
-                        {applicationData.evaluation.total_score}/100
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+                {getCurrentStep() === onboardingSteps.length && (
+                  <Alert severity="success" sx={{ mt: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Congratulations! 🎉
+                    </Typography>
+                    <Typography variant="body2">
+                      Your hospital onboarding is complete. You now have full access to the GrandPro HMSO platform.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      sx={{ mt: 2 }}
+                      onClick={() => navigate('/dashboard')}
+                    >
+                      Go to Main Dashboard
+                    </Button>
+                  </Alert>
+                )}
+              </Paper>
+            </Grid>
+          </Grid>
+        ) : (
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <Typography variant="h6" gutterBottom>
+              No Hospitals Found
+            </Typography>
+            <Typography variant="body2" color="textSecondary" paragraph>
+              Start by submitting a hospital application to begin the onboarding process.
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Assignment />}
+              onClick={() => navigate('/onboarding/application')}
+            >
+              Start New Application
+            </Button>
+          </Paper>
+        )}
+      </Box>
+    </Container>
   );
-};
+}
 
 export default OnboardingDashboard;

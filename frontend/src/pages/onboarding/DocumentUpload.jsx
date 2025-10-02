@@ -1,478 +1,424 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  DocumentIcon,
-  CloudArrowUpIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  EyeIcon,
-  TrashIcon,
-  ArrowPathIcon
-} from '@heroicons/react/24/outline';
+  Box,
+  Container,
+  Paper,
+  Typography,
+  Button,
+  Grid,
+  Card,
+  CardContent,
+  IconButton,
+  Alert,
+  LinearProgress,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
+} from '@mui/material';
+import {
+  CloudUpload,
+  Description,
+  Delete,
+  CheckCircle,
+  Warning,
+  Info,
+  PictureAsPdf,
+  Image,
+  Article,
+  Download,
+  Visibility
+} from '@mui/icons-material';
+import { uploadDocuments, updateOnboardingProgress, getHospitalDetails } from '../../services/onboarding.service';
 
 const requiredDocuments = [
-  {
-    id: 'cac_certificate',
-    name: 'CAC Certificate',
-    description: 'Corporate Affairs Commission registration certificate',
+  { 
+    type: 'license', 
+    name: 'Hospital Operating License',
+    description: 'Valid operating license from regulatory body',
     required: true,
-    maxSize: 5 // MB
+    accepted: '.pdf, .jpg, .png'
   },
   {
-    id: 'tax_clearance',
+    type: 'registration',
+    name: 'Business Registration Certificate',
+    description: 'CAC registration certificate',
+    required: true,
+    accepted: '.pdf, .jpg, .png'
+  },
+  {
+    type: 'tax',
     name: 'Tax Clearance Certificate',
-    description: 'Valid tax clearance certificate from FIRS',
+    description: 'Latest tax clearance certificate',
     required: true,
-    maxSize: 5
+    accepted: '.pdf, .jpg, .png'
   },
   {
-    id: 'practice_license',
-    name: 'Medical Practice License',
-    description: 'License from Medical and Dental Council of Nigeria',
-    required: true,
-    maxSize: 5
-  },
-  {
-    id: 'insurance_certificate',
+    type: 'insurance',
     name: 'Professional Indemnity Insurance',
-    description: 'Valid professional indemnity insurance certificate',
-    required: true,
-    maxSize: 5
+    description: 'Valid professional insurance document',
+    required: false,
+    accepted: '.pdf'
   },
   {
-    id: 'facility_photos',
+    type: 'facility',
     name: 'Facility Photos',
-    description: 'Recent photos of hospital facilities (min. 5 photos)',
-    required: true,
-    maxSize: 20,
-    multiple: true
+    description: 'Photos of hospital facilities',
+    required: false,
+    accepted: '.jpg, .png'
   },
   {
-    id: 'equipment_list',
-    name: 'Equipment List',
-    description: 'Detailed list of medical equipment available',
+    type: 'accreditation',
+    name: 'Accreditation Certificates',
+    description: 'Any relevant accreditation documents',
     required: false,
-    maxSize: 5
-  },
-  {
-    id: 'staff_list',
-    name: 'Staff List & Qualifications',
-    description: 'List of medical staff with their qualifications',
-    required: false,
-    maxSize: 5
-  },
-  {
-    id: 'financial_statement',
-    name: 'Financial Statement',
-    description: 'Latest audited financial statement (if available)',
-    required: false,
-    maxSize: 10
+    accepted: '.pdf, .jpg, .png'
   }
 ];
 
-const DocumentUpload = () => {
+function DocumentUpload() {
   const navigate = useNavigate();
-  const [applicationId, setApplicationId] = useState('');
+  const [hospitalData, setHospitalData] = useState(null);
   const [uploadedFiles, setUploadedFiles] = useState({});
-  const [uploadProgress, setUploadProgress] = useState({});
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState({});
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [previewDialog, setPreviewDialog] = useState({ open: false, file: null });
+  
+  const hospitalId = localStorage.getItem('currentHospitalId');
+  const hospitalName = localStorage.getItem('currentHospitalName');
 
   useEffect(() => {
-    // Get application ID from localStorage or redirect if not found
-    const storedAppId = localStorage.getItem('applicationId');
-    if (!storedAppId) {
-      navigate('/onboarding/apply');
+    if (!hospitalId) {
+      navigate('/onboarding/application');
     } else {
-      setApplicationId(storedAppId);
-      fetchUploadedDocuments(storedAppId);
+      fetchHospitalDetails();
     }
-  }, [navigate]);
+  }, [hospitalId]);
 
-  const fetchUploadedDocuments = async (appId) => {
+  const fetchHospitalDetails = async () => {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/onboarding/documents/${appId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const files = {};
-        const status = {};
-        
-        data.documents.forEach(doc => {
-          files[doc.document_type] = doc;
-          status[doc.document_type] = doc.verification_status;
-        });
-        
-        setUploadedFiles(files);
-        setVerificationStatus(status);
+      const response = await getHospitalDetails(hospitalId);
+      if (response.success) {
+        setHospitalData(response.hospital);
       }
-    } catch (error) {
-      console.error('Failed to fetch documents:', error);
+    } catch (err) {
+      console.error('Failed to fetch hospital details:', err);
     }
   };
 
-  const handleFileSelect = async (documentType, files) => {
-    const file = files[0];
-    const document = requiredDocuments.find(d => d.id === documentType);
-    
-    // Validate file size
-    if (file.size > document.maxSize * 1024 * 1024) {
-      setErrors(prev => ({
-        ...prev,
-        [documentType]: `File size exceeds ${document.maxSize}MB limit`
-      }));
-      return;
-    }
-
-    // Clear previous errors
-    setErrors(prev => {
-      const newErrors = { ...prev };
-      delete newErrors[documentType];
-      return newErrors;
-    });
-
-    // Start upload
-    const formData = new FormData();
-    formData.append('document', file);
-    formData.append('documentType', documentType);
-    formData.append('applicationId', applicationId);
-
-    try {
-      setUploadProgress(prev => ({ ...prev, [documentType]: 0 }));
+  const handleFileSelect = (docType, event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file type
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      const acceptedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
       
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/onboarding/documents/upload`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: formData
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
+      if (!acceptedExtensions.includes(fileExtension)) {
+        setError('Invalid file type. Please upload PDF, JPG, PNG, or DOC files.');
+        return;
       }
-
-      const data = await response.json();
+      
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError('File size too large. Maximum size is 10MB.');
+        return;
+      }
       
       setUploadedFiles(prev => ({
         ...prev,
-        [documentType]: {
-          id: data.documentId,
-          filename: file.name,
-          size: file.size,
-          uploadedAt: new Date().toISOString()
-        }
+        [docType]: file
       }));
-
-      setUploadProgress(prev => ({ ...prev, [documentType]: 100 }));
-      
-      // Clear progress after 2 seconds
-      setTimeout(() => {
-        setUploadProgress(prev => {
-          const newProgress = { ...prev };
-          delete newProgress[documentType];
-          return newProgress;
-        });
-      }, 2000);
-
-    } catch (error) {
-      setErrors(prev => ({
-        ...prev,
-        [documentType]: 'Upload failed. Please try again.'
-      }));
-      setUploadProgress(prev => {
-        const newProgress = { ...prev };
-        delete newProgress[documentType];
-        return newProgress;
-      });
+      setError('');
     }
   };
 
-  const handleDelete = async (documentType) => {
-    if (!confirm('Are you sure you want to delete this document?')) {
-      return;
+  const handleRemoveFile = (docType) => {
+    setUploadedFiles(prev => {
+      const updated = { ...prev };
+      delete updated[docType];
+      return updated;
+    });
+  };
+
+  const handlePreviewFile = (file) => {
+    const fileUrl = URL.createObjectURL(file);
+    setPreviewDialog({ open: true, file, url: fileUrl });
+  };
+
+  const handleClosePreview = () => {
+    if (previewDialog.url) {
+      URL.revokeObjectURL(previewDialog.url);
     }
+    setPreviewDialog({ open: false, file: null, url: null });
+  };
 
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/onboarding/documents/${uploadedFiles[documentType].id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      );
-
-      if (response.ok) {
-        setUploadedFiles(prev => {
-          const newFiles = { ...prev };
-          delete newFiles[documentType];
-          return newFiles;
-        });
-        setVerificationStatus(prev => {
-          const newStatus = { ...prev };
-          delete newStatus[documentType];
-          return newStatus;
-        });
-      }
-    } catch (error) {
-      console.error('Failed to delete document:', error);
+  const getFileIcon = (fileName) => {
+    const extension = fileName.split('.').pop().toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return <PictureAsPdf color="error" />;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+        return <Image color="primary" />;
+      default:
+        return <Article color="action" />;
     }
   };
 
-  const handleSubmitDocuments = async () => {
+  const handleUploadAll = async () => {
     // Check if all required documents are uploaded
-    const missingDocs = requiredDocuments
-      .filter(doc => doc.required && !uploadedFiles[doc.id])
-      .map(doc => doc.name);
-
+    const requiredDocs = requiredDocuments.filter(doc => doc.required);
+    const missingDocs = requiredDocs.filter(doc => !uploadedFiles[doc.type]);
+    
     if (missingDocs.length > 0) {
-      alert(`Please upload the following required documents:\n${missingDocs.join('\n')}`);
+      setError(`Please upload all required documents: ${missingDocs.map(d => d.name).join(', ')}`);
       return;
     }
-
-    setLoading(true);
-
+    
+    setUploading(true);
+    setError('');
+    setSuccess('');
+    
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/onboarding/documents/submit`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ applicationId })
-        }
-      );
-
-      if (response.ok) {
-        navigate('/onboarding/status');
-      } else {
-        alert('Failed to submit documents. Please try again.');
+      // Prepare files for upload
+      const filesToUpload = Object.entries(uploadedFiles).map(([type, file]) => {
+        file.type = type; // Add type to file object
+        return file;
+      });
+      
+      // Upload documents
+      const result = await uploadDocuments(hospitalId, filesToUpload);
+      
+      if (result.success) {
+        // Update onboarding progress
+        await updateOnboardingProgress(hospitalId, 'documents', true);
+        
+        setSuccess('Documents uploaded successfully!');
+        
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+          navigate('/onboarding/dashboard');
+        }, 2000);
       }
-    } catch (error) {
-      console.error('Error submitting documents:', error);
-      alert('An error occurred. Please try again.');
+    } catch (err) {
+      setError(err.message || 'Failed to upload documents. Please try again.');
     } finally {
-      setLoading(false);
+      setUploading(false);
     }
   };
 
-  const formatFileSize = (bytes) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  };
-
-  const getStatusIcon = (documentType) => {
-    const status = verificationStatus[documentType];
-    
-    if (status === 'verified') {
-      return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
-    } else if (status === 'rejected') {
-      return <XCircleIcon className="h-5 w-5 text-red-500" />;
-    } else if (status === 'pending') {
-      return <ArrowPathIcon className="h-5 w-5 text-yellow-500 animate-spin" />;
-    }
-    
-    return null;
+  const calculateProgress = () => {
+    const requiredCount = requiredDocuments.filter(d => d.required).length;
+    const uploadedRequired = requiredDocuments
+      .filter(d => d.required && uploadedFiles[d.type])
+      .length;
+    return (uploadedRequired / requiredCount) * 100;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <Container maxWidth="lg">
+      <Paper sx={{ p: 4, mt: 4 }}>
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" gutterBottom>
+            <CloudUpload sx={{ mr: 1, verticalAlign: 'middle' }} />
             Document Upload
-          </h1>
-          <p className="text-gray-600">
-            Please upload all required documents for your hospital application
-          </p>
-          {applicationId && (
-            <p className="text-sm text-gray-500 mt-2">
-              Application ID: {applicationId}
-            </p>
-          )}
-        </div>
-
-        {/* Progress Summary */}
-        <div className="bg-white rounded-lg shadow mb-8 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            Upload required documents for {hospitalName || 'your hospital'}
+          </Typography>
+          
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="body2" gutterBottom>
               Upload Progress
-            </h2>
-            <span className="text-sm text-gray-600">
-              {Object.keys(uploadedFiles).length} of {requiredDocuments.filter(d => d.required).length} required documents uploaded
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{
-                width: `${
-                  (Object.keys(uploadedFiles).length / requiredDocuments.filter(d => d.required).length) * 100
-                }%`
-              }}
+            </Typography>
+            <LinearProgress 
+              variant="determinate" 
+              value={calculateProgress()} 
+              sx={{ height: 10, borderRadius: 5 }}
             />
-          </div>
-        </div>
+            <Typography variant="caption" color="textSecondary">
+              {Object.keys(uploadedFiles).length} of {requiredDocuments.length} documents uploaded
+            </Typography>
+          </Box>
+        </Box>
 
-        {/* Document List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {requiredDocuments.map(document => (
-            <div
-              key={document.id}
-              className={`bg-white rounded-lg shadow p-6 ${
-                uploadedFiles[document.id] ? 'border-green-200' : ''
-              }`}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    {document.name}
-                    {document.required && (
-                      <span className="ml-2 text-red-500">*</span>
+        <Grid container spacing={3}>
+          {requiredDocuments.map(doc => (
+            <Grid item xs={12} md={6} key={doc.type}>
+              <Card 
+                variant="outlined" 
+                sx={{ 
+                  height: '100%',
+                  borderColor: uploadedFiles[doc.type] ? 'success.main' : 'divider'
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        {doc.name}
+                        {doc.required && (
+                          <Chip 
+                            label="Required" 
+                            size="small" 
+                            color="error" 
+                            sx={{ ml: 1 }}
+                          />
+                        )}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {doc.description}
+                      </Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        Accepted formats: {doc.accepted}
+                      </Typography>
+                    </Box>
+                    {uploadedFiles[doc.type] && (
+                      <CheckCircle color="success" />
                     )}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {document.description}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Max size: {document.maxSize}MB
-                  </p>
-                </div>
-                {getStatusIcon(document.id)}
-              </div>
+                  </Box>
 
-              {uploadedFiles[document.id] ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                    <div className="flex items-center space-x-3">
-                      <DocumentIcon className="h-8 w-8 text-gray-400" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {uploadedFiles[document.id].filename}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {formatFileSize(uploadedFiles[document.id].size)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => window.open(`${import.meta.env.VITE_API_URL}/onboarding/documents/view/${uploadedFiles[document.id].id}`, '_blank')}
-                        className="p-1 text-gray-600 hover:text-blue-600"
-                        title="View"
-                      >
-                        <EyeIcon className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(document.id)}
-                        className="p-1 text-gray-600 hover:text-red-600"
-                        title="Delete"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {verificationStatus[document.id] && (
-                    <div className={`text-sm px-3 py-2 rounded ${
-                      verificationStatus[document.id] === 'verified' 
-                        ? 'bg-green-50 text-green-700'
-                        : verificationStatus[document.id] === 'rejected'
-                        ? 'bg-red-50 text-red-700'
-                        : 'bg-yellow-50 text-yellow-700'
-                    }`}>
-                      Status: {verificationStatus[document.id]}
-                    </div>
+                  {uploadedFiles[doc.type] ? (
+                    <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        {getFileIcon(uploadedFiles[doc.type].name)}
+                        <Box sx={{ ml: 2, flexGrow: 1 }}>
+                          <Typography variant="body2">
+                            {uploadedFiles[doc.type].name}
+                          </Typography>
+                          <Typography variant="caption" color="textSecondary">
+                            {(uploadedFiles[doc.type].size / 1024).toFixed(2)} KB
+                          </Typography>
+                        </Box>
+                        <IconButton
+                          size="small"
+                          onClick={() => handlePreviewFile(uploadedFiles[doc.type])}
+                        >
+                          <Visibility />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleRemoveFile(doc.type)}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </Box>
+                    </Paper>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      fullWidth
+                      startIcon={<CloudUpload />}
+                      sx={{ mt: 2 }}
+                    >
+                      Select File
+                      <input
+                        type="file"
+                        hidden
+                        accept={doc.accepted}
+                        onChange={(e) => handleFileSelect(doc.type, e)}
+                      />
+                    </Button>
                   )}
-                </div>
-              ) : (
-                <div>
-                  <label className="block">
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                      onChange={(e) => handleFileSelect(document.id, e.target.files)}
-                      className="hidden"
-                      id={`file-${document.id}`}
-                      multiple={document.multiple}
-                    />
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors">
-                      <CloudArrowUpIcon className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-sm text-gray-600">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        PDF, DOC, DOCX, JPG, PNG (max. {document.maxSize}MB)
-                      </p>
-                    </div>
-                  </label>
-
-                  {uploadProgress[document.id] !== undefined && (
-                    <div className="mt-3">
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${uploadProgress[document.id]}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Uploading... {uploadProgress[document.id]}%
-                      </p>
-                    </div>
-                  )}
-
-                  {errors[document.id] && (
-                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded">
-                      <p className="text-sm text-red-600">{errors[document.id]}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                </CardContent>
+              </Card>
+            </Grid>
           ))}
-        </div>
+        </Grid>
 
-        {/* Action Buttons */}
-        <div className="mt-8 flex justify-between">
-          <button
-            onClick={() => navigate('/onboarding/apply')}
-            className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+        {error && (
+          <Alert severity="error" sx={{ mt: 3 }}>
+            {error}
+          </Alert>
+        )}
+
+        {success && (
+          <Alert severity="success" sx={{ mt: 3 }}>
+            {success}
+          </Alert>
+        )}
+
+        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+          <Button
+            variant="outlined"
+            onClick={() => navigate('/onboarding/application')}
           >
             Back to Application
-          </button>
-
-          <button
-            onClick={handleSubmitDocuments}
-            disabled={loading || Object.keys(uploadedFiles).length === 0}
-            className={`px-6 py-2 rounded-lg ${
-              loading || Object.keys(uploadedFiles).length === 0
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
-            } text-white`}
+          </Button>
+          
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            onClick={handleUploadAll}
+            disabled={uploading || Object.keys(uploadedFiles).length === 0}
+            startIcon={uploading ? null : <CloudUpload />}
           >
-            {loading ? 'Submitting...' : 'Submit Documents'}
-          </button>
-        </div>
-      </div>
-    </div>
+            {uploading ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                Uploading...
+              </>
+            ) : (
+              'Upload All Documents'
+            )}
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Preview Dialog */}
+      <Dialog
+        open={previewDialog.open}
+        onClose={handleClosePreview}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Preview Document
+        </DialogTitle>
+        <DialogContent>
+          {previewDialog.file && (
+            <Box sx={{ textAlign: 'center' }}>
+              {previewDialog.file.type.startsWith('image/') ? (
+                <img 
+                  src={previewDialog.url} 
+                  alt="Preview" 
+                  style={{ maxWidth: '100%', maxHeight: '500px' }}
+                />
+              ) : (
+                <Box sx={{ p: 4 }}>
+                  {getFileIcon(previewDialog.file.name)}
+                  <Typography variant="h6" sx={{ mt: 2 }}>
+                    {previewDialog.file.name}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    Size: {(previewDialog.file.size / 1024).toFixed(2)} KB
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    Type: {previewDialog.file.type}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePreview}>Close</Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
-};
+}
 
 export default DocumentUpload;

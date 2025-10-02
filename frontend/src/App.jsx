@@ -56,11 +56,12 @@ function App() {
       
       {/* Onboarding Routes - Public */}
       <Route path="/onboarding">
-        <Route path="apply" element={<ApplicationForm />} />
+        <Route path="application" element={<ApplicationForm />} />
         <Route path="documents" element={<DocumentUpload />} />
-        <Route path="status" element={<OnboardingDashboard />} />
-        <Route path="contract" element={<ContractReview />} />
-        <Route path="sign" element={<ContractReview />} />
+        <Route path="dashboard" element={<OnboardingDashboard />} />
+        <Route path="contract-review" element={<ContractReview />} />
+        <Route path="contract-sign" element={<ContractReview />} />
+        <Route index element={<OnboardingDashboard />} />
       </Route>
       
       <Route path="/" element={

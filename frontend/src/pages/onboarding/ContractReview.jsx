@@ -1,55 +1,138 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  DocumentTextIcon,
-  ArrowDownTrayIcon,
-  CheckCircleIcon,
-  PencilSquareIcon,
-  ShieldCheckIcon,
-  CalendarIcon,
-  CurrencyDollarIcon,
-  BuildingOfficeIcon,
-  UserGroupIcon,
-  ClockIcon,
-  QrCodeIcon
-} from '@heroicons/react/24/outline';
+  Box,
+  Container,
+  Paper,
+  Typography,
+  Button,
+  Grid,
+  Card,
+  CardContent,
+  Divider,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  CircularProgress,
+  Chip,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Tooltip,
+  Stepper,
+  Step,
+  StepLabel
+} from '@mui/material';
+import {
+  Description,
+  Download,
+  Draw,
+  CheckCircle,
+  Warning,
+  PictureAsPdf,
+  Visibility,
+  Edit,
+  Business,
+  CalendarToday,
+  AttachMoney,
+  Schedule,
+  Gavel,
+  Print
+} from '@mui/icons-material';
+import SignatureCanvas from 'react-signature-canvas';
+import {
+  generateContract,
+  signContract,
+  getContractDetails,
+  getAllContracts,
+  getHospitalDetails,
+  updateOnboardingProgress
+} from '../../services/onboarding.service';
 
-const ContractReview = () => {
+const contractSteps = ['Generate Contract', 'Review Terms', 'Digital Signature'];
+
+function ContractReview() {
   const navigate = useNavigate();
+  const signaturePad = useRef(null);
+  
+  const [activeStep, setActiveStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hospital, setHospital] = useState(null);
   const [contract, setContract] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [signing, setSigning] = useState(false);
-  const [signatureData, setSignatureData] = useState({
-    fullName: '',
-    designation: '',
-    agreementAccepted: false,
-    signatureCode: ''
+  const [contracts, setContracts] = useState([]);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [signatureDialog, setSignatureDialog] = useState(false);
+  const [agreementChecked, setAgreementChecked] = useState(false);
+  
+  const [contractForm, setContractForm] = useState({
+    commissionRate: 15,
+    contractDuration: 12,
+    signerName: '',
+    signerRole: '',
+    signerEmail: ''
   });
-  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  
+  const hospitalId = localStorage.getItem('currentHospitalId');
+  const hospitalName = localStorage.getItem('currentHospitalName');
 
   useEffect(() => {
-    fetchContract();
-  }, []);
+    if (!hospitalId) {
+      navigate('/onboarding/application');
+    } else {
+      fetchInitialData();
+    }
+  }, [hospitalId]);
 
-  const fetchContract = async () => {
+  const fetchInitialData = async () => {
+    setLoading(true);
     try {
-      const applicationId = localStorage.getItem('applicationId');
-      
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/onboarding/contract/${applicationId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+      // Fetch hospital details
+      const hospitalResponse = await getHospitalDetails(hospitalId);
+      if (hospitalResponse.success) {
+        setHospital(hospitalResponse.hospital);
+        
+        // Pre-fill signer information if owner exists
+        if (hospitalResponse.hospital.owner) {
+          setContractForm(prev => ({
+            ...prev,
+            signerName: hospitalResponse.hospital.owner.owner_name || '',
+            signerEmail: hospitalResponse.hospital.owner.owner_email || '',
+            signerRole: 'Hospital Director'
+          }));
+        }
+      }
+
+      // Check for existing contracts
+      const contractsResponse = await getAllContracts();
+      if (contractsResponse.success) {
+        setContracts(contractsResponse.contracts);
+        
+        // Find contract for this hospital
+        const existingContract = contractsResponse.contracts.find(
+          c => c.hospital_id === hospitalId
+        );
+        
+        if (existingContract) {
+          setContract(existingContract);
+          
+          // Set step based on contract status
+          if (existingContract.status === 'DRAFT') {
+            setActiveStep(1); // Review stage
+          } else if (existingContract.status === 'signed') {
+            setActiveStep(2); // Already signed
           }
         }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setContract(data);
       }
-    } catch (error) {
-      console.error('Failed to fetch contract:', error);
+    } catch (err) {
+      setError('Failed to load data. Please try again.');
+      console.error('Initial data error:', err);
     } finally {
       setLoading(false);
     }
@@ -57,430 +140,519 @@ const ContractReview = () => {
 
   const handleGenerateContract = async () => {
     setLoading(true);
+    setError('');
+    setSuccess('');
+    
     try {
-      const applicationId = localStorage.getItem('applicationId');
+      const contractData = {
+        hospitalId: hospitalId,
+        hospitalName: hospital?.name || hospitalName,
+        ownerName: contractForm.signerName,
+        ownerEmail: contractForm.signerEmail,
+        commissionRate: contractForm.commissionRate,
+        contractDuration: contractForm.contractDuration,
+        contractTerms: `
+          This Service Agreement is entered into between GrandPro HMSO and ${hospital?.name || hospitalName}.
+          
+          Terms and Conditions:
+          1. Service Duration: ${contractForm.contractDuration} months
+          2. Commission Rate: ${contractForm.commissionRate}% on monthly revenue
+          3. Services Provided: Complete hospital management system including EMR, billing, inventory, and analytics
+          4. Support: 24/7 technical support and regular system updates
+          5. Data Security: End-to-end encryption and HIPAA compliance
+          6. Payment Terms: Monthly invoicing with NET 30 payment terms
+          7. Termination: Either party may terminate with 30 days written notice
+          8. Governing Law: Laws of the Federal Republic of Nigeria
+        `
+      };
       
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/onboarding/contract/generate`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ applicationId })
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setContract(data);
+      const result = await generateContract(contractData);
+      
+      if (result.success) {
+        setContract(result.contract);
+        await updateOnboardingProgress(hospitalId, 'contract_generation', true);
+        setSuccess('Contract generated successfully!');
+        setActiveStep(1);
       }
-    } catch (error) {
-      console.error('Failed to generate contract:', error);
+    } catch (err) {
+      setError(err.message || 'Failed to generate contract. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSign = async () => {
-    if (!signatureData.agreementAccepted) {
-      alert('Please accept the terms and conditions');
+  const handleSignContract = async () => {
+    if (!signaturePad.current || signaturePad.current.isEmpty()) {
+      setError('Please provide your signature');
       return;
     }
-
-    if (!signatureData.fullName || !signatureData.designation) {
-      alert('Please provide your full name and designation');
-      return;
-    }
-
-    setSigning(true);
+    
+    setLoading(true);
+    setError('');
+    
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/onboarding/contract/sign`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            contractId: contract.id,
-            applicationId: localStorage.getItem('applicationId'),
-            signatureData: {
-              signerName: signatureData.fullName,
-              signerDesignation: signatureData.designation,
-              signatureHash: btoa(signatureData.fullName + Date.now()),
-              ipAddress: 'Client IP',
-              userAgent: navigator.userAgent
-            }
-          })
-        }
-      );
-
-      if (response.ok) {
-        alert('Contract signed successfully!');
-        navigate('/onboarding/status');
+      const signatureData = signaturePad.current.toDataURL();
+      
+      const result = await signContract(contract.id, {
+        signatureData,
+        signerName: contractForm.signerName,
+        signerRole: contractForm.signerRole
+      });
+      
+      if (result.success) {
+        await updateOnboardingProgress(hospitalId, 'contract_signing', true);
+        setContract(result.contract);
+        setSuccess('Contract signed successfully!');
+        setSignatureDialog(false);
+        setActiveStep(2);
+        
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+          navigate('/onboarding/dashboard');
+        }, 2000);
       }
-    } catch (error) {
-      console.error('Failed to sign contract:', error);
-      alert('Failed to sign contract. Please try again.');
+    } catch (err) {
+      setError(err.message || 'Failed to sign contract. Please try again.');
     } finally {
-      setSigning(false);
-      setShowSignatureModal(false);
+      setLoading(false);
+    }
+  };
+
+  const clearSignature = () => {
+    if (signaturePad.current) {
+      signaturePad.current.clear();
     }
   };
 
   const downloadContract = () => {
-    window.open(
-      `${import.meta.env.VITE_API_URL}/onboarding/contract/download/${contract.id}`,
-      '_blank'
-    );
+    if (contract?.pdf_url) {
+      const link = document.createElement('a');
+      link.href = `http://localhost:5001${contract.pdf_url}`;
+      link.download = `Contract_${contract.contract_number}.pdf`;
+      link.click();
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <ClockIcon className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading contract...</p>
-        </div>
-      </div>
-    );
-  }
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN'
+    }).format(amount);
+  };
 
-  if (!contract) {
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-NG', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  if (loading && !contract) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <DocumentTextIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Contract Not Ready
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Your contract is being prepared. Please check back later.
-            </p>
-            <button
-              onClick={handleGenerateContract}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Generate Contract
-            </button>
-          </div>
-        </div>
-      </div>
+      <Container>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <CircularProgress />
+        </Box>
+      </Container>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Contract Review & Signature
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Review the partnership agreement terms and sign digitally
-          </p>
-        </div>
+    <Container maxWidth="lg">
+      <Paper sx={{ p: 4, mt: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          <Description sx={{ mr: 1, verticalAlign: 'middle' }} />
+          Service Contract
+        </Typography>
+        
+        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+          {contractSteps.map(label => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Contract Details */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-lg">
-              {/* Contract Header */}
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <DocumentTextIcon className="h-8 w-8 text-blue-600" />
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900">
-                        Partnership Agreement
-                      </h2>
-                      <p className="text-sm text-gray-500">
-                        Contract ID: {contract.id}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={downloadContract}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                  >
-                    <ArrowDownTrayIcon className="h-5 w-5" />
-                    <span>Download PDF</span>
-                  </button>
-                </div>
-              </div>
+        {/* Step 1: Generate Contract */}
+        {activeStep === 0 && (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Contract Information
+            </Typography>
+            
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Card variant="outlined">
+                  <CardContent>
+                    <Typography variant="subtitle1" gutterBottom>
+                      <Business /> Hospital Details
+                    </Typography>
+                    <Typography variant="body2">
+                      {hospital?.name || hospitalName}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      {hospital?.address}, {hospital?.city}, {hospital?.state}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-              {/* Contract Content */}
-              <div className="p-6">
-                <div className="prose max-w-none">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Contract Terms Summary
-                  </h3>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Commission Rate (%)"
+                  type="number"
+                  value={contractForm.commissionRate}
+                  onChange={(e) => setContractForm(prev => ({ ...prev, commissionRate: e.target.value }))}
+                  InputProps={{
+                    endAdornment: '%'
+                  }}
+                  helperText="Percentage of monthly revenue"
+                />
+              </Grid>
 
-                  {/* Key Terms */}
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <BuildingOfficeIcon className="h-5 w-5 text-gray-600" />
-                        <h4 className="font-medium text-gray-900">Hospital Details</h4>
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        <strong>Name:</strong> {contract.hospitalName}<br />
-                        <strong>Address:</strong> {contract.hospitalAddress}<br />
-                        <strong>Registration:</strong> {contract.registrationNumber}
-                      </p>
-                    </div>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Contract Duration (months)"
+                  type="number"
+                  value={contractForm.contractDuration}
+                  onChange={(e) => setContractForm(prev => ({ ...prev, contractDuration: e.target.value }))}
+                  helperText="Length of service agreement"
+                />
+              </Grid>
 
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <CalendarIcon className="h-5 w-5 text-gray-600" />
-                        <h4 className="font-medium text-gray-900">Contract Duration</h4>
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        <strong>Start Date:</strong> {new Date(contract.startDate).toLocaleDateString('en-NG')}<br />
-                        <strong>End Date:</strong> {new Date(contract.endDate).toLocaleDateString('en-NG')}<br />
-                        <strong>Duration:</strong> {contract.duration || '2 years'}
-                      </p>
-                    </div>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Authorized Signer Name"
+                  value={contractForm.signerName}
+                  onChange={(e) => setContractForm(prev => ({ ...prev, signerName: e.target.value }))}
+                  required
+                />
+              </Grid>
 
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <CurrencyDollarIcon className="h-5 w-5 text-gray-600" />
-                        <h4 className="font-medium text-gray-900">Financial Terms</h4>
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        <strong>Revenue Share:</strong> {contract.revenueShare || '70-30'}%<br />
-                        <strong>Payment Terms:</strong> {contract.paymentTerms || 'Net 30 days'}<br />
-                        <strong>Minimum Guarantee:</strong> ₦{contract.minimumGuarantee || '0'}
-                      </p>
-                    </div>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Signer Role/Title"
+                  value={contractForm.signerRole}
+                  onChange={(e) => setContractForm(prev => ({ ...prev, signerRole: e.target.value }))}
+                  required
+                />
+              </Grid>
 
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <UserGroupIcon className="h-5 w-5 text-gray-600" />
-                        <h4 className="font-medium text-gray-900">Service Obligations</h4>
-                      </div>
-                      <ul className="text-sm text-gray-600 list-disc list-inside">
-                        <li>Maintain minimum bed capacity of {contract.minBedCapacity || 50} beds</li>
-                        <li>Provide 24/7 emergency services</li>
-                        <li>Maintain valid medical practice licenses</li>
-                        <li>Submit monthly performance reports</li>
-                        <li>Participate in quality improvement programs</li>
-                      </ul>
-                    </div>
-                  </div>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Signer Email"
+                  type="email"
+                  value={contractForm.signerEmail}
+                  onChange={(e) => setContractForm(prev => ({ ...prev, signerEmail: e.target.value }))}
+                  required
+                />
+              </Grid>
+            </Grid>
 
-                  {/* Terms & Conditions */}
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Standard Terms & Conditions
-                    </h3>
-                    <div className="h-64 overflow-y-auto p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-                      <p className="mb-4">
-                        This Partnership Agreement ("Agreement") is entered into between GrandPro HMSO
-                        ("Company") and {contract.hospitalName} ("Partner") on the terms and conditions
-                        set forth below.
-                      </p>
-                      
-                      <h4 className="font-semibold mb-2">1. Services</h4>
-                      <p className="mb-4">
-                        Partner agrees to provide healthcare services in accordance with the standards
-                        and protocols established by the Company...
-                      </p>
+            {error && <Alert severity="error" sx={{ mt: 3 }}>{error}</Alert>}
+            {success && <Alert severity="success" sx={{ mt: 3 }}>{success}</Alert>}
 
-                      <h4 className="font-semibold mb-2">2. Compensation</h4>
-                      <p className="mb-4">
-                        Company shall compensate Partner based on the revenue sharing model outlined
-                        in the financial terms section...
-                      </p>
+            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={handleGenerateContract}
+                disabled={loading || !contractForm.signerName || !contractForm.signerEmail}
+                startIcon={loading ? <CircularProgress size={20} /> : <Description />}
+              >
+                {loading ? 'Generating...' : 'Generate Contract'}
+              </Button>
+            </Box>
+          </Box>
+        )}
 
-                      <h4 className="font-semibold mb-2">3. Compliance</h4>
-                      <p className="mb-4">
-                        Partner shall comply with all applicable laws, regulations, and professional
-                        standards in the provision of healthcare services...
-                      </p>
+        {/* Step 2: Review Contract */}
+        {activeStep === 1 && contract && (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Review Contract Terms
+            </Typography>
 
-                      <h4 className="font-semibold mb-2">4. Confidentiality</h4>
-                      <p className="mb-4">
-                        Both parties agree to maintain the confidentiality of proprietary information
-                        and patient records in accordance with applicable laws...
-                      </p>
+            <Card variant="outlined" sx={{ mb: 3 }}>
+              <CardContent>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Description color="primary" sx={{ mr: 1 }} />
+                      <Box>
+                        <Typography variant="caption" color="textSecondary">
+                          Contract Number
+                        </Typography>
+                        <Typography variant="body1" fontWeight="bold">
+                          {contract.contract_number}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
 
-                      <h4 className="font-semibold mb-2">5. Termination</h4>
-                      <p className="mb-4">
-                        This Agreement may be terminated by either party upon 90 days written notice...
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <CalendarToday color="primary" sx={{ mr: 1 }} />
+                      <Box>
+                        <Typography variant="caption" color="textSecondary">
+                          Contract Period
+                        </Typography>
+                        <Typography variant="body1">
+                          {formatDate(contract.start_date)} - {formatDate(contract.end_date)}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
 
-          {/* Signature Panel */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Digital Signature
-              </h3>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <AttachMoney color="primary" sx={{ mr: 1 }} />
+                      <Box>
+                        <Typography variant="caption" color="textSecondary">
+                          Commission Rate
+                        </Typography>
+                        <Typography variant="body1" fontWeight="bold">
+                          {contract.commission_rate || contract.revenue_share_percentage}%
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
 
-              {contract.signed ? (
-                <div className="text-center">
-                  <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                  <p className="text-green-600 font-medium mb-2">
-                    Contract Signed Successfully
-                  </p>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Signed on: {new Date(contract.signedAt).toLocaleDateString('en-NG')}
-                  </p>
-                  <div className="p-3 bg-gray-50 rounded-lg mb-4">
-                    <p className="text-xs text-gray-500">Signature Hash</p>
-                    <p className="text-xs font-mono text-gray-700 break-all">
-                      {contract.signatureHash}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => navigate('/onboarding/status')}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Back to Dashboard
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  {/* QR Code */}
-                  <div className="mb-6 p-4 bg-gray-50 rounded-lg text-center">
-                    <QrCodeIcon className="h-32 w-32 mx-auto text-gray-400" />
-                    <p className="text-xs text-gray-500 mt-2">
-                      QR Code for mobile signing
-                    </p>
-                  </div>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Schedule color="primary" sx={{ mr: 1 }} />
+                      <Box>
+                        <Typography variant="caption" color="textSecondary">
+                          Duration
+                        </Typography>
+                        <Typography variant="body1">
+                          {contract.duration_months} months
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
 
-                  {/* Security Notice */}
-                  <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-start space-x-2">
-                      <ShieldCheckIcon className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div className="text-xs text-blue-800">
-                        <p className="font-semibold mb-1">Secure Digital Signature</p>
-                        <p>Your signature is encrypted and legally binding.</p>
-                      </div>
-                    </div>
-                  </div>
+            <Paper sx={{ p: 3, mb: 3, bgcolor: 'grey.50' }}>
+              <Typography variant="subtitle1" gutterBottom>
+                <Gavel sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Contract Terms
+              </Typography>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+                {contract.contract_terms || 'Standard GrandPro HMSO Terms and Conditions'}
+              </Typography>
+            </Paper>
 
-                  {/* Sign Button */}
-                  <button
-                    onClick={() => setShowSignatureModal(true)}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                  >
-                    <PencilSquareIcon className="h-5 w-5" />
-                    <span>Sign Contract</span>
-                  </button>
-
-                  <p className="text-xs text-gray-500 text-center mt-4">
-                    By signing, you agree to the terms and conditions
-                  </p>
-                </div>
+            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+              {contract.pdf_url && (
+                <Button
+                  variant="outlined"
+                  startIcon={<Download />}
+                  onClick={downloadContract}
+                >
+                  Download PDF
+                </Button>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Signature Modal */}
-      {showSignatureModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Digital Signature
-            </h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={signatureData.fullName}
-                  onChange={(e) => setSignatureData(prev => ({
-                    ...prev,
-                    fullName: e.target.value
-                  }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Dr. John Doe"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Designation
-                </label>
-                <input
-                  type="text"
-                  value={signatureData.designation}
-                  onChange={(e) => setSignatureData(prev => ({
-                    ...prev,
-                    designation: e.target.value
-                  }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Medical Director"
-                />
-              </div>
-
-              <div>
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={signatureData.agreementAccepted}
-                    onChange={(e) => setSignatureData(prev => ({
-                      ...prev,
-                      agreementAccepted: e.target.checked
-                    }))}
-                    className="rounded text-blue-600"
-                  />
-                  <span className="text-sm text-gray-700">
-                    I have read and agree to all terms and conditions
-                  </span>
-                </label>
-              </div>
-
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Signing from</p>
-                <p className="text-xs text-gray-700">
-                  IP: {window.location.hostname}<br />
-                  Time: {new Date().toLocaleString('en-NG')}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex space-x-3 mt-6">
-              <button
-                onClick={() => setShowSignatureModal(false)}
-                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+              <Button
+                variant="outlined"
+                startIcon={<Print />}
+                onClick={() => window.print()}
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleSign}
-                disabled={signing || !signatureData.agreementAccepted}
-                className={`flex-1 px-4 py-2 rounded-lg ${
-                  signing || !signatureData.agreementAccepted
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-green-600 hover:bg-green-700'
-                } text-white`}
+                Print Contract
+              </Button>
+            </Box>
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={agreementChecked}
+                  onChange={(e) => setAgreementChecked(e.target.checked)}
+                />
+              }
+              label="I have read and agree to the terms and conditions"
+            />
+
+            {error && <Alert severity="error" sx={{ mt: 3 }}>{error}</Alert>}
+            {success && <Alert severity="success" sx={{ mt: 3 }}>{success}</Alert>}
+
+            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+              <Button
+                variant="outlined"
+                onClick={() => setActiveStep(0)}
               >
-                {signing ? 'Signing...' : 'Confirm Signature'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+                Back
+              </Button>
+              
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={() => setSignatureDialog(true)}
+                disabled={!agreementChecked}
+                startIcon={<Draw />}
+              >
+                Proceed to Sign
+              </Button>
+            </Box>
+          </Box>
+        )}
+
+        {/* Step 3: Contract Signed */}
+        {activeStep === 2 && contract && (
+          <Box>
+            <Alert severity="success" sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Contract Signed Successfully! 
+              </Typography>
+              <Typography variant="body2">
+                Your service agreement has been executed and is now active.
+              </Typography>
+            </Alert>
+
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Contract Summary
+                </Typography>
+                
+                <List>
+                  <ListItem>
+                    <ListItemText
+                      primary="Contract Number"
+                      secondary={contract.contract_number}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Status"
+                      secondary={
+                        <Chip
+                          label={contract.status}
+                          color="success"
+                          size="small"
+                        />
+                      }
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Signed By"
+                      secondary={contract.signer_name || contractForm.signerName}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Signed Date"
+                      secondary={formatDate(contract.signed_date)}
+                    />
+                  </ListItem>
+                </List>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  {contract.pdf_url && (
+                    <Button
+                      variant="outlined"
+                      startIcon={<Download />}
+                      onClick={downloadContract}
+                    >
+                      Download Signed Contract
+                    </Button>
+                  )}
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => navigate('/onboarding/dashboard')}
+                  >
+                    Continue to Dashboard
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
+        )}
+      </Paper>
+
+      {/* Signature Dialog */}
+      <Dialog
+        open={signatureDialog}
+        onClose={() => setSignatureDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Digital Signature
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" gutterBottom>
+            Please sign below to execute the contract
+          </Typography>
+          
+          <Box sx={{ border: '1px solid #ddd', borderRadius: 1, mt: 2 }}>
+            <SignatureCanvas
+              ref={signaturePad}
+              canvasProps={{
+                width: 500,
+                height: 200,
+                className: 'signature-canvas'
+              }}
+            />
+          </Box>
+          
+          <Button
+            size="small"
+            onClick={clearSignature}
+            sx={{ mt: 1 }}
+          >
+            Clear Signature
+          </Button>
+          
+          <TextField
+            fullWidth
+            label="Full Name"
+            value={contractForm.signerName}
+            onChange={(e) => setContractForm(prev => ({ ...prev, signerName: e.target.value }))}
+            sx={{ mt: 2 }}
+            disabled
+          />
+          
+          <TextField
+            fullWidth
+            label="Title"
+            value={contractForm.signerRole}
+            onChange={(e) => setContractForm(prev => ({ ...prev, signerRole: e.target.value }))}
+            sx={{ mt: 2 }}
+            disabled
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSignatureDialog(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSignContract}
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} /> : <CheckCircle />}
+          >
+            {loading ? 'Signing...' : 'Sign Contract'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
-};
+}
 
 export default ContractReview;

@@ -1,69 +1,118 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  BuildingOfficeIcon,
-  UserIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  MapPinIcon,
-  DocumentTextIcon,
-  CheckCircleIcon
-} from '@heroicons/react/24/outline';
+import { 
+  Box, 
+  Container, 
+  Paper, 
+  Typography, 
+  TextField, 
+  Button, 
+  Stepper, 
+  Step, 
+  StepLabel,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  Alert,
+  CircularProgress,
+  Divider,
+  Chip
+} from '@mui/material';
+import { 
+  Business, 
+  Person, 
+  Phone, 
+  Email, 
+  LocationOn,
+  LocalHospital,
+  MedicalServices,
+  CheckCircle
+} from '@mui/icons-material';
+import { submitHospitalApplication, updateOnboardingProgress } from '../../services/onboarding.service';
+
+const steps = ['Hospital Information', 'Owner Details', 'Services & Facilities', 'Review & Submit'];
 
 const nigerianStates = [
-  'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue',
-  'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu',
-  'FCT', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi',
-  'Kogi', 'Kwara', 'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun',
-  'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'
+  'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno',
+  'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'Gombe', 'Imo',
+  'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos',
+  'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers',
+  'Sokoto', 'Taraba', 'Yobe', 'Zamfara', 'FCT'
 ];
 
-const ApplicationForm = () => {
+const hospitalTypes = [
+  'General Hospital',
+  'Teaching Hospital',
+  'Specialist Hospital',
+  'Private Hospital',
+  'Primary Health Center',
+  'Clinic',
+  'Medical Center'
+];
+
+const services = [
+  'Emergency Services',
+  'Surgery',
+  'Maternity',
+  'Pediatrics',
+  'Internal Medicine',
+  'Orthopedics',
+  'Radiology',
+  'Laboratory',
+  'Pharmacy',
+  'Intensive Care',
+  'Outpatient',
+  'Dental'
+];
+
+function ApplicationForm() {
   const navigate = useNavigate();
+  const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [step, setStep] = useState(1);
-
+  
   const [formData, setFormData] = useState({
-    // Owner Information
+    // Hospital Information
+    name: '',
+    address: '',
+    city: '',
+    state: 'Lagos',
+    phoneNumber: '',
+    email: '',
+    type: 'General Hospital',
+    bedCapacity: '',
+    yearsInOperation: '',
+    licenseNumber: '',
+    
+    // Owner Details
     ownerName: '',
     ownerEmail: '',
     ownerPhone: '',
-    password: '',
-    confirmPassword: '',
+    ownerTitle: '',
     
-    // Hospital Information
-    hospitalName: '',
-    hospitalAddress: '',
-    city: '',
-    state: 'Lagos',
-    lga: '',
-    
-    // Hospital Details
-    bedCapacity: '',
-    staffCount: '',
+    // Services & Facilities
     servicesOffered: [],
-    ownershipType: 'private',
-    registrationNumber: '',
-    taxId: '',
+    hasEmergency: false,
+    hasPharmacy: false,
+    hasLab: false,
+    hasXray: false,
+    hasAmbulance: false,
+    hasICU: false,
     
     // Additional Information
-    yearEstablished: '',
-    website: '',
-    hasInsurance: false,
-    hasNHIS: false,
-    hasHMO: false
+    staffCount: '',
+    doctorCount: '',
+    nurseCount: '',
+    monthlyPatientVolume: ''
   });
 
-  const services = [
-    'Emergency Care', 'Surgery', 'Maternity', 'Pediatrics',
-    'Internal Medicine', 'Radiology', 'Laboratory', 'Pharmacy',
-    'ICU', 'Dialysis', 'Oncology', 'Orthopedics',
-    'Cardiology', 'Neurology', 'Psychiatry', 'Dental'
-  ];
-
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -71,7 +120,7 @@ const ApplicationForm = () => {
     }));
   };
 
-  const handleServiceToggle = (service) => {
+  const handleServicesChange = (service) => {
     setFormData(prev => ({
       ...prev,
       servicesOffered: prev.servicesOffered.includes(service)
@@ -80,546 +129,536 @@ const ApplicationForm = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+  const handleNext = () => {
+    setActiveStep(prev => prev + 1);
+  };
 
+  const handleBack = () => {
+    setActiveStep(prev => prev - 1);
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError('');
-
+    
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/onboarding/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ownerEmail: formData.ownerEmail,
-          ownerName: formData.ownerName,
-          ownerPhone: formData.ownerPhone,
-          password: formData.password,
-          hospitalName: formData.hospitalName,
-          hospitalAddress: formData.hospitalAddress,
-          city: formData.city,
-          state: formData.state,
-          bedCapacity: parseInt(formData.bedCapacity),
-          staffCount: parseInt(formData.staffCount),
-          servicesOffered: formData.servicesOffered,
-          ownershipType: formData.ownershipType,
-          registrationNumber: formData.registrationNumber,
-          taxId: formData.taxId
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+      // Submit hospital application
+      const result = await submitHospitalApplication(formData);
+      
+      if (result.success) {
+        // Update onboarding progress
+        await updateOnboardingProgress(result.hospital.id, 'application', true);
+        
+        setSuccess(true);
+        
+        // Store hospital ID for next steps
+        localStorage.setItem('currentHospitalId', result.hospital.id);
+        localStorage.setItem('currentHospitalName', result.hospital.name);
+        
+        // Redirect to document upload after 2 seconds
+        setTimeout(() => {
+          navigate('/onboarding/documents');
+        }, 2000);
       }
-
-      setSuccess(true);
-      
-      // Store application ID for tracking
-      localStorage.setItem('applicationId', data.application.id);
-      
-      // Redirect to document upload after 2 seconds
-      setTimeout(() => {
-        navigate('/onboarding/documents');
-      }, 2000);
     } catch (err) {
-      setError(err.message || 'Failed to submit application');
+      setError(err.message || 'Failed to submit application. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const nextStep = () => {
-    if (step < 3) setStep(step + 1);
-  };
-
-  const prevStep = () => {
-    if (step > 1) setStep(step - 1);
-  };
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-          <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Application Submitted Successfully!
-          </h2>
-          <p className="text-gray-600 mb-4">
-            Your hospital registration application has been received.
-          </p>
-          <p className="text-sm text-gray-500">
-            Redirecting to document upload...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Hospital Partner Application
-          </h1>
-          <p className="text-gray-600">
-            Join GrandPro HMSO Network of Healthcare Providers
-          </p>
-        </div>
-
-        {/* Progress Steps */}
-        <div className="flex justify-center mb-8">
-          <div className="flex space-x-4">
-            {[1, 2, 3].map((s) => (
-              <div
-                key={s}
-                className={`flex items-center ${s < 3 ? 'flex-1' : ''}`}
-              >
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    step >= s
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {s}
-                </div>
-                {s < 3 && (
-                  <div
-                    className={`h-1 w-24 ${
-                      step > s ? 'bg-blue-600' : 'bg-gray-200'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8">
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600">{error}</p>
-            </div>
-          )}
-
-          {/* Step 1: Owner Information */}
-          {step === 1 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Owner Information
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <UserIcon className="inline h-4 w-4 mr-1" />
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="ownerName"
-                    value={formData.ownerName}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Dr. Adebayo Johnson"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <EnvelopeIcon className="inline h-4 w-4 mr-1" />
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    name="ownerEmail"
-                    value={formData.ownerEmail}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="owner@hospital.ng"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <PhoneIcon className="inline h-4 w-4 mr-1" />
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    name="ownerPhone"
-                    value={formData.ownerPhone}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="+234 801 234 5678"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    minLength="6"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm Password
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    required
-                    minLength="6"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Hospital Information */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Hospital Information
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <BuildingOfficeIcon className="inline h-4 w-4 mr-1" />
-                    Hospital Name
-                  </label>
-                  <input
-                    type="text"
-                    name="hospitalName"
-                    value={formData.hospitalName}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Lagos General Hospital"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <MapPinIcon className="inline h-4 w-4 mr-1" />
-                    Hospital Address
-                  </label>
-                  <input
-                    type="text"
-                    name="hospitalAddress"
-                    value={formData.hospitalAddress}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="123 Marina Road, Lagos Island"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Lagos"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    State
-                  </label>
-                  <select
+  const renderStepContent = (step) => {
+    switch (step) {
+      case 0:
+        return (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              <Business /> Hospital Information
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Hospital Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g., Lagos General Hospital"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g., 123 Victoria Island, Lagos"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="City"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth required>
+                  <InputLabel>State</InputLabel>
+                  <Select
                     name="state"
                     value={formData.state}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={handleChange}
+                    label="State"
                   >
                     {nigerianStates.map(state => (
-                      <option key={state} value={state}>{state}</option>
+                      <MenuItem key={state} value={state}>{state}</MenuItem>
                     ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Local Government Area
-                  </label>
-                  <input
-                    type="text"
-                    name="lga"
-                    value={formData.lga}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Lagos Island"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ownership Type
-                  </label>
-                  <select
-                    name="ownershipType"
-                    value={formData.ownershipType}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Phone Number"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  required
+                  placeholder="+234XXXXXXXXXX"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth required>
+                  <InputLabel>Hospital Type</InputLabel>
+                  <Select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    label="Hospital Type"
                   >
-                    <option value="private">Private</option>
-                    <option value="public">Public</option>
-                    <option value="non-profit">Non-Profit</option>
-                    <option value="faith-based">Faith-Based</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    CAC Registration Number
-                  </label>
-                  <input
-                    type="text"
-                    name="registrationNumber"
-                    value={formData.registrationNumber}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="RC123456"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tax ID Number
-                  </label>
-                  <input
-                    type="text"
-                    name="taxId"
-                    value={formData.taxId}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="TIN-12345678"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Hospital Details */}
-          {step === 3 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Hospital Details
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Bed Capacity
-                  </label>
-                  <input
-                    type="number"
-                    name="bedCapacity"
-                    value={formData.bedCapacity}
-                    onChange={handleInputChange}
-                    required
-                    min="1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="100"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Staff Count
-                  </label>
-                  <input
-                    type="number"
-                    name="staffCount"
-                    value={formData.staffCount}
-                    onChange={handleInputChange}
-                    required
-                    min="1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="50"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Year Established
-                  </label>
-                  <input
-                    type="number"
-                    name="yearEstablished"
-                    value={formData.yearEstablished}
-                    onChange={handleInputChange}
-                    min="1900"
-                    max={new Date().getFullYear()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="2000"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Website (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    name="website"
-                    value={formData.website}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://hospital.com.ng"
-                  />
-                </div>
-              </div>
-
-              {/* Services Offered */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Services Offered (Select all that apply)
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {hospitalTypes.map(type => (
+                      <MenuItem key={type} value={type}>{type}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Bed Capacity"
+                  name="bedCapacity"
+                  type="number"
+                  value={formData.bedCapacity}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Years in Operation"
+                  name="yearsInOperation"
+                  type="number"
+                  value={formData.yearsInOperation}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="License Number"
+                  name="licenseNumber"
+                  value={formData.licenseNumber}
+                  onChange={handleChange}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        );
+      
+      case 1:
+        return (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              <Person /> Hospital Owner Details
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Owner Full Name"
+                  name="ownerName"
+                  value={formData.ownerName}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g., Dr. Adebayo Johnson"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Owner Email"
+                  name="ownerEmail"
+                  type="email"
+                  value={formData.ownerEmail}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Owner Phone"
+                  name="ownerPhone"
+                  value={formData.ownerPhone}
+                  onChange={handleChange}
+                  required
+                  placeholder="+234XXXXXXXXXX"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Title/Position"
+                  name="ownerTitle"
+                  value={formData.ownerTitle}
+                  onChange={handleChange}
+                  placeholder="e.g., Chief Medical Director"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Divider />
+                <Typography variant="subtitle1" sx={{ mt: 2, mb: 2 }}>
+                  Staff Information
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Total Staff Count"
+                  name="staffCount"
+                  type="number"
+                  value={formData.staffCount}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Number of Doctors"
+                  name="doctorCount"
+                  type="number"
+                  value={formData.doctorCount}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Number of Nurses"
+                  name="nurseCount"
+                  type="number"
+                  value={formData.nurseCount}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Average Monthly Patient Volume"
+                  name="monthlyPatientVolume"
+                  type="number"
+                  value={formData.monthlyPatientVolume}
+                  onChange={handleChange}
+                  helperText="Approximate number of patients served per month"
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        );
+      
+      case 2:
+        return (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              <MedicalServices /> Services & Facilities
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Services Offered
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {services.map(service => (
-                    <label
+                    <Chip
                       key={service}
-                      className="flex items-center space-x-2 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.servicesOffered.includes(service)}
-                        onChange={() => handleServiceToggle(service)}
-                        className="rounded text-blue-600"
-                      />
-                      <span className="text-sm text-gray-700">{service}</span>
-                    </label>
+                      label={service}
+                      onClick={() => handleServicesChange(service)}
+                      color={formData.servicesOffered.includes(service) ? 'primary' : 'default'}
+                      variant={formData.servicesOffered.includes(service) ? 'filled' : 'outlined'}
+                    />
                   ))}
-                </div>
-              </div>
-
-              {/* Insurance & Programs */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Insurance & Programs
-                </label>
-                <div className="space-y-2">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="hasInsurance"
-                      checked={formData.hasInsurance}
-                      onChange={handleInputChange}
-                      className="rounded text-blue-600"
-                    />
-                    <span className="text-sm text-gray-700">
-                      Accept Private Insurance
-                    </span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="hasNHIS"
-                      checked={formData.hasNHIS}
-                      onChange={handleInputChange}
-                      className="rounded text-blue-600"
-                    />
-                    <span className="text-sm text-gray-700">
-                      Registered with NHIS
-                    </span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="hasHMO"
-                      checked={formData.hasHMO}
-                      onChange={handleInputChange}
-                      className="rounded text-blue-600"
-                    />
-                    <span className="text-sm text-gray-700">
-                      Partner with HMOs
-                    </span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8">
-            <button
-              type="button"
-              onClick={prevStep}
-              disabled={step === 1}
-              className={`px-6 py-2 rounded-lg ${
-                step === 1
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-              }`}
-            >
-              Previous
-            </button>
-
-            {step < 3 ? (
-              <button
-                type="button"
-                onClick={nextStep}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={loading}
-                className={`px-6 py-2 rounded-lg ${
-                  loading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-green-600 hover:bg-green-700'
-                } text-white`}
-              >
-                {loading ? 'Submitting...' : 'Submit Application'}
-              </button>
+                </Box>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Available Facilities
+                </Typography>
+                <FormGroup>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name="hasEmergency"
+                            checked={formData.hasEmergency}
+                            onChange={handleChange}
+                          />
+                        }
+                        label="Emergency Department"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name="hasPharmacy"
+                            checked={formData.hasPharmacy}
+                            onChange={handleChange}
+                          />
+                        }
+                        label="Pharmacy"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name="hasLab"
+                            checked={formData.hasLab}
+                            onChange={handleChange}
+                          />
+                        }
+                        label="Laboratory"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name="hasXray"
+                            checked={formData.hasXray}
+                            onChange={handleChange}
+                          />
+                        }
+                        label="X-Ray/Radiology"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name="hasAmbulance"
+                            checked={formData.hasAmbulance}
+                            onChange={handleChange}
+                          />
+                        }
+                        label="Ambulance Service"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name="hasICU"
+                            checked={formData.hasICU}
+                            onChange={handleChange}
+                          />
+                        }
+                        label="ICU/Critical Care"
+                      />
+                    </Grid>
+                  </Grid>
+                </FormGroup>
+              </Grid>
+            </Grid>
+          </Box>
+        );
+      
+      case 3:
+        return (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              <CheckCircle /> Review Your Application
+            </Typography>
+            
+            <Paper sx={{ p: 3, mb: 3, bgcolor: 'background.default' }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                Hospital Information
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">Name:</Typography>
+                  <Typography variant="body1">{formData.name}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">Type:</Typography>
+                  <Typography variant="body1">{formData.type}</Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="body2" color="textSecondary">Address:</Typography>
+                  <Typography variant="body1">{formData.address}, {formData.city}, {formData.state}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">Phone:</Typography>
+                  <Typography variant="body1">{formData.phoneNumber}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">Email:</Typography>
+                  <Typography variant="body1">{formData.email}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">Bed Capacity:</Typography>
+                  <Typography variant="body1">{formData.bedCapacity}</Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+            
+            <Paper sx={{ p: 3, mb: 3, bgcolor: 'background.default' }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                Owner Details
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">Name:</Typography>
+                  <Typography variant="body1">{formData.ownerName}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">Title:</Typography>
+                  <Typography variant="body1">{formData.ownerTitle || 'N/A'}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">Email:</Typography>
+                  <Typography variant="body1">{formData.ownerEmail}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="body2" color="textSecondary">Phone:</Typography>
+                  <Typography variant="body1">{formData.ownerPhone}</Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+            
+            <Paper sx={{ p: 3, mb: 3, bgcolor: 'background.default' }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                Services & Facilities
+              </Typography>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="textSecondary" gutterBottom>Services:</Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {formData.servicesOffered.map(service => (
+                    <Chip key={service} label={service} size="small" color="primary" />
+                  ))}
+                </Box>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="textSecondary" gutterBottom>Facilities:</Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {formData.hasEmergency && <Chip label="Emergency" size="small" color="success" />}
+                  {formData.hasPharmacy && <Chip label="Pharmacy" size="small" color="success" />}
+                  {formData.hasLab && <Chip label="Laboratory" size="small" color="success" />}
+                  {formData.hasXray && <Chip label="X-Ray" size="small" color="success" />}
+                  {formData.hasAmbulance && <Chip label="Ambulance" size="small" color="success" />}
+                  {formData.hasICU && <Chip label="ICU" size="small" color="success" />}
+                </Box>
+              </Box>
+            </Paper>
+            
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            {success && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                Application submitted successfully! Redirecting to document upload...
+              </Alert>
             )}
-          </div>
-        </form>
-      </div>
-    </div>
+          </Box>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Container maxWidth="md">
+      <Paper sx={{ p: 4, mt: 4 }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          <LocalHospital sx={{ mr: 1, verticalAlign: 'middle' }} />
+          Hospital Onboarding Application
+        </Typography>
+        <Typography variant="body1" align="center" color="textSecondary" paragraph>
+          Join GrandPro HMSO - Nigeria's Leading Hospital Management Platform
+        </Typography>
+        
+        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+          {steps.map(label => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+        
+        <Box sx={{ minHeight: 400 }}>
+          {renderStepContent(activeStep)}
+        </Box>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+          <Button
+            disabled={activeStep === 0}
+            onClick={handleBack}
+          >
+            Back
+          </Button>
+          
+          {activeStep === steps.length - 1 ? (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              disabled={loading || success}
+              startIcon={loading ? <CircularProgress size={20} /> : <CheckCircle />}
+            >
+              {loading ? 'Submitting...' : 'Submit Application'}
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleNext}
+            >
+              Next
+            </Button>
+          )}
+        </Box>
+      </Paper>
+    </Container>
   );
-};
+}
 
 export default ApplicationForm;
