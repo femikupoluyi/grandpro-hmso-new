@@ -19,13 +19,15 @@ const onboardingRoutes = require('./routes/onboarding.routes');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Middleware
-app.use(cors({
-  origin: '*', // Allow all origins for testing
-  credentials: true
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Import security middleware
+const securityMiddleware = require('./middleware/security.middleware');
+
+// Apply comprehensive security middleware
+securityMiddleware.applyAll(app);
+
+// Additional middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
