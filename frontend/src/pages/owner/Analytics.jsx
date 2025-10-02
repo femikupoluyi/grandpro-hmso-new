@@ -18,7 +18,7 @@ import {
 } from 'recharts';
 import {
   ChartBarIcon,
-  TrendingUpIcon,
+  ArrowTrendingUpIcon,
   CurrencyDollarIcon,
   UsersIcon,
   CalendarDaysIcon,
@@ -182,7 +182,7 @@ function Analytics() {
           'Patient Satisfaction',
           `${analyticsData.patientMetrics.patientSatisfaction}/5.0`,
           analyticsData.comparisons.satisfactionVsLastYear,
-          <TrendingUpIcon className="h-6 w-6 text-purple-600" />,
+          <ArrowTrendingUpIcon className="h-6 w-6 text-purple-600" />,
           'purple'
         )}
         {getMetricCard(
