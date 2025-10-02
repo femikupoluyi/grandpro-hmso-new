@@ -40,6 +40,9 @@ const insuranceRoutes = require('./routes/insurance.routes');
 const pharmacyRoutes = require('./routes/pharmacy.routes');
 const telemedicineRoutes = require('./routes/telemedicine.routes');
 
+// Analytics & ML Routes
+const dataAnalyticsRoutes = require('./routes/analytics.routes');
+
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -101,6 +104,9 @@ app.use('/api/analytics-legacy', hospitalAnalyticsRoutes);
 app.use('/api/insurance', insuranceRoutes);
 app.use('/api/pharmacy', pharmacyRoutes);
 app.use('/api/telemedicine', telemedicineRoutes);
+
+// Analytics & ML Routes
+app.use('/api/data-analytics', dataAnalyticsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
