@@ -1,7 +1,10 @@
 {
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@tensorflow/tfjs-node": "^4.22.0",
     "axios": "^1.12.2",
+    "bcryptjs": "^3.0.2",
+    "jsonwebtoken": "^9.0.2",
     "node-cron": "^4.2.1",
     "ws": "^8.18.3"
   }
