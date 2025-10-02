@@ -43,17 +43,36 @@ const telemedicineRoutes = require('./routes/telemedicine.routes');
 // Analytics & ML Routes
 const dataAnalyticsRoutes = require('./routes/analytics.routes');
 
+// Security & Compliance Routes
+const securityRoutes = require('./routes/security.routes');
+const { 
+  securityHeaders, 
+  auditLog, 
+  sanitizeInput,
+  rateLimiters 
+} = require('./middleware/security.middleware');
+
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Middleware
+// Security Middleware
+app.use(securityHeaders);
+app.use(sanitizeInput);
+app.use(auditLog);
+
+// CORS Middleware
 app.use(cors({
-  origin: '*', // Allow all origins for testing
+  origin: '*', // Allow all origins for testing (restrict in production)
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Apply rate limiting to auth routes
+app.use('/api/auth', rateLimiters.auth);
 
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -107,6 +126,9 @@ app.use('/api/telemedicine', telemedicineRoutes);
 
 // Analytics & ML Routes
 app.use('/api/data-analytics', dataAnalyticsRoutes);
+
+// Security & Compliance Routes
+app.use('/api/security', securityRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
