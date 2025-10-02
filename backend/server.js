@@ -34,7 +34,7 @@ const patientCrmRouter = require('./src/routes/patient-crm.routes');
 const communicationRouter = require('./src/routes/communication.routes');
 const hospitalRouter = require('./src/routes/hospital.routes');
 const hospitalManagementRouter = require('./modules/hospital-management');
-const operationsRouter = require('./modules/operations/operationsRoutes');
+const operationsRouter = require('./src/routes/operations.routes');
 
 app.use('/api/crm', crmRouter);
 app.use('/api/crm/owners', ownerCrmRouter);
