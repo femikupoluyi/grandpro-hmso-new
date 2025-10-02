@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001', 'https://grandpro-web-morphvm-wz7xxc7v.http.cloud.morph.so', process.env.FRONTEND_URL],
+  origin: '*', // Allow all origins for testing
   credentials: true
 }));
 app.use(express.json());

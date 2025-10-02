@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { sql } = require('../config/database');
+const { sql, pool } = require('../config/database');
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
@@ -87,7 +87,7 @@ router.get('/', authMiddleware, async (req, res) => {
     
     query += ` ORDER BY submitted_at DESC`;
     
-    const applications = await sql.unsafe(query, params);
+    const { rows: applications } = await pool.query(query, params);
     
     res.json({ applications });
   } catch (error) {

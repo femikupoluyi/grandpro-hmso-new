@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { sql } = require('../config/database');
+const { sql, pool } = require('../config/database');
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
     
     query += ` ORDER BY h.created_at DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
     
-    const hospitals = await sql.unsafe(query, params);
+    const { rows: hospitals } = await pool.query(query, params);
     
     res.json({
       hospitals,
@@ -194,7 +194,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
       RETURNING *
     `;
     
-    const updated = await sql.unsafe(query, values);
+    const { rows: updated } = await pool.query(query, values);
     
     res.json({
       message: 'Hospital updated successfully',

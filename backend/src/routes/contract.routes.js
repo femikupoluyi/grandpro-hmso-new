@@ -1,6 +1,6 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { sql } = require('../config/database');
+const { sql, pool } = require('../config/database');
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
@@ -49,7 +49,7 @@ router.get('/', authMiddleware, async (req, res) => {
     
     query += ` ORDER BY c.created_at DESC`;
     
-    const contracts = await sql.unsafe(query, params);
+    const { rows: contracts } = await pool.query(query, params);
     
     res.json({ contracts });
   } catch (error) {
