@@ -1,0 +1,17 @@
+2025-10-02T15:26:10:  INFO  Accepting connections at http://localhost:3000
+2025-10-02T15:26:57: 
+2025-10-02T15:26:57:  INFO  Gracefully shutting down. Please wait...
+2025-10-02T15:26:59:  INFO  Accepting connections at http://localhost:3000
+2025-10-02T15:27:07: 
+2025-10-02T15:27:07:  INFO  Gracefully shutting down. Please wait...
+2025-10-02T15:27:09:  INFO  Accepting connections at http://localhost:3000
+2025-10-02T15:29:45:  HTTP  10/2/2025 3:29:45 PM 127.0.0.1 GET /
+2025-10-02T15:29:45:  HTTP  10/2/2025 3:29:45 PM 127.0.0.1 Returned 200 in 31 ms
+2025-10-02T15:29:46:  HTTP  10/2/2025 3:29:46 PM 127.0.0.1 GET /onboarding/application
+2025-10-02T15:29:46:  HTTP  10/2/2025 3:29:46 PM 127.0.0.1 Returned 200 in 4 ms
+2025-10-02T15:29:46:  HTTP  10/2/2025 3:29:46 PM 127.0.0.1 GET /onboarding/documents
+2025-10-02T15:29:46:  HTTP  10/2/2025 3:29:46 PM 127.0.0.1 Returned 200 in 3 ms
+2025-10-02T15:29:46:  HTTP  10/2/2025 3:29:46 PM 127.0.0.1 GET /onboarding/dashboard
+2025-10-02T15:29:46:  HTTP  10/2/2025 3:29:46 PM 127.0.0.1 Returned 200 in 5 ms
+2025-10-02T15:29:46:  HTTP  10/2/2025 3:29:46 PM 127.0.0.1 GET /onboarding/contract-review
+2025-10-02T15:29:46:  HTTP  10/2/2025 3:29:46 PM 127.0.0.1 Returned 200 in 3 ms
