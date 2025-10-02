@@ -1,163 +1,93 @@
-# GrandPro HMSO - Public URLs Documentation
+# GrandPro HMSO - Public URLs
 
-## 🌐 Live Application URLs
+## Main Application URL
+- **Main URL**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so
+- **Frontend Direct**: https://hmso-frontend-morphvm-wz7xxc7v.http.cloud.morph.so
 
-### Production Environment
-The GrandPro HMSO platform is now fully deployed and accessible at the following URLs:
+## Available Pages/Routes
 
-#### Main Application
-- **Frontend URL**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so
-- **Backend API URL**: https://hmso-api-morphvm-wz7xxc7v.http.cloud.morph.so
+### Public Pages (No Login Required)
+1. **Login Page**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/login
+2. **Onboarding Portal**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/onboarding
 
-## ✅ Status: All URLs Functional
+### Demo Access Pages (Auto-login)
+1. **Patient Portal**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/patient
+2. **Owner Dashboard**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/owner
+3. **Hospital Dashboard**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/hospital
+4. **Command Centre**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/demo/command-centre
 
-All public URLs have been tested and confirmed to be working correctly as of October 2, 2025.
+### Role-based Dashboards (After Login)
+1. **Administrator Dashboard**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/operations
+2. **Hospital Staff Dashboard**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/staff/dashboard
+3. **Billing Management**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/billing
+4. **Inventory Management**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/inventory
+5. **HR Management**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/hr
 
-### Test Results Summary:
-- ✅ Frontend application loads successfully
-- ✅ Backend API responds correctly
-- ✅ CORS headers configured properly
-- ✅ All modules accessible via routing
+### CRM Pages
+1. **Owner CRM**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/owner-crm
+2. **Patient CRM**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/patient-crm
 
-## 📍 Key Endpoints
+### Hospital Management Pages
+1. **EMR (Electronic Medical Records)**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/emr
+2. **Projects Management**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/projects
 
-### Frontend Pages (Public Demo)
-These demo pages are accessible without authentication for testing purposes:
+## API Endpoints (Backend)
+The API is accessible through the main URL with `/api` prefix:
+- **Base API URL**: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/api
 
-1. **Command Centre Dashboard**
-   - URL: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/demo/command-centre
-   - Features: Real-time multi-hospital analytics, configurable alerts, project tracking
-   - Tabs: Overview, Alerts, Projects, Analytics
+### Key API Endpoints:
+- `/api/hospitals` - Get all hospitals
+- `/api/contracts` - Get all contracts
+- `/api/operations/dashboard` - Operations dashboard data
+- `/api/operations/command-centre` - Command centre metrics
+- `/api/onboarding/status` - Onboarding status
+- `/api/auth/login` - User authentication
 
-2. **Project Management**
-   - URL: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/demo/projects
-   - Features: Hospital expansion/renovation tracking, budget management, milestone tracking
+## Test Credentials
 
-### Backend API Endpoints
+### Administrator
+- Role: Select "Administrator" on login page
+- Access: Full system access, Command Centre, all management features
 
-#### Core APIs (Tested & Working)
-- `GET /api/hospitals` - List all hospitals ✅
-- `GET /api/users` - List users ✅
-- `GET /api/operations/dashboard` - Operations dashboard data ✅
-- `GET /api/operations/projects` - Project management data ✅
-- `GET /api/operations/alerts` - Alert management ✅
-- `GET /api/operations/command-centre` - Command centre metrics ✅
+### Hospital Owner
+- Role: Select "Hospital Owner" on login page
+- Access: Contract management, payout history, communication dashboard
 
-#### Authentication
-For protected routes, use these test credentials:
-- **Email**: admin@grandpro-hmso.ng
-- **Password**: Admin@123
-- **Role**: ADMIN
+### Hospital Staff
+- Role: Select "Hospital Staff" on login page
+- Access: EMR, billing, inventory, operations
 
-## 🔧 Technical Details
+### Patient
+- Role: Select "Patient" on login page
+- Access: Appointments, medical history, feedback, loyalty rewards
 
-### Infrastructure
-- **Hosting**: Morph Cloud (VPS)
-- **Web Server**: Nginx (reverse proxy)
-- **Backend**: Node.js + Express (Port 5001)
-- **Frontend**: React + Vite (Port 3001)
-- **Database**: Neon PostgreSQL
+## Technical Details
 
-### Service Status
+### Services Running
+1. **Frontend**: React + Vite application served on port 3001
+2. **Backend**: Node.js + Express API on port 5001
+3. **Nginx**: Reverse proxy on port 80 (main) and 8081 (API direct)
+4. **Database**: Neon PostgreSQL (cloud-hosted)
+
+### Process Management
+- All services managed by PM2
+- Auto-restart enabled for reliability
+- Logs available via `pm2 logs`
+
+### CORS Configuration
+- All origins allowed for demo purposes
+- Proper headers configured in Nginx
+- API accessible from any domain
+
+## Status Check
+All URLs have been verified and are functional as of the last check.
+To verify status:
 ```bash
-# PM2 Process Status
-┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
-│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
-├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
-│ 0  │ grandpro-backend   │ fork     │ 314  │ online    │ 0%       │ 86.1mb   │
-│ 2  │ grandpro-frontend  │ fork     │ 2    │ online    │ 0%       │ 66.8mb   │
-└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+curl -I https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so
 ```
 
-### Nginx Configuration
-- Frontend: Port 80 → localhost:3001
-- Backend API: Port 8081 → localhost:5001
-- CORS: Enabled for all origins
-
-## 🚀 Features Implemented in Command Centre
-
-### 1. Real-Time Dashboard
-- System health monitoring
-- Key metrics display (patients, staff, revenue, occupancy)
-- Auto-refresh intervals (10s, 30s, 1min, 5min)
-- Live data indicators
-
-### 2. Alert Management
-- Configurable alert rules
-- Severity levels (Critical, Warning, Info)
-- Alert acknowledgment system
-- Filter by severity
-- Custom threshold settings
-
-### 3. Project Management Board
-- Kanban-style project tracking
-- Status categories: Planning, Approved, Active, Completed
-- Budget tracking
-- Milestone management
-- Progress indicators
-
-### 4. Analytics
-- Hospital occupancy distribution
-- Staff performance metrics
-- Patient-to-staff ratios
-- Expansion opportunity identification
-- Revenue performance charts
-
-## 🧪 Testing Script
-
-A comprehensive testing script is available at:
-```bash
-/root/grandpro-hmso-new/test-public-urls.sh
-```
-
-Run it with:
-```bash
-chmod +x test-public-urls.sh
-./test-public-urls.sh
-```
-
-## 🔍 Verification Steps
-
-To verify the URLs are working:
-
-1. **Frontend Test**:
-   ```bash
-   curl -I https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so
-   # Expected: HTTP 200 OK
-   ```
-
-2. **API Test**:
-   ```bash
-   curl https://hmso-api-morphvm-wz7xxc7v.http.cloud.morph.so/api/hospitals
-   # Expected: JSON response with hospital data
-   ```
-
-3. **Command Centre Test**:
-   - Open: https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so/demo/command-centre
-   - Verify all tabs load correctly
-   - Check real-time data updates
-   - Test alert configuration modal
-
-## 📱 Nigerian Context Implementation
-
-All data and configurations use Nigerian-relevant settings:
-- **Currency**: Nigerian Naira (₦)
-- **Time Zone**: West Africa Time (WAT)
-- **Locations**: Lagos, Abuja, Port Harcourt, etc.
-- **Phone Format**: +234 format
-- **Sample Data**: Nigerian hospital names and addresses
-
-## 🎯 Summary
-
-The GrandPro HMSO platform is now fully operational with:
-- ✅ Publicly accessible URLs
-- ✅ Working Command Centre with all features
-- ✅ Project Management system
-- ✅ Real-time analytics and monitoring
-- ✅ Alert configuration system
-- ✅ Nigerian context implementation
-
-All URLs have been tested and verified to be functional. The system is ready for demonstration and further development.
-
----
-Last Updated: October 2, 2025, 18:30 WAT
+## Notes
+- The application uses Nigerian context data (Naira currency, Lagos locations)
+- Sample data includes 7 hospitals in Lagos
+- Real-time updates configured with 30-second refresh intervals
+- All modules are accessible through the main navigation menu

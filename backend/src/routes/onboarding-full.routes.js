@@ -32,10 +32,18 @@ const upload = multer({
   }
 });
 
-// Get onboarding status
-router.get('/status', authMiddleware, async (req, res) => {
+// Get onboarding status - Allow unauthenticated for demo
+router.get('/status', async (req, res) => {
   try {
     const { hospitalId } = req.query;
+    
+    // For demo, return empty success response if no specific hospital
+    if (!hospitalId) {
+      return res.json({
+        success: true,
+        onboardingStatuses: []
+      });
+    }
     
     let query = `
       SELECT 
