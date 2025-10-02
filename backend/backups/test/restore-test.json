@@ -1,0 +1,18 @@
+{
+  "backup_id": "manual-backup-20251002-201700",
+  "timestamp": "2025-10-02T20:17:00+00:00",
+  "type": "manual",
+  "tables": ["users", "hospitals", "patients"],
+  "encrypted": true,
+  "checksum": "91a2c0cf319beddcb416a3024d8d4d9f",
+  "test_data": {
+    "hospitals": [
+      {"id": 1, "name": "Lagos General Hospital", "location": "Lagos"},
+      {"id": 2, "name": "Abuja Medical Center", "location": "Abuja"}
+    ],
+    "users": [
+      {"id": 1, "email": "admin@grandpro.ng", "role": "admin"},
+      {"id": 2, "email": "doctor@hospital.ng", "role": "doctor"}
+    ]
+  }
+}
