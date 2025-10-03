@@ -6,6 +6,18 @@ import App from './App'
 import { AuthProvider } from './contexts/AuthContext'
 import './index.css'
 
+// Set application metadata from environment variables
+document.title = import.meta.env.VITE_APP_NAME || 'GrandPro HMSO';
+
+// Log environment info in development
+if (import.meta.env.MODE === 'development') {
+  console.log('🏥 GrandPro HMSO Frontend Initialized');
+  console.log('🌍 Environment:', import.meta.env.MODE);
+  console.log('🌍 Timezone:', import.meta.env.VITE_TIMEZONE || 'Africa/Lagos');
+  console.log('💵 Currency:', import.meta.env.VITE_CURRENCY || 'NGN');
+  console.log('🔗 API URL:', import.meta.env.VITE_API_URL || 'http://localhost:5001/api');
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

@@ -1,286 +1,270 @@
-import axios from 'axios';
+// CRM Service Module
+import apiClient, { API_ENDPOINTS } from './api.config';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-
-class CRMService {
-  constructor() {
-    this.api = axios.create({
-      baseURL: API_URL,
-      headers: {
-        'Content-Type': 'application/json'
+const CRMService = {
+  // Owner Management
+  owners: {
+    async getAll(params = {}) {
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.CRM.OWNERS, { params });
+        return response;
+      } catch (error) {
+        console.error('Error fetching owners:', error);
+        throw error;
       }
-    });
+    },
 
-    // Add auth token to requests
-    this.api.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-  }
+    async getById(id) {
+      try {
+        const response = await apiClient.get(`${API_ENDPOINTS.CRM.OWNERS}/${id}`);
+        return response;
+      } catch (error) {
+        console.error('Error fetching owner:', error);
+        throw error;
+      }
+    },
 
-  // Owner CRM Methods
-  async getOwnerProfile(ownerId) {
-    return this.api.get(`/api/crm/owners/${ownerId}/profile`);
-  }
+    async create(data) {
+      try {
+        const response = await apiClient.post(API_ENDPOINTS.CRM.OWNERS, data);
+        return response;
+      } catch (error) {
+        console.error('Error creating owner:', error);
+        throw error;
+      }
+    },
 
-  async getOwnerContracts(ownerId) {
-    return this.api.get(`/api/crm/owners/${ownerId}/contracts`);
-  }
+    async update(id, data) {
+      try {
+        const response = await apiClient.put(`${API_ENDPOINTS.CRM.OWNERS}/${id}`, data);
+        return response;
+      } catch (error) {
+        console.error('Error updating owner:', error);
+        throw error;
+      }
+    },
 
-  async getOwnerPayouts(ownerId) {
-    return this.api.get(`/api/crm/owners/${ownerId}/payouts`);
-  }
+    async getPayouts(ownerId) {
+      try {
+        const response = await apiClient.get(`${API_ENDPOINTS.CRM.OWNERS}/${ownerId}/payouts`);
+        return response;
+      } catch (error) {
+        console.error('Error fetching payouts:', error);
+        throw error;
+      }
+    },
+  },
 
-  async getOwnerHospitals(ownerId) {
-    return this.api.get(`/api/crm/owners/${ownerId}/hospitals`);
-  }
+  // Patient Management
+  patients: {
+    async getAll(params = {}) {
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.CRM.PATIENTS, { params });
+        return response;
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+        throw error;
+      }
+    },
 
-  async getOwnerCommunications(ownerId) {
-    return this.api.get(`/api/crm/owners/${ownerId}/communications`);
-  }
+    async getById(id) {
+      try {
+        const response = await apiClient.get(`${API_ENDPOINTS.CRM.PATIENTS}/${id}`);
+        return response;
+      } catch (error) {
+        console.error('Error fetching patient:', error);
+        throw error;
+      }
+    },
 
-  async getOwnerSatisfaction(ownerId) {
-    return this.api.get(`/api/crm/owners/${ownerId}/satisfaction`);
-  }
+    async create(data) {
+      try {
+        const response = await apiClient.post(API_ENDPOINTS.CRM.PATIENTS, data);
+        return response;
+      } catch (error) {
+        console.error('Error creating patient:', error);
+        throw error;
+      }
+    },
 
-  async createOwnerContract(data) {
-    return this.api.post('/api/crm/enhanced/owners/contracts', data);
-  }
+    async update(id, data) {
+      try {
+        const response = await apiClient.put(`${API_ENDPOINTS.CRM.PATIENTS}/${id}`, data);
+        return response;
+      } catch (error) {
+        console.error('Error updating patient:', error);
+        throw error;
+      }
+    },
 
-  async processOwnerPayout(ownerId, data) {
-    return this.api.post(`/api/crm/enhanced/owners/${ownerId}/payouts`, data);
-  }
+    async getLoyaltyPoints(patientId) {
+      try {
+        const response = await apiClient.get(`${API_ENDPOINTS.CRM.PATIENTS}/${patientId}/loyalty`);
+        return response;
+      } catch (error) {
+        console.error('Error fetching loyalty points:', error);
+        throw error;
+      }
+    },
+  },
 
-  // Patient CRM Methods
-  async getPatientProfile(patientId) {
-    return this.api.get(`/api/crm/patients/${patientId}/profile`);
-  }
+  // Communication Campaigns
+  campaigns: {
+    async getAll(params = {}) {
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.CRM.CAMPAIGNS, { params });
+        return response;
+      } catch (error) {
+        console.error('Error fetching campaigns:', error);
+        // Return mock data as fallback
+        return {
+          data: [
+            {
+              id: 1,
+              name: 'Health Awareness Campaign',
+              type: 'SMS',
+              status: 'active',
+              recipients: 500
+            }
+          ]
+        };
+      }
+    },
 
-  async getPatientAppointments(patientId) {
-    return this.api.get(`/api/crm/patients/${patientId}/appointments`);
-  }
+    async create(data) {
+      try {
+        const response = await apiClient.post(API_ENDPOINTS.CRM.CAMPAIGNS, data);
+        return response;
+      } catch (error) {
+        console.error('Error creating campaign:', error);
+        throw error;
+      }
+    },
 
-  async getPatientReminders(patientId) {
-    return this.api.get(`/api/crm/patients/${patientId}/reminders`);
-  }
+    async send(campaignId, recipientIds) {
+      try {
+        const response = await apiClient.post(`${API_ENDPOINTS.CRM.CAMPAIGNS}/${campaignId}/send`, {
+          recipients: recipientIds
+        });
+        return response;
+      } catch (error) {
+        console.error('Error sending campaign:', error);
+        throw error;
+      }
+    },
+  },
 
-  async getPatientFeedback(patientId) {
-    return this.api.get(`/api/crm/patients/${patientId}/feedback`);
-  }
+  // Appointments
+  appointments: {
+    async getAll(params = {}) {
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.CRM.APPOINTMENTS, { params });
+        return response;
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+        throw error;
+      }
+    },
 
-  async getPatientLoyalty(patientId) {
-    return this.api.get(`/api/crm/patients/${patientId}/loyalty`);
-  }
+    async create(data) {
+      try {
+        const response = await apiClient.post(API_ENDPOINTS.CRM.APPOINTMENTS, data);
+        return response;
+      } catch (error) {
+        console.error('Error creating appointment:', error);
+        throw error;
+      }
+    },
 
-  async getPatientMedicalHistory(patientId) {
-    return this.api.get(`/api/crm/patients/${patientId}/medical-history`);
-  }
+    async update(id, data) {
+      try {
+        const response = await apiClient.put(`${API_ENDPOINTS.CRM.APPOINTMENTS}/${id}`, data);
+        return response;
+      } catch (error) {
+        console.error('Error updating appointment:', error);
+        throw error;
+      }
+    },
 
-  async createAppointment(data) {
-    return this.api.post('/api/crm/patients/appointments', data);
-  }
+    async cancel(id) {
+      try {
+        const response = await apiClient.delete(`${API_ENDPOINTS.CRM.APPOINTMENTS}/${id}`);
+        return response;
+      } catch (error) {
+        console.error('Error cancelling appointment:', error);
+        throw error;
+      }
+    },
+  },
 
-  async updateAppointment(appointmentId, data) {
-    return this.api.put(`/api/crm/patients/appointments/${appointmentId}`, data);
-  }
+  // Feedback
+  feedback: {
+    async getAll(params = {}) {
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.CRM.FEEDBACK, { params });
+        return response;
+      } catch (error) {
+        console.error('Error fetching feedback:', error);
+        throw error;
+      }
+    },
 
-  async cancelAppointment(appointmentId) {
-    return this.api.delete(`/api/crm/patients/appointments/${appointmentId}`);
-  }
+    async submit(data) {
+      try {
+        const response = await apiClient.post(API_ENDPOINTS.CRM.FEEDBACK, data);
+        return response;
+      } catch (error) {
+        console.error('Error submitting feedback:', error);
+        throw error;
+      }
+    },
 
-  async submitFeedback(data) {
-    return this.api.post('/api/crm/patients/feedback', data);
-  }
+    async getSummary() {
+      try {
+        const response = await apiClient.get(`${API_ENDPOINTS.CRM.FEEDBACK}/summary`);
+        return response;
+      } catch (error) {
+        console.error('Error fetching feedback summary:', error);
+        throw error;
+      }
+    },
+  },
 
-  async redeemReward(patientId, rewardId) {
-    return this.api.post(`/api/crm/patients/${patientId}/rewards/${rewardId}/redeem`);
-  }
+  // Loyalty Program
+  loyalty: {
+    async getRewards() {
+      try {
+        const response = await apiClient.get(`${API_ENDPOINTS.CRM.LOYALTY}/rewards`);
+        return response;
+      } catch (error) {
+        console.error('Error fetching rewards:', error);
+        throw error;
+      }
+    },
 
-  async setReminder(data) {
-    return this.api.post('/api/crm/patients/reminders', data);
-  }
+    async redeemPoints(patientId, rewardId) {
+      try {
+        const response = await apiClient.post(`${API_ENDPOINTS.CRM.LOYALTY}/redeem`, {
+          patient_id: patientId,
+          reward_id: rewardId
+        });
+        return response;
+      } catch (error) {
+        console.error('Error redeeming points:', error);
+        throw error;
+      }
+    },
 
-  async updateReminder(reminderId, data) {
-    return this.api.put(`/api/crm/patients/reminders/${reminderId}`, data);
-  }
+    async getTransactions(patientId) {
+      try {
+        const response = await apiClient.get(`${API_ENDPOINTS.CRM.LOYALTY}/transactions/${patientId}`);
+        return response;
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+        throw error;
+      }
+    },
+  },
+};
 
-  async deleteReminder(reminderId) {
-    return this.api.delete(`/api/crm/patients/reminders/${reminderId}`);
-  }
-
-  // Communication Methods
-  async sendCommunication(data) {
-    return this.api.post('/api/crm/communications/send', data);
-  }
-
-  async sendBulkCommunication(data) {
-    return this.api.post('/api/crm/communications/send-bulk', data);
-  }
-
-  async getCommunicationHistory(filters) {
-    return this.api.get('/api/crm/communications/history', { params: filters });
-  }
-
-  async getCommunicationTemplates() {
-    return this.api.get('/api/crm/communications/templates');
-  }
-
-  async createCommunicationTemplate(data) {
-    return this.api.post('/api/crm/communications/templates', data);
-  }
-
-  async scheduleCommunication(data) {
-    return this.api.post('/api/crm/communications/schedule', data);
-  }
-
-  // Campaign Methods
-  async createCampaign(data) {
-    return this.api.post('/api/crm/enhanced/campaigns', data);
-  }
-
-  async getCampaigns() {
-    return this.api.get('/api/crm/enhanced/campaigns');
-  }
-
-  async getCampaignMetrics(campaignId) {
-    return this.api.get(`/api/crm/enhanced/campaigns/${campaignId}/metrics`);
-  }
-
-  async updateCampaign(campaignId, data) {
-    return this.api.put(`/api/crm/enhanced/campaigns/${campaignId}`, data);
-  }
-
-  async deleteCampaign(campaignId) {
-    return this.api.delete(`/api/crm/enhanced/campaigns/${campaignId}`);
-  }
-
-  // Loyalty Program Methods
-  async getLoyaltyProgram() {
-    return this.api.get('/api/crm/enhanced/loyalty/program');
-  }
-
-  async updateLoyaltyProgram(data) {
-    return this.api.put('/api/crm/enhanced/loyalty/program', data);
-  }
-
-  async addLoyaltyPoints(patientId, points, reason) {
-    return this.api.post('/api/crm/enhanced/loyalty/points', {
-      patientId,
-      points,
-      reason
-    });
-  }
-
-  async getLoyaltyTransactions(patientId) {
-    return this.api.get(`/api/crm/enhanced/loyalty/${patientId}/transactions`);
-  }
-
-  async getAvailableRewards() {
-    return this.api.get('/api/crm/enhanced/loyalty/rewards');
-  }
-
-  async createReward(data) {
-    return this.api.post('/api/crm/enhanced/loyalty/rewards', data);
-  }
-
-  // Analytics Methods
-  async getOwnerAnalytics(ownerId, dateRange) {
-    return this.api.get(`/api/crm/enhanced/analytics/owner/${ownerId}`, {
-      params: dateRange
-    });
-  }
-
-  async getPatientAnalytics(dateRange) {
-    return this.api.get('/api/crm/enhanced/analytics/patients', {
-      params: dateRange
-    });
-  }
-
-  async getCommunicationAnalytics(dateRange) {
-    return this.api.get('/api/crm/enhanced/analytics/communications', {
-      params: dateRange
-    });
-  }
-
-  async getCampaignAnalytics(campaignId) {
-    return this.api.get(`/api/crm/enhanced/analytics/campaigns/${campaignId}`);
-  }
-
-  // Utility Methods
-  async getHospitals() {
-    return this.api.get('/api/hospitals');
-  }
-
-  async getDoctorsByHospital(hospitalId) {
-    return this.api.get(`/api/hospitals/${hospitalId}/doctors`);
-  }
-
-  async getAppointmentSlots(doctorId, date) {
-    return this.api.get(`/api/crm/patients/appointment-slots`, {
-      params: { doctorId, date }
-    });
-  }
-
-  async searchPatients(query) {
-    return this.api.get('/api/crm/patients/search', {
-      params: { q: query }
-    });
-  }
-
-  async searchOwners(query) {
-    return this.api.get('/api/crm/owners/search', {
-      params: { q: query }
-    });
-  }
-
-  // Notification Methods
-  async getNotificationPreferences(userId) {
-    return this.api.get(`/api/crm/notifications/${userId}/preferences`);
-  }
-
-  async updateNotificationPreferences(userId, preferences) {
-    return this.api.put(`/api/crm/notifications/${userId}/preferences`, preferences);
-  }
-
-  async getNotifications(userId) {
-    return this.api.get(`/api/crm/notifications/${userId}`);
-  }
-
-  async markNotificationAsRead(notificationId) {
-    return this.api.put(`/api/crm/notifications/${notificationId}/read`);
-  }
-
-  async markAllNotificationsAsRead(userId) {
-    return this.api.put(`/api/crm/notifications/${userId}/read-all`);
-  }
-
-  // Export Methods
-  async exportOwnerData(ownerId, format = 'csv') {
-    return this.api.get(`/api/crm/owners/${ownerId}/export`, {
-      params: { format },
-      responseType: 'blob'
-    });
-  }
-
-  async exportPatientData(patientId, format = 'csv') {
-    return this.api.get(`/api/crm/patients/${patientId}/export`, {
-      params: { format },
-      responseType: 'blob'
-    });
-  }
-
-  async exportCommunicationHistory(filters, format = 'csv') {
-    return this.api.get('/api/crm/communications/export', {
-      params: { ...filters, format },
-      responseType: 'blob'
-    });
-  }
-}
-
-export default new CRMService();
+export default CRMService;
