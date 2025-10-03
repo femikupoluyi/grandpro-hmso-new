@@ -1,6 +1,7 @@
 nohup: ignoring input
-[dotenv@17.2.3] injecting env (11) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
-[dotenv@17.2.3] injecting env (0) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (11) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
 Initializing predictive analytics models...
 Initializing backup service...
 Backup schedules configured:
@@ -10,18 +11,18 @@ Backup schedules configured:
 Connected to PostgreSQL database
 Connected to PostgreSQL database
 Connected to PostgreSQL database
-Failed to register model drug_demand_forecast: error: relation "ml_models.model_registry" does not exist
+Failed to register model drug_demand_forecast: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
     at /root/grandpro-hmso-new/backend/node_modules/pg/lib/client.js:545:17
     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
     at async PredictiveAnalyticsService.registerModel (/root/grandpro-hmso-new/backend/src/services/analytics.service.js:52:22)
     at async PredictiveAnalyticsService.initialize (/root/grandpro-hmso-new/backend/src/services/analytics.service.js:23:5)
     at async /root/grandpro-hmso-new/backend/src/routes/analytics.routes.js:15:5 {
-  length: 123,
+  length: 148,
   severity: 'ERROR',
-  code: '42P01',
+  code: '42P10',
   detail: undefined,
   hint: undefined,
-  position: '22',
+  position: undefined,
   internalPosition: undefined,
   internalQuery: undefined,
   where: undefined,
@@ -30,22 +31,22 @@ Failed to register model drug_demand_forecast: error: relation "ml_models.model_
   column: undefined,
   dataType: undefined,
   constraint: undefined,
-  file: 'parse_relation.c',
-  line: '1428',
-  routine: 'parserOpenTable'
+  file: 'plancat.c',
+  line: '943',
+  routine: 'infer_arbiter_indexes'
 }
-Failed to initialize analytics services: error: relation "ml_models.model_registry" does not exist
+Failed to initialize analytics services: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
     at /root/grandpro-hmso-new/backend/node_modules/pg/lib/client.js:545:17
     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
     at async PredictiveAnalyticsService.registerModel (/root/grandpro-hmso-new/backend/src/services/analytics.service.js:52:22)
     at async PredictiveAnalyticsService.initialize (/root/grandpro-hmso-new/backend/src/services/analytics.service.js:23:5)
     at async /root/grandpro-hmso-new/backend/src/routes/analytics.routes.js:15:5 {
-  length: 123,
+  length: 148,
   severity: 'ERROR',
-  code: '42P01',
+  code: '42P10',
   detail: undefined,
   hint: undefined,
-  position: '22',
+  position: undefined,
   internalPosition: undefined,
   internalQuery: undefined,
   where: undefined,
@@ -54,9 +55,9 @@ Failed to initialize analytics services: error: relation "ml_models.model_regist
   column: undefined,
   dataType: undefined,
   constraint: undefined,
-  file: 'parse_relation.c',
-  line: '1428',
-  routine: 'parserOpenTable'
+  file: 'plancat.c',
+  line: '943',
+  routine: 'infer_arbiter_indexes'
 }
 ✅ GrandPro HMSO Backend Server running on port 5001
 📍 Environment: development
@@ -64,27 +65,167 @@ Failed to initialize analytics services: error: relation "ml_models.model_regist
 💵 Currency: NGN
 🏥 Application: GrandPro HMSO
 ✅ Database connected successfully
-📅 Server time: 2025-10-03T22:27:08.978Z
+📅 Server time: 2025-10-03T22:56:27.380Z
 🗄️ Database: neondb
-node:events:502
-      throw er; // Unhandled 'error' event
-      ^
-
-Error: listen EADDRINUSE: address already in use :::5001
-    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
-    at listenInCluster (node:net:1965:12)
-    at Server.listen (node:net:2067:7)
-    at Function.listen (/root/grandpro-hmso-new/backend/node_modules/express/lib/application.js:605:24)
-    at startServer (/root/grandpro-hmso-new/backend/src/server.js:204:9)
+Backup configuration test passed
+Backup service initialized successfully
+Sequelize connection established successfully.
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
-Emitted 'error' event on Server instance at:
-    at emitErrorNT (node:net:1944:8)
-    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
-  code: 'EADDRINUSE',
-  errno: -98,
-  syscall: 'listen',
-  address: '::',
-  port: 5001
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: error: column "resource" of relation "audit_logs" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg/lib/client.js:545:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:88:7) {
+  length: 131,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '62',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1065',
+  routine: 'checkInsertTargets'
 }
-
-Node.js v20.19.5
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: error: column "resource" of relation "audit_logs" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg/lib/client.js:545:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:88:7) {
+  length: 131,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '62',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1065',
+  routine: 'checkInsertTargets'
+}
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: error: column "resource" of relation "audit_logs" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg/lib/client.js:545:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:88:7) {
+  length: 131,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '62',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1065',
+  routine: 'checkInsertTargets'
+}
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: error: column "resource" of relation "audit_logs" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg/lib/client.js:545:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:88:7) {
+  length: 131,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '62',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1065',
+  routine: 'checkInsertTargets'
+}
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: error: column "resource" of relation "audit_logs" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg/lib/client.js:545:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:88:7) {
+  length: 131,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '62',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1065',
+  routine: 'checkInsertTargets'
+}
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: error: column "resource" of relation "audit_logs" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg/lib/client.js:545:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:88:7) {
+  length: 131,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '62',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1065',
+  routine: 'checkInsertTargets'
+}

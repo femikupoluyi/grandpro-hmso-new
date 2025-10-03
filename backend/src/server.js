@@ -123,12 +123,14 @@ app.use('/api/security', fixRoutes);
 app.use('/api/onboarding', fixRoutes);
 
 // CRM Routes
+const simpleCrmRoutes = require('./routes/crm-simple.routes');
 app.use('/api/crm', crmRoutes);
 app.use('/api/crm/owners', ownerCrmRoutes);
 app.use('/api/crm/patients', patientCrmRoutes);
 app.use('/api/crm/communications', communicationRoutes);
 app.use('/api/crm/enhanced', enhancedCrmRoutes);
 app.use('/api/crm-complete', completeCrmRoutes); // Complete CRM implementation
+app.use('/api/crm-v2', simpleCrmRoutes); // Version 2 CRM with direct SQL
 
 // Hospital Management Routes
 app.use('/api/emr', emrRoutes);

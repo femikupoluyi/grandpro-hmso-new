@@ -1,109 +1,101 @@
-// Complete CRM & Relationship Management Routes
+/**
+ * Complete CRM Routes
+ * Comprehensive Owner and Patient CRM functionality
+ */
+
 const express = require('express');
 const router = express.Router();
-const crmService = require('../services/crm-complete.service');
 const { body, param, query, validationResult } = require('express-validator');
+const {
+  Owner,
+  Patient,
+  CommunicationLog,
+  Campaign,
+  Appointment,
+  Feedback,
+  LoyaltyTransaction,
+  Payout
+} = require('../models/crm-enhanced.model');
+const { Op } = require('sequelize');
 
 // Validation middleware
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ 
-      success: false, 
-      errors: errors.array() 
-    });
+    return res.status(400).json({ errors: errors.array() });
   }
   next();
 };
 
-// ==================== CRM DASHBOARD ====================
+// ============= OWNER CRM ROUTES =============
 
-// Get CRM dashboard statistics
-router.get('/dashboard', async (req, res) => {
-  try {
-    const result = await crmService.getCRMDashboard();
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch CRM dashboard',
-      error: error.message
-    });
-  }
-});
-
-// ==================== OWNER CRM ROUTES ====================
-
-// Create or update owner profile
+// Create new owner
 router.post('/owners', [
-  body('first_name').notEmpty().withMessage('First name is required'),
-  body('last_name').notEmpty().withMessage('Last name is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('phone').matches(/^\+?234\d{10}$|^0\d{10}$/).withMessage('Invalid Nigerian phone number')
+  body('first_name').notEmpty().trim(),
+  body('last_name').notEmpty().trim(),
+  body('email').isEmail().normalizeEmail(),
+  body('phone').matches(/^(\+234|0)[789]\d{9}$/),
+  body('hospital_id').optional().isInt()
 ], validate, async (req, res) => {
   try {
-    const result = await crmService.upsertOwnerProfile(req.body);
-    res.status(result.action === 'created' ? 201 : 200).json(result);
+    const ownerData = {
+      ...req.body,
+      owner_code: `OWN-${Date.now()}`
+    };
+    
+    const owner = await Owner.create(ownerData);
+    res.status(201).json({
+      success: true,
+      message: 'Owner created successfully',
+      data: owner
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to process owner profile',
+      message: 'Failed to create owner',
       error: error.message
     });
   }
 });
 
-// Get all owners
+// Get all owners with filters
 router.get('/owners', async (req, res) => {
   try {
-    const { status, page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
+    const { status, payment_status, search, page = 1, limit = 20 } = req.query;
+    const where = {};
     
-    const { pool } = require('../config/database');
-    
-    let query = `
-      SELECT 
-        ho.*,
-        COUNT(DISTINCT h.id) as hospital_count,
-        COUNT(DISTINCT c.id) as contract_count
-      FROM hospital_owners ho
-      LEFT JOIN hospitals h ON h.id::text = ANY(
-        SELECT jsonb_array_elements_text(ho.hospital_ids::jsonb)
-      )
-      LEFT JOIN contracts c ON c.contract_id = ANY(
-        SELECT jsonb_array_elements_text(ho.contract_ids::jsonb)
-      )
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    let paramCount = 0;
-    
-    if (status) {
-      paramCount++;
-      query += ` AND ho.status = $${paramCount}`;
-      params.push(status);
+    if (status) where.status = status;
+    if (payment_status) where.payment_status = payment_status;
+    if (search) {
+      where[Op.or] = [
+        { first_name: { [Op.iLike]: `%${search}%` } },
+        { last_name: { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+        { owner_code: { [Op.iLike]: `%${search}%` } }
+      ];
     }
     
-    query += ` GROUP BY ho.id`;
-    query += ` ORDER BY ho.created_at DESC`;
-    
-    paramCount++;
-    query += ` LIMIT $${paramCount}`;
-    params.push(limit);
-    
-    paramCount++;
-    query += ` OFFSET $${paramCount}`;
-    params.push(offset);
-    
-    const result = await pool.query(query, params);
+    const offset = (page - 1) * limit;
+    const { count, rows } = await Owner.findAndCountAll({
+      where,
+      limit: parseInt(limit),
+      offset,
+      order: [['created_at', 'DESC']],
+      include: [{
+        model: Payout,
+        as: 'payouts',
+        limit: 5,
+        order: [['created_at', 'DESC']]
+      }]
+    });
     
     res.json({
       success: true,
-      data: result.rows,
+      data: rows,
       pagination: {
+        total: count,
         page: parseInt(page),
-        limit: parseInt(limit)
+        pages: Math.ceil(count / limit)
       }
     });
   } catch (error) {
@@ -115,206 +107,156 @@ router.get('/owners', async (req, res) => {
   }
 });
 
-// Get owner by ID
-router.get('/owners/:ownerId', async (req, res) => {
+// Get owner statistics
+router.get('/owners/stats', async (req, res) => {
   try {
-    const { ownerId } = req.params;
-    const { pool } = require('../config/database');
+    const totalOwners = await Owner.count();
+    const activeOwners = await Owner.count({ where: { status: 'active' } });
+    const totalLifetimeValue = await Owner.sum('lifetime_value') || 0;
+    const averageSatisfaction = await Owner.aggregate('satisfaction_score', 'avg') || 0;
     
-    const query = `
-      SELECT * FROM hospital_owners WHERE id = $1
-    `;
+    const paymentStats = await Owner.findAll({
+      attributes: [
+        'payment_status',
+        [Owner.sequelize.fn('COUNT', Owner.sequelize.col('id')), 'count']
+      ],
+      group: ['payment_status']
+    });
     
-    const result = await pool.query(query, [ownerId]);
-    
-    if (result.rows.length === 0) {
+    res.json({
+      success: true,
+      data: {
+        totalOwners,
+        activeOwners,
+        inactiveOwners: totalOwners - activeOwners,
+        totalLifetimeValue,
+        averageSatisfaction: parseFloat(averageSatisfaction).toFixed(2),
+        paymentStats: paymentStats.reduce((acc, stat) => {
+          acc[stat.payment_status] = stat.dataValues.count;
+          return acc;
+        }, {})
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch owner statistics',
+      error: error.message
+    });
+  }
+});
+
+// Update owner
+router.put('/owners/:id', [
+  param('id').isInt()
+], validate, async (req, res) => {
+  try {
+    const owner = await Owner.findByPk(req.params.id);
+    if (!owner) {
       return res.status(404).json({
         success: false,
         message: 'Owner not found'
       });
     }
     
+    await owner.update(req.body);
     res.json({
       success: true,
-      data: result.rows[0]
+      message: 'Owner updated successfully',
+      data: owner
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch owner',
+      message: 'Failed to update owner',
       error: error.message
     });
   }
 });
 
-// Record payout
-router.post('/owners/payouts', [
-  body('owner_id').notEmpty().withMessage('Owner ID is required'),
-  body('hospital_id').notEmpty().withMessage('Hospital ID is required'),
-  body('amount').isFloat({ min: 0 }).withMessage('Valid amount is required'),
-  body('period_start').isISO8601().withMessage('Valid period start date is required'),
-  body('period_end').isISO8601().withMessage('Valid period end date is required')
+// ============= PATIENT CRM ROUTES =============
+
+// Register new patient
+router.post('/patients/register', [
+  body('first_name').notEmpty().trim(),
+  body('last_name').notEmpty().trim(),
+  body('phone').matches(/^(\+234|0)[789]\d{9}$/),
+  body('date_of_birth').isISO8601(),
+  body('gender').isIn(['male', 'female', 'other']),
+  body('address').notEmpty(),
+  body('city').notEmpty(),
+  body('state').notEmpty()
 ], validate, async (req, res) => {
   try {
-    const result = await crmService.recordPayout(req.body);
-    res.status(201).json(result);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to record payout',
-      error: error.message
-    });
-  }
-});
-
-// Get owner analytics
-router.get('/owners/:ownerId/analytics', async (req, res) => {
-  try {
-    const { ownerId } = req.params;
-    const { period = '30days' } = req.query;
+    const patientData = {
+      ...req.body,
+      patient_code: `PAT-${Date.now()}`
+    };
     
-    const result = await crmService.getOwnerAnalytics(ownerId, period);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch owner analytics',
-      error: error.message
-    });
-  }
-});
-
-// Get owner payouts
-router.get('/owners/:ownerId/payouts', async (req, res) => {
-  try {
-    const { ownerId } = req.params;
-    const { status, page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
+    const patient = await Patient.create(patientData);
     
-    const { pool } = require('../config/database');
-    
-    let query = `
-      SELECT 
-        op.*,
-        h.name as hospital_name
-      FROM owner_payouts op
-      LEFT JOIN hospitals h ON op.hospital_id = h.id
-      WHERE op.owner_id = $1
-    `;
-    
-    const params = [ownerId];
-    let paramCount = 1;
-    
-    if (status) {
-      paramCount++;
-      query += ` AND op.status = $${paramCount}`;
-      params.push(status);
+    // Award welcome loyalty points
+    if (patient) {
+      await LoyaltyTransaction.create({
+        patient_id: patient.id,
+        transaction_type: 'earned',
+        points: 100,
+        balance_after: 100,
+        description: 'Welcome bonus',
+        reference_type: 'registration'
+      });
+      
+      patient.loyalty_points = 100;
+      await patient.save();
     }
     
-    query += ` ORDER BY op.created_at DESC`;
-    
-    paramCount++;
-    query += ` LIMIT $${paramCount}`;
-    params.push(limit);
-    
-    paramCount++;
-    query += ` OFFSET $${paramCount}`;
-    params.push(offset);
-    
-    const result = await pool.query(query, params);
-    
-    res.json({
+    res.status(201).json({
       success: true,
-      data: result.rows,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit)
-      }
+      message: 'Patient registered successfully',
+      data: patient
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch payouts',
+      message: 'Failed to register patient',
       error: error.message
     });
   }
 });
 
-// ==================== PATIENT CRM ROUTES ====================
-
-// Register or update patient
-router.post('/patients', [
-  body('first_name').notEmpty().withMessage('First name is required'),
-  body('last_name').notEmpty().withMessage('Last name is required'),
-  body('hospital_id').notEmpty().withMessage('Hospital ID is required')
-], validate, async (req, res) => {
-  try {
-    const result = await crmService.upsertPatient(req.body);
-    res.status(201).json(result);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to process patient',
-      error: error.message
-    });
-  }
-});
-
-// Get all patients
+// Get all patients with filters
 router.get('/patients', async (req, res) => {
   try {
-    const { hospital_id, status, page = 1, limit = 20 } = req.query;
+    const { status, loyalty_tier, search, page = 1, limit = 20 } = req.query;
+    const where = {};
+    
+    if (status) where.status = status;
+    if (loyalty_tier) where.loyalty_tier = loyalty_tier;
+    if (search) {
+      where[Op.or] = [
+        { first_name: { [Op.iLike]: `%${search}%` } },
+        { last_name: { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+        { phone: { [Op.iLike]: `%${search}%` } },
+        { patient_code: { [Op.iLike]: `%${search}%` } }
+      ];
+    }
+    
     const offset = (page - 1) * limit;
-    
-    const { pool } = require('../config/database');
-    
-    let query = `
-      SELECT 
-        p.*,
-        h.name as hospital_name,
-        COUNT(DISTINCT a.id) as appointment_count,
-        COUNT(DISTINCT f.id) as feedback_count
-      FROM patients p
-      LEFT JOIN hospitals h ON p.hospital_id = h.id
-      LEFT JOIN appointments a ON p.id = a.patient_id
-      LEFT JOIN feedback f ON p.id = f.patient_id
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    let paramCount = 0;
-    
-    if (hospital_id) {
-      paramCount++;
-      query += ` AND p.hospital_id = $${paramCount}`;
-      params.push(hospital_id);
-    }
-    
-    if (status) {
-      paramCount++;
-      query += ` AND p.status = $${paramCount}`;
-      params.push(status);
-    }
-    
-    query += ` GROUP BY p.id, h.name`;
-    query += ` ORDER BY p.created_at DESC`;
-    
-    paramCount++;
-    query += ` LIMIT $${paramCount}`;
-    params.push(limit);
-    
-    paramCount++;
-    query += ` OFFSET $${paramCount}`;
-    params.push(offset);
-    
-    const result = await pool.query(query, params);
+    const { count, rows } = await Patient.findAndCountAll({
+      where,
+      limit: parseInt(limit),
+      offset,
+      order: [['created_at', 'DESC']]
+    });
     
     res.json({
       success: true,
-      data: result.rows,
+      data: rows,
       pagination: {
+        total: count,
         page: parseInt(page),
-        limit: parseInt(limit)
+        pages: Math.ceil(count / limit)
       }
     });
   } catch (error) {
@@ -326,18 +268,135 @@ router.get('/patients', async (req, res) => {
   }
 });
 
-// Schedule appointment
-router.post('/appointments', [
-  body('patient_id').notEmpty().withMessage('Patient ID is required'),
-  body('doctor_id').notEmpty().withMessage('Doctor ID is required'),
-  body('hospital_id').notEmpty().withMessage('Hospital ID is required'),
-  body('appointment_date').isISO8601().withMessage('Valid appointment date is required'),
-  body('appointment_time').matches(/^([01]\d|2[0-3]):([0-5]\d)$/).withMessage('Valid time format (HH:MM) is required'),
-  body('department').notEmpty().withMessage('Department is required')
+// Get patient by ID
+router.get('/patients/:id', async (req, res) => {
+  try {
+    const patient = await Patient.findByPk(req.params.id, {
+      include: [
+        {
+          model: Appointment,
+          as: 'appointments',
+          limit: 10,
+          order: [['appointment_date', 'DESC']]
+        },
+        {
+          model: LoyaltyTransaction,
+          as: 'loyaltyTransactions',
+          limit: 10,
+          order: [['created_at', 'DESC']]
+        }
+      ]
+    });
+    
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: 'Patient not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: patient
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch patient',
+      error: error.message
+    });
+  }
+});
+
+// Update patient loyalty tier
+router.post('/patients/:id/loyalty-tier', [
+  param('id').isInt(),
+  body('tier').isIn(['bronze', 'silver', 'gold', 'platinum'])
 ], validate, async (req, res) => {
   try {
-    const result = await crmService.scheduleAppointment(req.body);
-    res.status(201).json(result);
+    const patient = await Patient.findByPk(req.params.id);
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: 'Patient not found'
+      });
+    }
+    
+    const oldTier = patient.loyalty_tier;
+    patient.loyalty_tier = req.body.tier;
+    await patient.save();
+    
+    // Award bonus points for tier upgrade
+    if (req.body.tier !== oldTier) {
+      const bonusPoints = {
+        silver: 200,
+        gold: 500,
+        platinum: 1000
+      };
+      
+      if (bonusPoints[req.body.tier]) {
+        await LoyaltyTransaction.create({
+          patient_id: patient.id,
+          transaction_type: 'earned',
+          points: bonusPoints[req.body.tier],
+          balance_after: patient.loyalty_points + bonusPoints[req.body.tier],
+          description: `Tier upgrade to ${req.body.tier}`,
+          reference_type: 'tier_upgrade'
+        });
+        
+        patient.loyalty_points += bonusPoints[req.body.tier];
+        await patient.save();
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: 'Loyalty tier updated successfully',
+      data: patient
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update loyalty tier',
+      error: error.message
+    });
+  }
+});
+
+// ============= APPOINTMENT ROUTES =============
+
+// Schedule appointment
+router.post('/appointments', [
+  body('patient_id').isInt(),
+  body('hospital_id').isInt(),
+  body('appointment_date').isISO8601(),
+  body('appointment_time').matches(/^\d{2}:\d{2}$/),
+  body('type').isIn(['consultation', 'follow_up', 'procedure', 'emergency', 'telemedicine'])
+], validate, async (req, res) => {
+  try {
+    const appointmentData = {
+      ...req.body,
+      appointment_code: `APT-${Date.now()}`
+    };
+    
+    const appointment = await Appointment.create(appointmentData);
+    
+    // Send appointment confirmation
+    await CommunicationLog.create({
+      recipient_type: 'patient',
+      recipient_id: req.body.patient_id,
+      channel: 'sms',
+      message_type: 'appointment_confirmation',
+      subject: 'Appointment Scheduled',
+      content: `Your appointment has been scheduled for ${req.body.appointment_date} at ${req.body.appointment_time}`,
+      status: 'pending'
+    });
+    
+    res.status(201).json({
+      success: true,
+      message: 'Appointment scheduled successfully',
+      data: appointment
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -347,71 +406,51 @@ router.post('/appointments', [
   }
 });
 
-// Get appointments
+// Get appointments with filters
 router.get('/appointments', async (req, res) => {
   try {
-    const { patient_id, hospital_id, status, date, page = 1, limit = 20 } = req.query;
+    const { 
+      status, 
+      type, 
+      patient_id, 
+      hospital_id,
+      date_from,
+      date_to,
+      page = 1, 
+      limit = 20 
+    } = req.query;
+    
+    const where = {};
+    if (status) where.status = status;
+    if (type) where.type = type;
+    if (patient_id) where.patient_id = patient_id;
+    if (hospital_id) where.hospital_id = hospital_id;
+    if (date_from || date_to) {
+      where.appointment_date = {};
+      if (date_from) where.appointment_date[Op.gte] = date_from;
+      if (date_to) where.appointment_date[Op.lte] = date_to;
+    }
+    
     const offset = (page - 1) * limit;
-    
-    const { pool } = require('../config/database');
-    
-    let query = `
-      SELECT 
-        a.*,
-        p.first_name as patient_first_name,
-        p.last_name as patient_last_name,
-        h.name as hospital_name
-      FROM appointments a
-      LEFT JOIN patients p ON a.patient_id = p.id
-      LEFT JOIN hospitals h ON a.hospital_id = h.id
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    let paramCount = 0;
-    
-    if (patient_id) {
-      paramCount++;
-      query += ` AND a.patient_id = $${paramCount}`;
-      params.push(patient_id);
-    }
-    
-    if (hospital_id) {
-      paramCount++;
-      query += ` AND a.hospital_id = $${paramCount}`;
-      params.push(hospital_id);
-    }
-    
-    if (status) {
-      paramCount++;
-      query += ` AND a.status = $${paramCount}`;
-      params.push(status);
-    }
-    
-    if (date) {
-      paramCount++;
-      query += ` AND DATE(a.appointment_date) = $${paramCount}`;
-      params.push(date);
-    }
-    
-    query += ` ORDER BY a.appointment_date DESC, a.appointment_time DESC`;
-    
-    paramCount++;
-    query += ` LIMIT $${paramCount}`;
-    params.push(limit);
-    
-    paramCount++;
-    query += ` OFFSET $${paramCount}`;
-    params.push(offset);
-    
-    const result = await pool.query(query, params);
+    const { count, rows } = await Appointment.findAndCountAll({
+      where,
+      limit: parseInt(limit),
+      offset,
+      order: [['appointment_date', 'ASC'], ['appointment_time', 'ASC']],
+      include: [{
+        model: Patient,
+        as: 'patient',
+        attributes: ['id', 'first_name', 'last_name', 'phone']
+      }]
+    });
     
     res.json({
       success: true,
-      data: result.rows,
+      data: rows,
       pagination: {
+        total: count,
         page: parseInt(page),
-        limit: parseInt(limit)
+        pages: Math.ceil(count / limit)
       }
     });
   } catch (error) {
@@ -423,177 +462,87 @@ router.get('/appointments', async (req, res) => {
   }
 });
 
-// Submit feedback
-router.post('/feedback', [
-  body('patient_id').notEmpty().withMessage('Patient ID is required'),
-  body('hospital_id').notEmpty().withMessage('Hospital ID is required'),
-  body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
-  body('comments').notEmpty().withMessage('Comments are required')
-], validate, async (req, res) => {
+// Send appointment reminders
+router.post('/appointments/send-reminders', async (req, res) => {
   try {
-    const result = await crmService.submitFeedback(req.body);
-    res.status(201).json(result);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to submit feedback',
-      error: error.message
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    
+    const endOfTomorrow = new Date(tomorrow);
+    endOfTomorrow.setHours(23, 59, 59, 999);
+    
+    const appointments = await Appointment.findAll({
+      where: {
+        appointment_date: {
+          [Op.between]: [tomorrow, endOfTomorrow]
+        },
+        status: ['scheduled', 'confirmed'],
+        reminder_sent: false
+      },
+      include: [{
+        model: Patient,
+        as: 'patient',
+        attributes: ['id', 'first_name', 'last_name', 'phone', 'communication_preferences']
+      }]
     });
-  }
-});
-
-// Get feedback
-router.get('/feedback', async (req, res) => {
-  try {
-    const { hospital_id, patient_id, rating, page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
     
-    const { pool } = require('../config/database');
+    let remindersSent = 0;
     
-    let query = `
-      SELECT 
-        f.*,
-        p.first_name as patient_first_name,
-        p.last_name as patient_last_name,
-        h.name as hospital_name
-      FROM feedback f
-      LEFT JOIN patients p ON f.patient_id = p.id
-      LEFT JOIN hospitals h ON f.hospital_id = h.id
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    let paramCount = 0;
-    
-    if (hospital_id) {
-      paramCount++;
-      query += ` AND f.hospital_id = $${paramCount}`;
-      params.push(hospital_id);
+    for (const appointment of appointments) {
+      if (appointment.patient && appointment.patient.communication_preferences.sms) {
+        await CommunicationLog.create({
+          recipient_type: 'patient',
+          recipient_id: appointment.patient_id,
+          channel: 'sms',
+          message_type: 'appointment_reminder',
+          subject: 'Appointment Reminder',
+          content: `Reminder: You have an appointment tomorrow at ${appointment.appointment_time}. Reply CONFIRM to confirm or CANCEL to cancel.`,
+          status: 'pending'
+        });
+        
+        appointment.reminder_sent = true;
+        appointment.reminder_sent_at = new Date();
+        await appointment.save();
+        
+        remindersSent++;
+      }
     }
-    
-    if (patient_id) {
-      paramCount++;
-      query += ` AND f.patient_id = $${paramCount}`;
-      params.push(patient_id);
-    }
-    
-    if (rating) {
-      paramCount++;
-      query += ` AND f.rating = $${paramCount}`;
-      params.push(rating);
-    }
-    
-    query += ` ORDER BY f.created_at DESC`;
-    
-    paramCount++;
-    query += ` LIMIT $${paramCount}`;
-    params.push(limit);
-    
-    paramCount++;
-    query += ` OFFSET $${paramCount}`;
-    params.push(offset);
-    
-    const result = await pool.query(query, params);
     
     res.json({
       success: true,
-      data: result.rows,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit)
+      message: `${remindersSent} reminders sent successfully`,
+      data: {
+        totalAppointments: appointments.length,
+        remindersSent
       }
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch feedback',
+      message: 'Failed to send appointment reminders',
       error: error.message
     });
   }
 });
 
-// ==================== LOYALTY PROGRAM ROUTES ====================
-
-// Award loyalty points
-router.post('/loyalty/award', [
-  body('patient_id').notEmpty().withMessage('Patient ID is required'),
-  body('points').isInt({ min: 1 }).withMessage('Points must be positive'),
-  body('reason').notEmpty().withMessage('Reason is required')
-], validate, async (req, res) => {
-  try {
-    const result = await crmService.awardLoyaltyPoints(
-      req.body.patient_id,
-      req.body.points,
-      req.body.reason
-    );
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to award points',
-      error: error.message
-    });
-  }
-});
-
-// Redeem loyalty points
-router.post('/loyalty/redeem', [
-  body('patient_id').notEmpty().withMessage('Patient ID is required'),
-  body('reward_id').notEmpty().withMessage('Reward ID is required')
-], validate, async (req, res) => {
-  try {
-    const result = await crmService.redeemLoyaltyPoints(
-      req.body.patient_id,
-      req.body.reward_id
-    );
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to redeem points',
-      error: error.message
-    });
-  }
-});
-
-// Get loyalty rewards
-router.get('/loyalty/rewards', async (req, res) => {
-  try {
-    const { pool } = require('../config/database');
-    
-    const query = `
-      SELECT * FROM loyalty_rewards 
-      WHERE is_active = true 
-      ORDER BY points_required ASC
-    `;
-    
-    const result = await pool.query(query);
-    
-    res.json({
-      success: true,
-      data: result.rows
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch rewards',
-      error: error.message
-    });
-  }
-});
-
-// ==================== COMMUNICATION CAMPAIGN ROUTES ====================
+// ============= CAMPAIGN ROUTES =============
 
 // Create campaign
 router.post('/campaigns', [
-  body('name').notEmpty().withMessage('Campaign name is required'),
-  body('type').notEmpty().withMessage('Campaign type is required'),
-  body('message_template').notEmpty().withMessage('Message template is required'),
-  body('channels').isArray().withMessage('Channels must be an array')
+  body('name').notEmpty().trim(),
+  body('type').isIn(['promotional', 'educational', 'reminder', 'follow_up', 'survey']),
+  body('target_audience').isIn(['all_patients', 'all_owners', 'specific_segment', 'custom']),
+  body('message_template').notEmpty()
 ], validate, async (req, res) => {
   try {
-    const result = await crmService.createCampaign(req.body);
-    res.status(201).json(result);
+    const campaign = await Campaign.create(req.body);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Campaign created successfully',
+      data: campaign
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -603,52 +552,30 @@ router.post('/campaigns', [
   }
 });
 
-// Get campaigns
+// Get all campaigns
 router.get('/campaigns', async (req, res) => {
   try {
     const { status, type, page = 1, limit = 20 } = req.query;
+    const where = {};
+    
+    if (status) where.status = status;
+    if (type) where.type = type;
+    
     const offset = (page - 1) * limit;
-    
-    const { pool } = require('../config/database');
-    
-    let query = `
-      SELECT * FROM communication_campaigns
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    let paramCount = 0;
-    
-    if (status) {
-      paramCount++;
-      query += ` AND status = $${paramCount}`;
-      params.push(status);
-    }
-    
-    if (type) {
-      paramCount++;
-      query += ` AND type = $${paramCount}`;
-      params.push(type);
-    }
-    
-    query += ` ORDER BY created_at DESC`;
-    
-    paramCount++;
-    query += ` LIMIT $${paramCount}`;
-    params.push(limit);
-    
-    paramCount++;
-    query += ` OFFSET $${paramCount}`;
-    params.push(offset);
-    
-    const result = await pool.query(query, params);
+    const { count, rows } = await Campaign.findAndCountAll({
+      where,
+      limit: parseInt(limit),
+      offset,
+      order: [['created_at', 'DESC']]
+    });
     
     res.json({
       success: true,
-      data: result.rows,
+      data: rows,
       pagination: {
+        total: count,
         page: parseInt(page),
-        limit: parseInt(limit)
+        pages: Math.ceil(count / limit)
       }
     });
   } catch (error) {
@@ -660,34 +587,353 @@ router.get('/campaigns', async (req, res) => {
   }
 });
 
-// Send campaign
-router.post('/campaigns/:campaignId/send', async (req, res) => {
+// Launch campaign
+router.post('/campaigns/:id/launch', async (req, res) => {
   try {
-    const { campaignId } = req.params;
-    const result = await crmService.sendCampaign(campaignId);
-    res.json(result);
+    const campaign = await Campaign.findByPk(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({
+        success: false,
+        message: 'Campaign not found'
+      });
+    }
+    
+    if (campaign.status !== 'draft' && campaign.status !== 'scheduled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Campaign cannot be launched in current status'
+      });
+    }
+    
+    // Get target recipients
+    let recipients = [];
+    if (campaign.target_audience === 'all_patients') {
+      recipients = await Patient.findAll({
+        where: { status: 'active' },
+        attributes: ['id', 'first_name', 'last_name', 'email', 'phone', 'communication_preferences']
+      });
+    } else if (campaign.target_audience === 'all_owners') {
+      recipients = await Owner.findAll({
+        where: { status: 'active' },
+        attributes: ['id', 'first_name', 'last_name', 'email', 'phone']
+      });
+    }
+    
+    // Create communication logs for each recipient
+    let messageCount = 0;
+    for (const recipient of recipients) {
+      for (const channel of campaign.channels) {
+        const canSend = channel === 'email' ? recipient.email : 
+                       channel === 'sms' || channel === 'whatsapp' ? recipient.phone : false;
+        
+        if (canSend) {
+          await CommunicationLog.create({
+            recipient_type: campaign.target_audience === 'all_patients' ? 'patient' : 'owner',
+            recipient_id: recipient.id,
+            campaign_id: campaign.id,
+            channel,
+            message_type: campaign.type,
+            subject: campaign.name,
+            content: campaign.message_template.replace('{name}', `${recipient.first_name} ${recipient.last_name}`),
+            status: 'pending'
+          });
+          messageCount++;
+        }
+      }
+    }
+    
+    campaign.status = 'active';
+    campaign.start_date = new Date();
+    campaign.total_recipients = recipients.length;
+    campaign.messages_sent = messageCount;
+    await campaign.save();
+    
+    res.json({
+      success: true,
+      message: 'Campaign launched successfully',
+      data: {
+        campaign,
+        recipientsTargeted: recipients.length,
+        messagesQueued: messageCount
+      }
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to send campaign',
+      message: 'Failed to launch campaign',
       error: error.message
     });
   }
 });
 
-// Create reminder
-router.post('/reminders', [
-  body('patient_id').notEmpty().withMessage('Patient ID is required'),
-  body('reminder_date').isISO8601().withMessage('Valid reminder date is required'),
-  body('type').notEmpty().withMessage('Reminder type is required')
+// ============= FEEDBACK ROUTES =============
+
+// Submit feedback
+router.post('/feedback', [
+  body('source_type').isIn(['patient', 'owner', 'staff']),
+  body('source_id').isInt(),
+  body('type').isIn(['complaint', 'suggestion', 'compliment', 'survey_response']),
+  body('message').notEmpty()
 ], validate, async (req, res) => {
   try {
-    const result = await crmService.createReminder(req.body);
-    res.status(201).json(result);
+    const feedback = await Feedback.create(req.body);
+    
+    // Send acknowledgement
+    await CommunicationLog.create({
+      recipient_type: req.body.source_type,
+      recipient_id: req.body.source_id,
+      channel: 'email',
+      message_type: 'feedback_acknowledgement',
+      subject: 'Thank you for your feedback',
+      content: 'We have received your feedback and will respond within 24-48 hours.',
+      status: 'pending'
+    });
+    
+    res.status(201).json({
+      success: true,
+      message: 'Feedback submitted successfully',
+      data: feedback
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to create reminder',
+      message: 'Failed to submit feedback',
+      error: error.message
+    });
+  }
+});
+
+// Get feedback with filters
+router.get('/feedback', async (req, res) => {
+  try {
+    const { status, type, priority, page = 1, limit = 20 } = req.query;
+    const where = {};
+    
+    if (status) where.status = status;
+    if (type) where.type = type;
+    if (priority) where.priority = priority;
+    
+    const offset = (page - 1) * limit;
+    const { count, rows } = await Feedback.findAndCountAll({
+      where,
+      limit: parseInt(limit),
+      offset,
+      order: [
+        ['priority', 'DESC'],
+        ['created_at', 'DESC']
+      ]
+    });
+    
+    res.json({
+      success: true,
+      data: rows,
+      pagination: {
+        total: count,
+        page: parseInt(page),
+        pages: Math.ceil(count / limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch feedback',
+      error: error.message
+    });
+  }
+});
+
+// ============= PAYOUT ROUTES =============
+
+// Create payout for owner
+router.post('/payouts', [
+  body('owner_id').isInt(),
+  body('period_start').isISO8601(),
+  body('period_end').isISO8601(),
+  body('gross_revenue').isFloat({ min: 0 }),
+  body('net_amount').isFloat({ min: 0 })
+], validate, async (req, res) => {
+  try {
+    const payoutData = {
+      ...req.body,
+      payout_code: `PAY-${Date.now()}`
+    };
+    
+    const payout = await Payout.create(payoutData);
+    
+    // Update owner's last contact date
+    await Owner.update(
+      { last_contact_date: new Date() },
+      { where: { id: req.body.owner_id } }
+    );
+    
+    res.status(201).json({
+      success: true,
+      message: 'Payout created successfully',
+      data: payout
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create payout',
+      error: error.message
+    });
+  }
+});
+
+// Get payouts for owner
+router.get('/owners/:ownerId/payouts', async (req, res) => {
+  try {
+    const { status, page = 1, limit = 20 } = req.query;
+    const where = { owner_id: req.params.ownerId };
+    
+    if (status) where.status = status;
+    
+    const offset = (page - 1) * limit;
+    const { count, rows } = await Payout.findAndCountAll({
+      where,
+      limit: parseInt(limit),
+      offset,
+      order: [['created_at', 'DESC']]
+    });
+    
+    res.json({
+      success: true,
+      data: rows,
+      pagination: {
+        total: count,
+        page: parseInt(page),
+        pages: Math.ceil(count / limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch payouts',
+      error: error.message
+    });
+  }
+});
+
+// Approve payout
+router.post('/payouts/:id/approve', async (req, res) => {
+  try {
+    const payout = await Payout.findByPk(req.params.id);
+    if (!payout) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payout not found'
+      });
+    }
+    
+    if (payout.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Payout cannot be approved in current status'
+      });
+    }
+    
+    payout.status = 'approved';
+    payout.approved_at = new Date();
+    payout.approved_by = req.user?.id || 1; // Get from auth middleware
+    await payout.save();
+    
+    res.json({
+      success: true,
+      message: 'Payout approved successfully',
+      data: payout
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to approve payout',
+      error: error.message
+    });
+  }
+});
+
+// ============= COMMUNICATION LOG ROUTES =============
+
+// Get communication history
+router.get('/communications', async (req, res) => {
+  try {
+    const { 
+      recipient_type,
+      recipient_id,
+      channel,
+      status,
+      page = 1,
+      limit = 20 
+    } = req.query;
+    
+    const where = {};
+    if (recipient_type) where.recipient_type = recipient_type;
+    if (recipient_id) where.recipient_id = recipient_id;
+    if (channel) where.channel = channel;
+    if (status) where.status = status;
+    
+    const offset = (page - 1) * limit;
+    const { count, rows } = await CommunicationLog.findAndCountAll({
+      where,
+      limit: parseInt(limit),
+      offset,
+      order: [['created_at', 'DESC']],
+      include: [{
+        model: Campaign,
+        as: 'campaign',
+        attributes: ['id', 'name', 'type']
+      }]
+    });
+    
+    res.json({
+      success: true,
+      data: rows,
+      pagination: {
+        total: count,
+        page: parseInt(page),
+        pages: Math.ceil(count / limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch communication history',
+      error: error.message
+    });
+  }
+});
+
+// Send custom message
+router.post('/communications/send', [
+  body('recipient_type').isIn(['patient', 'owner', 'staff']),
+  body('recipient_id').isInt(),
+  body('channel').isIn(['sms', 'email', 'whatsapp']),
+  body('subject').optional(),
+  body('content').notEmpty()
+], validate, async (req, res) => {
+  try {
+    const communication = await CommunicationLog.create({
+      ...req.body,
+      message_type: 'custom',
+      status: 'pending'
+    });
+    
+    // Here you would integrate with actual SMS/Email/WhatsApp providers
+    // For now, we'll simulate sending
+    setTimeout(async () => {
+      communication.status = 'sent';
+      communication.sent_at = new Date();
+      await communication.save();
+    }, 1000);
+    
+    res.json({
+      success: true,
+      message: 'Message queued for sending',
+      data: communication
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send message',
       error: error.message
     });
   }
