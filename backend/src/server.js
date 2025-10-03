@@ -17,6 +17,7 @@ const onboardingRoutes = require('./routes/onboarding.routes'); // Digital sourc
 
 // Fix routes for missing endpoints
 const fixRoutes = require('./routes/fix-missing-routes');
+const fixApiRoutes = require('./routes/fix-api-routes');
 
 // Public endpoints for demo
 const publicEndpoints = require('./routes/public-endpoints');
@@ -147,6 +148,9 @@ app.use('/api/analytics-legacy', hospitalAnalyticsRoutes);
 app.use('/api/insurance', insuranceRoutes);
 app.use('/api/pharmacy', pharmacyRoutes);
 app.use('/api/telemedicine', telemedicineRoutes);
+
+// Fix API routes for missing endpoints
+app.use('/api', fixApiRoutes);
 
 // Analytics & ML Routes
 app.use('/api/data-analytics', dataAnalyticsRoutes);

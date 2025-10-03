@@ -7,6 +7,7 @@ const fs = require('fs').promises;
 const { pool } = require('../config/database');
 const authMiddleware = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
+const ContractPDFService = require('../services/contract-pdf.service');
 
 // Configure multer for secure file uploads
 const storage = multer.diskStorage({
@@ -429,11 +430,38 @@ router.post('/applications/:id/generate-contract', async (req, res) => {
 
       await client.query('COMMIT');
 
-      res.json({
-        success: true,
-        message: 'Contract generated successfully',
-        data: contractResult.rows[0]
-      });
+      // Generate PDF version of the contract
+      try {
+        const pdfResult = await ContractPDFService.generateContractPDF(
+          contractResult.rows[0],
+          application
+        );
+        
+        // Update contract with PDF path
+        await client.query(
+          'UPDATE contracts SET signature_request_id = $1 WHERE id = $2',
+          [pdfResult.filepath, contractResult.rows[0].id]
+        );
+        
+        res.json({
+          success: true,
+          message: 'Contract generated successfully',
+          data: {
+            ...contractResult.rows[0],
+            pdf_generated: true,
+            pdf_filename: pdfResult.filename,
+            pdf_size: pdfResult.size
+          }
+        });
+      } catch (pdfError) {
+        // If PDF generation fails, still return the contract
+        console.error('PDF generation error:', pdfError);
+        res.json({
+          success: true,
+          message: 'Contract generated successfully (PDF generation failed)',
+          data: contractResult.rows[0]
+        });
+      }
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -623,6 +651,50 @@ router.get('/applications', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch applications',
+      error: error.message
+    });
+  }
+});
+
+// Download contract PDF
+router.get('/contracts/:id/pdf', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(
+        'SELECT signature_request_id as pdf_path, contract_number FROM contracts WHERE id = $1',
+        [id]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Contract not found' });
+      }
+      
+      const contract = result.rows[0];
+      
+      if (contract.pdf_path && contract.pdf_path.includes('/')) {
+        const fs = require('fs');
+        if (fs.existsSync(contract.pdf_path)) {
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename="${contract.contract_number}.pdf"`);
+          const fileStream = fs.createReadStream(contract.pdf_path);
+          fileStream.pipe(res);
+        } else {
+          res.status(404).json({ message: 'PDF file not found' });
+        }
+      } else {
+        res.status(404).json({ message: 'PDF not generated for this contract' });
+      }
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('PDF download error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download PDF',
       error: error.message
     });
   }
