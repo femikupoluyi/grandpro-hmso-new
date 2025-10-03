@@ -87,22 +87,27 @@ async function auditLog(req, res, next) {
       // Log audit entry
       await client.query(`
         INSERT INTO audit_logs (
-          user_id, action, resource, method, path,
-          ip_address, user_agent, request_body, response_code,
-          duration_ms, is_sensitive, timestamp
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+          user_id, user_email, user_role, action, resource_type, resource_id,
+          ip_address, user_agent, request_method, request_path,
+          response_status, details, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
       `, [
-        req.user?.id || 'anonymous',
+        req.user?.id || null,
+        req.user?.email || 'anonymous',
+        req.user?.role || 'guest',
         `${req.method} ${req.path}`,
+        req.params.resource || 'general',
         req.params.id || null,
-        req.method,
-        req.originalUrl,
         req.ip || req.connection.remoteAddress,
         req.headers['user-agent'],
-        isSensitive ? '[REDACTED]' : JSON.stringify(req.body).substring(0, 1000),
+        req.method,
+        req.originalUrl,
         res.statusCode,
-        duration,
-        isSensitive
+        JSON.stringify({
+          body: isSensitive ? '[REDACTED]' : req.body,
+          duration_ms: duration,
+          is_sensitive: isSensitive
+        })
       ]);
       
       // Log security events
