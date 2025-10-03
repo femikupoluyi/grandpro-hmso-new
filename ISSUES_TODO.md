@@ -23,13 +23,13 @@
 - [ ] Test all CRM endpoints
 
 ### 3. Frontend Pages Testing
-- [ ] Test login page functionality
+- [x] Test login page functionality (working with role selection)
 - [ ] Test signup/registration flow
-- [ ] Test hospital onboarding application form
-- [ ] Test owner portal functionality
-- [ ] Test patient portal functionality
-- [ ] Test dashboard views
-- [ ] Test command center
+- [x] Test hospital onboarding application form (multi-step form working)
+- [x] Test owner portal functionality (dashboard with revenue, contracts, payouts)
+- [ ] Test patient portal functionality (route needs fixing)
+- [x] Test dashboard views (owner dashboard working)
+- [x] Test command center (Operations Command Centre working with real-time data)
 
 ### 4. File Uploads & Storage
 - [x] Create uploads directory if missing
