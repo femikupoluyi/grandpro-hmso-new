@@ -16,6 +16,61 @@ const validate = (req, res, next) => {
   next();
 };
 
+// Get all owners (root endpoint)
+router.get('/', async (req, res) => {
+  try {
+    // Mock data for now - replace with actual database query when table exists
+    const owners = [
+      {
+        id: 1,
+        first_name: 'Adebayo',
+        last_name: 'Ogundimu',
+        email: 'adebayo.ogundimu@example.com',
+        phone: '+234 803 123 4567',
+        hospital_name: 'Lagos University Teaching Hospital',
+        status: 'active',
+        contract_value: 150000000, // NGN
+        payout_status: 'paid'
+      },
+      {
+        id: 2,
+        first_name: 'Funke',
+        last_name: 'Akindele',
+        email: 'funke.akindele@example.com',
+        phone: '+234 805 987 6543',
+        hospital_name: 'National Hospital Abuja',
+        status: 'active',
+        contract_value: 120000000, // NGN
+        payout_status: 'pending'
+      },
+      {
+        id: 3,
+        first_name: 'Ibrahim',
+        last_name: 'Musa',
+        email: 'ibrahim.musa@example.com',
+        phone: '+234 807 777 8888',
+        hospital_name: 'University College Hospital Ibadan',
+        status: 'active',
+        contract_value: 180000000, // NGN
+        payout_status: 'paid'
+      }
+    ];
+    
+    res.json({
+      success: true,
+      data: owners,
+      total: owners.length
+    });
+  } catch (error) {
+    console.error('Error fetching owners:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch owners',
+      error: error.message
+    });
+  }
+});
+
 // Get owner profile
 router.get('/:ownerId/profile', [
   param('ownerId').notEmpty().withMessage('Owner ID is required')

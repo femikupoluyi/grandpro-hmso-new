@@ -1,156 +1,108 @@
 #!/bin/bash
 
-echo "======================================"
-echo "Testing GrandPro HMSO Public URLs"
-echo "======================================"
-echo ""
-
-# Colors for output
+# Test script for GrandPro HMSO Public URLs
+BASE_URL="https://grandpro-hmso-morphvm-wz7xxc7v.http.cloud.morph.so"
 GREEN='\033[0;32m'
 RED='\033[0;31m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Frontend URL
-FRONTEND_URL="https://hmso-app-morphvm-wz7xxc7v.http.cloud.morph.so"
-# Backend URL
-BACKEND_URL="https://hmso-api-morphvm-wz7xxc7v.http.cloud.morph.so"
-
-echo "Frontend URL: $FRONTEND_URL"
-echo "Backend URL: $BACKEND_URL"
+echo "========================================"
+echo "Testing GrandPro HMSO Public Endpoints"
+echo "Base URL: $BASE_URL"
+echo "========================================"
 echo ""
 
-# Test Frontend
-echo "Testing Frontend..."
-FRONTEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $FRONTEND_URL)
-if [ "$FRONTEND_STATUS" -eq 200 ]; then
-    echo -e "${GREEN}✓ Frontend is accessible (HTTP $FRONTEND_STATUS)${NC}"
+# Function to test endpoint
+test_endpoint() {
+    local endpoint=$1
+    local description=$2
+    local method=${3:-GET}
     
-    # Check if HTML is returned
-    FRONTEND_CONTENT=$(curl -s $FRONTEND_URL | head -c 100)
-    if [[ "$FRONTEND_CONTENT" == *"<!DOCTYPE html>"* ]]; then
-        echo -e "${GREEN}✓ Frontend returns valid HTML${NC}"
-    else
-        echo -e "${RED}✗ Frontend does not return valid HTML${NC}"
-    fi
-else
-    echo -e "${RED}✗ Frontend is not accessible (HTTP $FRONTEND_STATUS)${NC}"
-fi
-
-echo ""
-
-# Test Backend API endpoints
-echo "Testing Backend API..."
-
-# Test hospitals endpoint
-echo "  Testing /api/hospitals..."
-HOSPITALS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/hospitals)
-if [ "$HOSPITALS_STATUS" -eq 200 ]; then
-    echo -e "  ${GREEN}✓ /api/hospitals endpoint is accessible (HTTP $HOSPITALS_STATUS)${NC}"
+    echo -n "Testing $description ($method $endpoint)... "
     
-    # Check if JSON is returned
-    HOSPITALS_JSON=$(curl -s $BACKEND_URL/api/hospitals)
-    if echo "$HOSPITALS_JSON" | python3 -m json.tool > /dev/null 2>&1; then
-        echo -e "  ${GREEN}✓ /api/hospitals returns valid JSON${NC}"
-        
-        # Show hospital count
-        HOSPITAL_COUNT=$(echo "$HOSPITALS_JSON" | python3 -c "import sys, json; data=json.load(sys.stdin); print(len(data.get('hospitals', [])))" 2>/dev/null)
-        echo -e "  ${GREEN}  → Found $HOSPITAL_COUNT hospitals${NC}"
+    if [ "$method" = "GET" ]; then
+        response=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$endpoint")
     else
-        echo -e "  ${RED}✗ /api/hospitals does not return valid JSON${NC}"
+        response=$(curl -s -o /dev/null -w "%{http_code}" -X $method "$BASE_URL$endpoint" -H "Content-Type: application/json")
     fi
-else
-    echo -e "  ${RED}✗ /api/hospitals endpoint is not accessible (HTTP $HOSPITALS_STATUS)${NC}"
-fi
-
-echo ""
-
-# Test users endpoint
-echo "  Testing /api/users..."
-USERS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/users)
-if [ "$USERS_STATUS" -eq 200 ]; then
-    echo -e "  ${GREEN}✓ /api/users endpoint is accessible (HTTP $USERS_STATUS)${NC}"
-else
-    echo -e "  ${RED}✗ /api/users endpoint returned (HTTP $USERS_STATUS)${NC}"
-fi
-
-echo ""
-
-# Test operations dashboard endpoint
-echo "  Testing /api/operations/dashboard..."
-OPS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/operations/dashboard)
-if [ "$OPS_STATUS" -eq 200 ]; then
-    echo -e "  ${GREEN}✓ /api/operations/dashboard endpoint is accessible (HTTP $OPS_STATUS)${NC}"
     
-    # Check if JSON is returned
-    OPS_JSON=$(curl -s $BACKEND_URL/api/operations/dashboard)
-    if echo "$OPS_JSON" | python3 -m json.tool > /dev/null 2>&1; then
-        echo -e "  ${GREEN}✓ /api/operations/dashboard returns valid JSON${NC}"
+    if [ "$response" = "200" ] || [ "$response" = "201" ] || [ "$response" = "204" ]; then
+        echo -e "${GREEN}✓ SUCCESS${NC} (HTTP $response)"
+    elif [ "$response" = "401" ] || [ "$response" = "403" ]; then
+        echo -e "${YELLOW}⚠ AUTH REQUIRED${NC} (HTTP $response)"
+    elif [ "$response" = "404" ]; then
+        echo -e "${RED}✗ NOT FOUND${NC} (HTTP $response)"
     else
-        echo -e "  ${RED}✗ /api/operations/dashboard does not return valid JSON${NC}"
+        echo -e "${RED}✗ ERROR${NC} (HTTP $response)"
     fi
-else
-    echo -e "  ${RED}✗ /api/operations/dashboard endpoint returned (HTTP $OPS_STATUS)${NC}"
-fi
+}
+
+echo "=== Core Endpoints ==="
+test_endpoint "/" "Frontend Homepage"
+test_endpoint "/health" "Health Check"
 
 echo ""
-
-# Test projects endpoint
-echo "  Testing /api/operations/projects..."
-PROJECTS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/operations/projects)
-if [ "$PROJECTS_STATUS" -eq 200 ]; then
-    echo -e "  ${GREEN}✓ /api/operations/projects endpoint is accessible (HTTP $PROJECTS_STATUS)${NC}"
-else
-    echo -e "  ${RED}✗ /api/operations/projects endpoint returned (HTTP $PROJECTS_STATUS)${NC}"
-fi
+echo "=== Authentication & User Management ==="
+test_endpoint "/api/auth/login" "Login" "POST"
+test_endpoint "/api/auth/register" "Register" "POST"
+test_endpoint "/api/users" "Users List"
 
 echo ""
-
-# Test CRM endpoints
-echo "  Testing /api/crm/owners..."
-CRM_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/crm/owners)
-if [ "$CRM_STATUS" -eq 200 ]; then
-    echo -e "  ${GREEN}✓ /api/crm/owners endpoint is accessible (HTTP $CRM_STATUS)${NC}"
-else
-    echo -e "  ${RED}✗ /api/crm/owners endpoint returned (HTTP $CRM_STATUS)${NC}"
-fi
+echo "=== Hospital Management ==="
+test_endpoint "/api/hospitals" "Hospitals List"
+test_endpoint "/api/hospitals/stats" "Hospital Statistics"
+test_endpoint "/api/applications" "Applications List"
+test_endpoint "/api/contracts" "Contracts List"
 
 echo ""
-
-# Test sourcing endpoints
-echo "  Testing /api/sourcing/applications..."
-SOURCING_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $BACKEND_URL/api/sourcing/applications)
-if [ "$SOURCING_STATUS" -eq 200 ] || [ "$SOURCING_STATUS" -eq 401 ]; then
-    echo -e "  ${GREEN}✓ /api/sourcing/applications endpoint is accessible (HTTP $SOURCING_STATUS)${NC}"
-else
-    echo -e "  ${RED}✗ /api/sourcing/applications endpoint returned (HTTP $SOURCING_STATUS)${NC}"
-fi
+echo "=== Digital Sourcing & Onboarding ==="
+test_endpoint "/api/onboarding/applications" "Onboarding Applications"
+test_endpoint "/api/onboarding/evaluation/criteria" "Evaluation Criteria"
+test_endpoint "/api/dashboard/stats" "Dashboard Statistics"
 
 echo ""
-
-# Test CORS headers
-echo "Testing CORS headers..."
-CORS_HEADERS=$(curl -s -I -X OPTIONS $BACKEND_URL/api/hospitals 2>/dev/null | grep -i "access-control")
-if [[ ! -z "$CORS_HEADERS" ]]; then
-    echo -e "${GREEN}✓ CORS headers are present${NC}"
-    echo "$CORS_HEADERS" | sed 's/^/    /'
-else
-    echo -e "${RED}✗ CORS headers are not present${NC}"
-fi
+echo "=== CRM Module ==="
+test_endpoint "/api/crm/owners" "Owner CRM"
+test_endpoint "/api/crm/patients" "Patient CRM"
+test_endpoint "/api/crm/campaigns" "Communication Campaigns"
+test_endpoint "/api/crm/appointments" "Appointments"
+test_endpoint "/api/crm/feedback" "Patient Feedback"
 
 echo ""
-echo "======================================"
-echo "Test Complete!"
-echo ""
+echo "=== Core Operations ==="
+test_endpoint "/api/emr/patients" "Electronic Medical Records"
+test_endpoint "/api/billing/invoices" "Billing & Invoices"
+test_endpoint "/api/inventory/items" "Inventory Management"
+test_endpoint "/api/hr/staff" "HR & Staff Management"
 
-# Summary
-echo "Public URLs Summary:"
-echo "  Frontend: $FRONTEND_URL"
-echo "  Backend API: $BACKEND_URL"
 echo ""
-echo "Key Endpoints:"
-echo "  - Dashboard: $FRONTEND_URL/dashboard"
-echo "  - Command Centre: $FRONTEND_URL/operations"
-echo "  - Hospital Management: $FRONTEND_URL/hospitals"
-echo "  - CRM: $FRONTEND_URL/crm"
-echo "  - Projects: $FRONTEND_URL/operations/projects"
-echo "======================================"
+echo "=== Operations Command Centre ==="
+test_endpoint "/api/operations/command-centre/overview" "Command Centre Overview"
+test_endpoint "/api/operations/command-centre/metrics" "Performance Metrics"
+test_endpoint "/api/operations/alerts" "System Alerts"
+test_endpoint "/api/operations/projects" "Project Management"
+
+echo ""
+echo "=== Partner Integrations ==="
+test_endpoint "/api/insurance/providers" "Insurance Providers"
+test_endpoint "/api/pharmacy/suppliers" "Pharmacy Suppliers"
+test_endpoint "/api/telemedicine/sessions" "Telemedicine Sessions"
+
+echo ""
+echo "=== Analytics & AI ==="
+test_endpoint "/api/analytics/dashboard" "Analytics Dashboard"
+test_endpoint "/api/analytics/predictions" "Predictive Analytics"
+test_endpoint "/api/analytics/ml/triage" "AI Triage Bot"
+
+echo ""
+echo "=== Security & Compliance ==="
+test_endpoint "/api/security/audit-logs" "Audit Logs"
+test_endpoint "/api/security/compliance-status" "Compliance Status"
+
+echo ""
+echo "========================================"
+echo "Public URL Test Complete"
+echo "Main Application: $BASE_URL"
+echo "API Documentation: $BASE_URL/api-docs (if available)"
+echo "========================================"

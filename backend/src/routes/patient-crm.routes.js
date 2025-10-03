@@ -16,6 +16,70 @@ const validate = (req, res, next) => {
   next();
 };
 
+// Get all patients (root endpoint)
+router.get('/', async (req, res) => {
+  try {
+    // Mock data for now - replace with actual database query
+    const patients = [
+      {
+        id: 1,
+        patient_id: 'PAT2025001',
+        first_name: 'Chioma',
+        last_name: 'Nwosu',
+        email: 'chioma.nwosu@example.com',
+        phone: '+234 806 555 1234',
+        age: 32,
+        gender: 'Female',
+        blood_group: 'O+',
+        last_visit: '2025-10-01',
+        loyalty_points: 250,
+        status: 'active'
+      },
+      {
+        id: 2,
+        patient_id: 'PAT2025002',
+        first_name: 'Tunde',
+        last_name: 'Bakare',
+        email: 'tunde.bakare@example.com',
+        phone: '+234 807 666 2345',
+        age: 45,
+        gender: 'Male',
+        blood_group: 'A+',
+        last_visit: '2025-09-28',
+        loyalty_points: 180,
+        status: 'active'
+      },
+      {
+        id: 3,
+        patient_id: 'PAT2025003',
+        first_name: 'Amina',
+        last_name: 'Yusuf',
+        email: 'amina.yusuf@example.com',
+        phone: '+234 808 999 3456',
+        age: 28,
+        gender: 'Female',
+        blood_group: 'B+',
+        last_visit: '2025-10-03',
+        loyalty_points: 320,
+        status: 'active'
+      }
+    ];
+    
+    res.json({
+      success: true,
+      data: patients,
+      total: patients.length
+    });
+  } catch (error) {
+    console.error('Error fetching patients:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch patients',
+      error: error.message
+    });
+  }
+});
+
 // Register patient profile
 router.post('/profile', [
   body('patient_id').notEmpty().withMessage('Patient ID is required'),

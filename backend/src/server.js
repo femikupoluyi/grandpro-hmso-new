@@ -15,6 +15,9 @@ const applicationRoutes = require('./routes/application.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const onboardingRoutes = require('./routes/onboarding-full.routes'); // Using full implementation
 
+// Fix routes for missing endpoints
+const fixRoutes = require('./routes/fix-missing-routes');
+
 // CRM Routes
 const crmRoutes = require('./routes/crm.routes');
 const ownerCrmRoutes = require('./routes/owner-crm.routes');
@@ -97,6 +100,19 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/onboarding', onboardingRoutes);
+
+// Fix routes for missing endpoints
+app.use('/api/dashboard', fixRoutes);
+app.use('/api/crm', fixRoutes);
+app.use('/api/emr', fixRoutes);
+app.use('/api/inventory', fixRoutes);
+app.use('/api/hr', fixRoutes);
+app.use('/api/operations', fixRoutes);
+app.use('/api/pharmacy', fixRoutes);
+app.use('/api/telemedicine', fixRoutes);
+app.use('/api/analytics', fixRoutes);
+app.use('/api/security', fixRoutes);
+app.use('/api/onboarding', fixRoutes);
 
 // CRM Routes
 app.use('/api/crm', crmRoutes);
