@@ -13,7 +13,7 @@ const userRoutes = require('./routes/user.routes');
 const contractRoutes = require('./routes/contract-full.routes'); // Using full implementation
 const applicationRoutes = require('./routes/application.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
-const onboardingRoutes = require('./routes/onboarding-complete.routes'); // Using complete implementation
+const onboardingRoutes = require('./routes/onboarding.routes'); // Digital sourcing onboarding module
 
 // Fix routes for missing endpoints
 const fixRoutes = require('./routes/fix-missing-routes');
