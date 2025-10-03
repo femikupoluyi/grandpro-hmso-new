@@ -62,7 +62,7 @@ import {
 import { DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import api from '../../services/api.config';
+import api from '../services/api.config';
 import { toast } from 'react-toastify';
 
 const PatientPortal = () => {

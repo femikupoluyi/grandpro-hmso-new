@@ -60,7 +60,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import api from '../../services/api.config';
+import api from '../services/api.config';
 
 // Register ChartJS components
 ChartJS.register(

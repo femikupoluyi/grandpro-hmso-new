@@ -229,3 +229,50 @@ Audit logging failed: error: column "resource" of relation "audit_logs" does not
   line: '1065',
   routine: 'checkInsertTargets'
 }
+Connected to PostgreSQL database
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Connected to PostgreSQL database
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Connected to PostgreSQL database
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Connected to PostgreSQL database
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Connected to PostgreSQL database
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Connected to PostgreSQL database
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Connected to PostgreSQL database
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Connected to PostgreSQL database
+Audit logging failed: TypeError: Cannot read properties of undefined (reading 'substring')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:102:62)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
