@@ -1,8 +1,6 @@
-const { neon } = require('@neondatabase/serverless');
+const { pool } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const { format, addMonths, startOfMonth, endOfMonth } = require('date-fns');
-
-const sql = neon(process.env.DATABASE_URL);
 
 class OwnerCRMService {
   /**
@@ -11,7 +9,7 @@ class OwnerCRMService {
   async getOwnerProfile(ownerId) {
     try {
       // Get owner basic info
-      const ownerResult = await sql.query(`
+      const ownerResult = await pool.query(`
         SELECT 
           ho.*,
           u.email,
@@ -33,7 +31,7 @@ class OwnerCRMService {
       const owner = ownerResult[0];
 
       // Get contracts
-      const contracts = await sql.query(`
+      const contracts = await pool.query(`
         SELECT 
           c.*
         FROM "Contract" c
@@ -42,7 +40,7 @@ class OwnerCRMService {
       `, [owner.hospitalId]);
 
       // Get recent payouts
-      const payouts = await sql.query(`
+      const payouts = await pool.query(`
         SELECT *
         FROM owner_payouts
         WHERE owner_id = $1
@@ -51,7 +49,7 @@ class OwnerCRMService {
       `, [ownerId]);
 
       // Get satisfaction scores
-      const satisfaction = await sql.query(`
+      const satisfaction = await pool.query(`
         SELECT 
           AVG(overall_rating) as avg_overall,
           AVG(communication_rating) as avg_communication,
@@ -100,7 +98,7 @@ class OwnerCRMService {
       // Calculate net amount
       const netAmount = amount_naira - (deductions || 0);
 
-      const result = await sql.query(`
+      const result = await pool.query(`
         INSERT INTO owner_payouts (
           payout_number,
           owner_id,
@@ -160,7 +158,7 @@ class OwnerCRMService {
 
     try {
       // Get all active owners with contracts
-      const owners = await sql.query(`
+      const owners = await pool.query(`
         SELECT DISTINCT
           ho.id as owner_id,
           ho."hospitalId" as hospital_id,
@@ -179,7 +177,7 @@ class OwnerCRMService {
       
       for (const owner of owners) {
         // Check if payout already exists for this period
-        const existing = await sql.query(`
+        const existing = await pool.query(`
           SELECT id FROM owner_payouts
           WHERE owner_id = $1 AND payout_period = $2
         `, [owner.owner_id, payoutPeriod]);
@@ -258,7 +256,7 @@ class OwnerCRMService {
         values.splice(-1, 0, details.notes);
       }
 
-      const result = await sql.query(`
+      const result = await pool.query(`
         UPDATE owner_payouts
         SET ${updateFields.join(', ')}
         WHERE id = $${values.length}
@@ -306,7 +304,7 @@ class OwnerCRMService {
     params.push(limit, offset);
 
     try {
-      const results = await sql.query(query, params);
+      const results = await pool.query(query, params);
       
       // Get total count
       let countQuery = 'SELECT COUNT(*) as total FROM owner_payouts WHERE 1=1';
@@ -316,7 +314,7 @@ class OwnerCRMService {
       if (period) countQuery += ' AND payout_period = $4';
       
       const countParams = params.slice(0, -2);
-      const countResult = await sql.query(countQuery, countParams);
+      const countResult = await pool.query(countQuery, countParams);
 
       return {
         data: results,
@@ -349,7 +347,7 @@ class OwnerCRMService {
     } = data;
 
     try {
-      const result = await sql.query(`
+      const result = await pool.query(`
         INSERT INTO owner_communications (
           owner_id,
           hospital_id,
@@ -386,7 +384,7 @@ class OwnerCRMService {
    */
   async getCommunicationHistory(ownerId, limit = 50) {
     try {
-      const results = await sql.query(`
+      const results = await pool.query(`
         SELECT 
           oc.*,
           u."firstName" || ' ' || u."lastName" as sent_by_name
@@ -418,7 +416,7 @@ class OwnerCRMService {
     } = data;
 
     try {
-      const result = await sql.query(`
+      const result = await pool.query(`
         INSERT INTO owner_satisfaction (
           owner_id,
           hospital_id,
@@ -474,7 +472,7 @@ class OwnerCRMService {
         params.push(hospitalId);
       }
 
-      const result = await sql.query(query, params);
+      const result = await pool.query(query, params);
 
       // Get trend data
       const trendQuery = `
@@ -489,7 +487,7 @@ class OwnerCRMService {
         ORDER BY month DESC
       `;
 
-      const trends = await sql.query(trendQuery, params);
+      const trends = await pool.query(trendQuery, params);
 
       return {
         metrics: result[0],
@@ -516,7 +514,7 @@ class OwnerCRMService {
    */
   async calculateHospitalRevenue(hospitalId, startDate, endDate) {
     try {
-      const result = await sql.query(`
+      const result = await pool.query(`
         SELECT COALESCE(SUM(amount), 0) as total_revenue
         FROM "Payment"
         WHERE "hospitalId" = $1

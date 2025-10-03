@@ -1,8 +1,6 @@
-const { neon } = require('@neondatabase/serverless');
+const { pool } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const { format, addDays, addHours, isBefore, isAfter } = require('date-fns');
-
-const sql = neon(process.env.DATABASE_URL);
 
 class PatientCRMService {
   /**
@@ -26,7 +24,7 @@ class PatientCRMService {
       // Generate registration number
       const registrationNumber = this.generateRegistrationNumber();
 
-      const result = await sql.query(`
+      const result = await pool.query(`
         INSERT INTO patient_profiles (
           patient_id,
           hospital_id,
@@ -83,7 +81,7 @@ class PatientCRMService {
   async getPatientProfile(patientId) {
     try {
       // Get patient basic info
-      const patientResult = await sql.query(`
+      const patientResult = await pool.query(`
         SELECT 
           p.*,
           u.email,
@@ -114,7 +112,7 @@ class PatientCRMService {
       const patient = patientResult[0];
 
       // Get upcoming appointments
-      const appointments = await sql.query(`
+      const appointments = await pool.query(`
         SELECT 
           a.*,
           u."firstName" || ' ' || u."lastName" as doctor_name,
@@ -128,14 +126,14 @@ class PatientCRMService {
       `, [patientId]);
 
       // Get loyalty points
-      const loyalty = await sql.query(`
+      const loyalty = await pool.query(`
         SELECT *
         FROM loyalty_points
         WHERE patient_id = $1
       `, [patientId]);
 
       // Get recent feedback
-      const feedback = await sql.query(`
+      const feedback = await pool.query(`
         SELECT *
         FROM patient_feedback
         WHERE patient_id = $1
@@ -174,7 +172,7 @@ class PatientCRMService {
 
     try {
       // Create appointment
-      const appointmentResult = await sql.query(`
+      const appointmentResult = await pool.query(`
         INSERT INTO "Appointment" (
           id,
           "patientId",
@@ -239,7 +237,7 @@ class PatientCRMService {
       for (const reminder of reminders) {
         // Only create reminder if scheduled time is in the future
         if (isAfter(reminder.scheduledTime, new Date())) {
-          await sql.query(`
+          await pool.query(`
             INSERT INTO appointment_reminders (
               appointment_id,
               patient_id,
@@ -270,7 +268,7 @@ class PatientCRMService {
   async processAppointmentReminders() {
     try {
       // Get pending reminders that are due
-      const reminders = await sql.query(`
+      const reminders = await pool.query(`
         SELECT 
           ar.*,
           a.date,
@@ -325,7 +323,7 @@ class PatientCRMService {
           await Promise.allSettled(sendPromises);
 
           // Update reminder status
-          await sql.query(`
+          await pool.query(`
             UPDATE appointment_reminders
             SET status = 'SENT', sent_at = NOW()
             WHERE id = $1
@@ -334,7 +332,7 @@ class PatientCRMService {
           results.push({ id: reminder.id, success: true });
         } catch (error) {
           // Update status to failed
-          await sql.query(`
+          await pool.query(`
             UPDATE appointment_reminders
             SET status = 'FAILED'
             WHERE id = $1
@@ -368,7 +366,7 @@ class PatientCRMService {
     } = data;
 
     try {
-      const result = await sql.query(`
+      const result = await pool.query(`
         INSERT INTO patient_feedback (
           patient_id,
           hospital_id,
@@ -425,7 +423,7 @@ class PatientCRMService {
    */
   async getFeedbackSummary(hospitalId, period = '30 days') {
     try {
-      const result = await sql.query(`
+      const result = await pool.query(`
         SELECT 
           COUNT(*) as total_feedback,
           AVG(rating) as avg_rating,
@@ -440,7 +438,7 @@ class PatientCRMService {
         AND created_at >= CURRENT_DATE - INTERVAL '${period}'
       `, [hospitalId]);
 
-      const feedbackByType = await sql.query(`
+      const feedbackByType = await pool.query(`
         SELECT 
           feedback_type,
           COUNT(*) as count,
@@ -466,7 +464,7 @@ class PatientCRMService {
    */
   async initializeLoyaltyPoints(patientId, hospitalId) {
     try {
-      await sql.query(`
+      await pool.query(`
         INSERT INTO loyalty_points (
           patient_id,
           hospital_id,
@@ -488,7 +486,7 @@ class PatientCRMService {
   async awardLoyaltyPoints(patientId, hospitalId, points, referenceType, referenceId, description) {
     try {
       // Add transaction
-      await sql.query(`
+      await pool.query(`
         INSERT INTO loyalty_transactions (
           patient_id,
           hospital_id,
@@ -501,7 +499,7 @@ class PatientCRMService {
       `, [patientId, hospitalId, points, description, referenceType, referenceId]);
 
       // Update balance
-      const result = await sql.query(`
+      const result = await pool.query(`
         UPDATE loyalty_points
         SET 
           points_balance = points_balance + $1,
@@ -530,7 +528,7 @@ class PatientCRMService {
   async redeemPoints(patientId, rewardId, hospitalId) {
     try {
       // Get reward details
-      const rewardResult = await sql.query(`
+      const rewardResult = await pool.query(`
         SELECT *
         FROM loyalty_rewards
         WHERE id = $1 AND hospital_id = $2 AND active = true
@@ -543,7 +541,7 @@ class PatientCRMService {
       const reward = rewardResult[0];
 
       // Check patient points
-      const pointsResult = await sql.query(`
+      const pointsResult = await pool.query(`
         SELECT points_balance
         FROM loyalty_points
         WHERE patient_id = $1 AND hospital_id = $2
@@ -557,7 +555,7 @@ class PatientCRMService {
       const redemptionCode = this.generateRedemptionCode();
 
       // Create redemption record
-      const redemption = await sql.query(`
+      const redemption = await pool.query(`
         INSERT INTO reward_redemptions (
           patient_id,
           reward_id,
@@ -570,7 +568,7 @@ class PatientCRMService {
       `, [patientId, rewardId, reward.points_required, redemptionCode]);
 
       // Deduct points
-      await sql.query(`
+      await pool.query(`
         INSERT INTO loyalty_transactions (
           patient_id,
           hospital_id,
@@ -582,14 +580,14 @@ class PatientCRMService {
         ) VALUES ($1, $2, 'REDEEMED', $3, $4, 'REDEMPTION', $5)
       `, [patientId, hospitalId, -reward.points_required, `Redeemed: ${reward.reward_name}`, redemption[0].id]);
 
-      await sql.query(`
+      await pool.query(`
         UPDATE loyalty_points
         SET points_balance = points_balance - $1
         WHERE patient_id = $2 AND hospital_id = $3
       `, [reward.points_required, patientId, hospitalId]);
 
       // Update reward redemption count
-      await sql.query(`
+      await pool.query(`
         UPDATE loyalty_rewards
         SET total_redeemed = total_redeemed + 1
         WHERE id = $1
@@ -624,7 +622,7 @@ class PatientCRMService {
 
       if (patientId) {
         // Get patient points to filter affordable rewards
-        const pointsResult = await sql.query(`
+        const pointsResult = await pool.query(`
           SELECT points_balance
           FROM loyalty_points
           WHERE patient_id = $1 AND hospital_id = $2
@@ -638,7 +636,7 @@ class PatientCRMService {
 
       query += ' ORDER BY points_required ASC';
       
-      const rewards = await sql.query(query, params);
+      const rewards = await pool.query(query, params);
       return rewards;
     } catch (error) {
       console.error('Error getting available rewards:', error);
