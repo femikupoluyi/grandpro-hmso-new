@@ -5,11 +5,15 @@ const router = express.Router();
 const emrRoutes = require('./emr/emrRoutes');
 const billingRoutes = require('./billing/billingRoutes');
 const inventoryRoutes = require('./inventory/inventoryRoutes');
+const hrRoutes = require('./hr/hrRoutes');
+const analyticsRoutes = require('./analytics/analyticsRoutes');
 
 // Mount sub-routes
 router.use('/emr', emrRoutes);
 router.use('/billing', billingRoutes);
 router.use('/inventory', inventoryRoutes);
+router.use('/hr', hrRoutes);
+router.use('/analytics', analyticsRoutes);
 
 // Hospital Management Dashboard
 router.get('/dashboard', async (req, res) => {

@@ -393,4 +393,66 @@ router.patch('/:patientId/preferences', [
   }
 });
 
+// Patient Appointments
+router.get('/appointments', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                a.*,
+                p.patient_number,
+                h.name as hospital_name
+            FROM appointments a
+            LEFT JOIN patients p ON p.id = a.patient_id
+            LEFT JOIN hospitals h ON h.id = a.hospital_id
+            ORDER BY a.appointment_date DESC
+            LIMIT 100
+        `);
+        
+        res.json({
+            success: true,
+            data: result.rows,
+            count: result.rowCount
+        });
+    } catch (error) {
+        console.error('Error fetching appointments:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch appointments'
+        });
+    }
+});
+
+// Loyalty Programs
+router.get('/loyalty', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                lp.*,
+                p.patient_number
+            FROM loyalty_programs lp
+            LEFT JOIN patients p ON p.id = lp.patient_id
+            ORDER BY lp.points DESC
+            LIMIT 100
+        `);
+        
+        res.json({
+            success: true,
+            data: result.rows,
+            count: result.rowCount,
+            tiers: {
+                bronze: result.rows.filter(r => r.tier === 'Bronze').length,
+                silver: result.rows.filter(r => r.tier === 'Silver').length,
+                gold: result.rows.filter(r => r.tier === 'Gold').length,
+                platinum: result.rows.filter(r => r.tier === 'Platinum').length
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching loyalty programs:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch loyalty programs'
+        });
+    }
+});
+
 module.exports = router;

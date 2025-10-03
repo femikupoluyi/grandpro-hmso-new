@@ -447,4 +447,61 @@ router.get('/test', (req, res) => {
   });
 });
 
+// Command Center Metrics
+router.get('/command-center/metrics', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                (SELECT COUNT(*) FROM hospitals WHERE status = 'active') as active_hospitals,
+                (SELECT COUNT(*) FROM patients) as total_patients,
+                (SELECT COUNT(*) FROM appointments WHERE DATE(appointment_date) = CURRENT_DATE) as today_appointments,
+                (SELECT COUNT(*) FROM alerts WHERE resolved = false) as active_alerts,
+                (SELECT SUM(total_amount) FROM invoices WHERE DATE(created_at) = CURRENT_DATE) as today_revenue
+        `);
+        
+        res.json({
+            success: true,
+            data: result.rows[0],
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error fetching command center metrics:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch command center metrics'
+        });
+    }
+});
+
+// KPIs
+router.get('/kpis', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                metric_name,
+                AVG(metric_value) as avg_value,
+                MAX(metric_value) as max_value,
+                MIN(metric_value) as min_value,
+                category
+            FROM kpi_metrics
+            WHERE metric_date >= CURRENT_DATE - INTERVAL '30 days'
+            GROUP BY metric_name, category
+            ORDER BY category, metric_name
+        `);
+        
+        res.json({
+            success: true,
+            data: result.rows,
+            count: result.rowCount,
+            period: '30 days'
+        });
+    } catch (error) {
+        console.error('Error fetching KPIs:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch KPIs'
+        });
+    }
+});
+
 module.exports = router;
