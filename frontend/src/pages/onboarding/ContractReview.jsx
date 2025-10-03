@@ -46,14 +46,7 @@ import {
   Print
 } from '@mui/icons-material';
 import SignatureCanvas from 'react-signature-canvas';
-import {
-  generateContract,
-  signContract,
-  getContractDetails,
-  getAllContracts,
-  getHospitalDetails,
-  updateOnboardingProgress
-} from '../../services/onboarding.service';
+import onboardingService from '../../services/onboarding.service';
 
 const contractSteps = ['Generate Contract', 'Review Terms', 'Digital Signature'];
 
@@ -166,7 +159,7 @@ function ContractReview() {
         `
       };
       
-      const result = await generateContract(contractData);
+      const result = await onboardingService.generateContract(contractData);
       
       if (result.success) {
         setContract(result.contract);
@@ -193,7 +186,7 @@ function ContractReview() {
     try {
       const signatureData = signaturePad.current.toDataURL();
       
-      const result = await signContract(contract.id, {
+      const result = await onboardingService.signContract(contract.id, {
         signatureData,
         signerName: contractForm.signerName,
         signerRole: contractForm.signerRole
