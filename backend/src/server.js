@@ -18,6 +18,9 @@ const onboardingRoutes = require('./routes/onboarding-complete.routes'); // Usin
 // Fix routes for missing endpoints
 const fixRoutes = require('./routes/fix-missing-routes');
 
+// Public endpoints for demo
+const publicEndpoints = require('./routes/public-endpoints');
+
 // CRM Routes
 const crmRoutes = require('./routes/crm.routes');
 const ownerCrmRoutes = require('./routes/owner-crm.routes');
@@ -92,6 +95,9 @@ app.get('/health', (req, res) => {
     currency: process.env.CURRENCY
   });
 });
+
+// Mount public endpoints (no auth required for demo)
+app.use('/api', publicEndpoints);
 
 // API Routes
 app.use('/api/auth', authRoutes);
