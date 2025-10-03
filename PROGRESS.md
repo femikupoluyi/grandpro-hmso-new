@@ -3,7 +3,7 @@
 ## Project Overview
 Building a Tech-Driven Hospital Management Platform for GrandPro HMSO with modular, secure, and scalable architecture.
 
-## Development Status: 27% Complete (4 of 15 steps)
+## Development Status: 33% Complete (5 of 15 steps)
 
 ### ✅ Completed Steps
 
@@ -40,15 +40,25 @@ Building a Tech-Driven Hospital Management Platform for GrandPro HMSO with modul
 - Statistics endpoint functional
 - Nigerian context in evaluation criteria
 
+#### Step 5: Digital Sourcing & Partner Onboarding Frontend ✅
+- 3-step application wizard implemented
+- Document upload with progress tracking
+- Onboarding dashboard with status tracking
+- Checklist and evaluation tabs
+- Nigerian-specific form components used
+- File validation and error handling
+- React Toastify for notifications
+- Production build successful
+
 ### 🚧 In Progress
 
-#### Step 5: Digital Sourcing & Partner Onboarding Frontend
+#### Step 6: CRM & Relationship Management Backend
 - Next to implement
 - Will include:
-  - Application submission form
-  - Document upload UI
-  - Dashboard for application tracking
-  - Contract review interface
+  - Owner CRM APIs
+  - Patient CRM APIs
+  - Communication campaigns
+  - WhatsApp/SMS integration
 
 ### 📋 Remaining Steps (12)
 
