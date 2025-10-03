@@ -24,6 +24,7 @@ const ownerCrmRoutes = require('./routes/owner-crm.routes');
 const patientCrmRoutes = require('./routes/patient-crm.routes');
 const communicationRoutes = require('./routes/communication.routes');
 const enhancedCrmRoutes = require('./routes/crm-enhanced.routes');
+const completeCrmRoutes = require('./routes/crm-complete.routes');
 
 // Hospital Management Routes
 const emrRoutes = require('./routes/emr.routes');
@@ -120,6 +121,7 @@ app.use('/api/crm/owners', ownerCrmRoutes);
 app.use('/api/crm/patients', patientCrmRoutes);
 app.use('/api/crm/communications', communicationRoutes);
 app.use('/api/crm/enhanced', enhancedCrmRoutes);
+app.use('/api/crm-complete', completeCrmRoutes); // Complete CRM implementation
 
 // Hospital Management Routes
 app.use('/api/emr', emrRoutes);
