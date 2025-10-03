@@ -1,20 +1,18 @@
-// API Configuration for GrandPro HMSO Frontend
+// API Configuration using environment variables
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
-// Determine which API URL to use based on environment
-const getApiUrl = () => {
-  // Use public URL in production or when explicitly set
-  if (import.meta.env.VITE_USE_PUBLIC_API === 'true' || 
-      import.meta.env.MODE === 'production') {
-    return import.meta.env.VITE_PUBLIC_API_URL || 'https://grandpro-hmso-morphvm-wz7xxc7v.http.cloud.morph.so/api';
-  }
-  // Use local URL in development
-  return import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
-};
+// Get API URL from environment variable
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const PUBLIC_API_URL = import.meta.env.VITE_PUBLIC_API_URL || API_BASE_URL;
 
-// Create axios instance with default configuration
+// Determine which URL to use based on environment
+const isProduction = import.meta.env.VITE_APP_ENVIRONMENT === 'production';
+const API_URL = isProduction ? PUBLIC_API_URL : API_BASE_URL;
+
+// Create axios instance with default config
 const apiClient = axios.create({
-  baseURL: getApiUrl(),
+  baseURL: API_URL,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -26,18 +24,26 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // Add auth token if available
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Add Nigerian timezone and currency headers
+    // Add Nigerian timezone header
     config.headers['X-Timezone'] = import.meta.env.VITE_TIMEZONE || 'Africa/Lagos';
-    config.headers['X-Currency'] = import.meta.env.VITE_CURRENCY || 'NGN';
-
+    
+    // Add app version for debugging
+    config.headers['X-App-Version'] = import.meta.env.VITE_APP_VERSION || '1.0.0';
+    
+    // Log requests in development
+    if (import.meta.env.DEV) {
+      console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`, config.data);
+    }
+    
     return config;
   },
   (error) => {
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -45,133 +51,164 @@ apiClient.interceptors.request.use(
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => {
-    return response.data;
+    // Log responses in development
+    if (import.meta.env.DEV) {
+      console.log(`✅ Response from ${response.config.url}:`, response.data);
+    }
+    return response;
   },
   (error) => {
+    // Handle common error scenarios
     if (error.response) {
-      // Handle specific error status codes
-      switch (error.response.status) {
+      const { status, data } = error.response;
+      
+      switch (status) {
         case 401:
           // Unauthorized - redirect to login
-          localStorage.removeItem('authToken');
-          window.location.href = '/login';
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user');
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+          toast.error('Session expired. Please login again.');
           break;
+          
         case 403:
-          // Forbidden
-          console.error('Access denied');
+          toast.error('You do not have permission to perform this action.');
           break;
+          
         case 404:
-          // Not found
-          console.error('Resource not found');
+          toast.error('The requested resource was not found.');
           break;
+          
+        case 422:
+          // Validation error
+          const validationErrors = data.errors || data.message;
+          toast.error(validationErrors || 'Validation error occurred.');
+          break;
+          
         case 500:
-          // Server error
-          console.error('Server error occurred');
+          toast.error('Server error. Please try again later.');
           break;
+          
         default:
-          console.error('API error:', error.response.data);
+          toast.error(data.message || 'An error occurred.');
+      }
+      
+      if (import.meta.env.DEV) {
+        console.error(`❌ Error ${status} from ${error.config?.url}:`, data);
       }
     } else if (error.request) {
       // Network error
-      console.error('Network error - please check your connection');
+      toast.error('Network error. Please check your connection.');
+      console.error('Network error:', error.request);
+    } else {
+      // Other errors
+      toast.error('An unexpected error occurred.');
+      console.error('Error:', error.message);
     }
     
     return Promise.reject(error);
   }
 );
 
-// API endpoints configuration
-export const API_ENDPOINTS = {
-  // Authentication
-  AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
-    LOGOUT: '/auth/logout',
-    REFRESH: '/auth/refresh',
-    VERIFY: '/auth/verify',
+// API service methods
+export const api = {
+  // GET request
+  get: (url, config = {}) => apiClient.get(url, config),
+  
+  // POST request
+  post: (url, data = {}, config = {}) => apiClient.post(url, data, config),
+  
+  // PUT request
+  put: (url, data = {}, config = {}) => apiClient.put(url, data, config),
+  
+  // PATCH request
+  patch: (url, data = {}, config = {}) => apiClient.patch(url, data, config),
+  
+  // DELETE request
+  delete: (url, config = {}) => apiClient.delete(url, config),
+  
+  // File upload
+  upload: (url, formData, onProgress) => {
+    return apiClient.post(url, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress) {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          onProgress(percentCompleted);
+        }
+      },
+    });
   },
   
-  // Hospital Management
-  HOSPITALS: {
-    LIST: '/hospitals',
-    GET: (id) => `/hospitals/${id}`,
-    CREATE: '/hospitals',
-    UPDATE: (id) => `/hospitals/${id}`,
-    DELETE: (id) => `/hospitals/${id}`,
-    STATS: '/hospitals/stats',
-  },
+  // Batch requests
+  batch: (requests) => Promise.all(requests),
+};
+
+// Environment configuration helper
+export const config = {
+  API_URL,
+  APP_NAME: import.meta.env.VITE_APP_NAME || 'GrandPro HMSO',
+  APP_VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
+  ENVIRONMENT: import.meta.env.VITE_APP_ENVIRONMENT || 'development',
+  TIMEZONE: import.meta.env.VITE_TIMEZONE || 'Africa/Lagos',
+  CURRENCY: import.meta.env.VITE_CURRENCY || 'NGN',
+  COUNTRY: import.meta.env.VITE_COUNTRY || 'Nigeria',
+  DEFAULT_LANGUAGE: import.meta.env.VITE_DEFAULT_LANGUAGE || 'en-NG',
+  SESSION_TIMEOUT: parseInt(import.meta.env.VITE_SESSION_TIMEOUT || '3600000'),
+  MAX_LOGIN_ATTEMPTS: parseInt(import.meta.env.VITE_MAX_LOGIN_ATTEMPTS || '5'),
+  SUPPORT_EMAIL: import.meta.env.VITE_SUPPORT_EMAIL || 'support@grandpro.ng',
+  SUPPORT_PHONE: import.meta.env.VITE_SUPPORT_PHONE || '+234 800 GRANDPRO',
   
-  // Onboarding
-  ONBOARDING: {
-    APPLICATIONS: '/onboarding/applications',
-    SUBMIT: '/onboarding/submit',
-    UPLOAD_DOCUMENT: '/onboarding/documents',
-    EVALUATION: '/onboarding/evaluation',
-    CONTRACT: '/onboarding/contract',
-  },
-  
-  // CRM
-  CRM: {
-    OWNERS: '/crm/owners',
-    PATIENTS: '/crm/patients',
-    CAMPAIGNS: '/crm/campaigns',
-    APPOINTMENTS: '/crm/appointments',
-    FEEDBACK: '/crm/feedback',
-    LOYALTY: '/crm/loyalty',
-  },
-  
-  // Hospital Operations
-  EMR: {
-    PATIENTS: '/emr/patients',
-    RECORDS: '/emr/records',
-    PRESCRIPTIONS: '/emr/prescriptions',
-  },
-  
-  BILLING: {
-    INVOICES: '/billing/invoices',
-    PAYMENTS: '/billing/payments',
-    INSURANCE_CLAIMS: '/billing/insurance-claims',
-  },
-  
-  INVENTORY: {
-    ITEMS: '/inventory/items',
-    ORDERS: '/inventory/orders',
-    SUPPLIERS: '/inventory/suppliers',
-  },
-  
-  HR: {
-    STAFF: '/hr/staff',
-    SCHEDULES: '/hr/schedules',
-    PAYROLL: '/hr/payroll',
-  },
-  
-  // Operations
-  OPERATIONS: {
-    COMMAND_CENTRE: '/operations/command-centre/overview',
-    METRICS: '/operations/command-centre/metrics',
-    ALERTS: '/operations/alerts',
-    PROJECTS: '/operations/projects',
-  },
-  
-  // Partner Integrations
-  PARTNERS: {
-    INSURANCE: '/insurance/providers',
-    PHARMACY: '/pharmacy/suppliers',
-    TELEMEDICINE: '/telemedicine/sessions',
-  },
-  
-  // Analytics
-  ANALYTICS: {
-    DASHBOARD: '/analytics/dashboard',
-    PREDICTIONS: '/analytics/predictions',
-    ML_TRIAGE: '/analytics/ml/triage',
-  },
-  
-  // Security
-  SECURITY: {
-    AUDIT_LOGS: '/security/audit-logs',
-    COMPLIANCE: '/security/compliance-status',
+  // Feature flags
+  features: {
+    telemedicine: import.meta.env.VITE_ENABLE_TELEMEDICINE === 'true',
+    aiTriage: import.meta.env.VITE_ENABLE_AI_TRIAGE === 'true',
+    loyaltyProgram: import.meta.env.VITE_ENABLE_LOYALTY_PROGRAM === 'true',
+    nhisIntegration: import.meta.env.VITE_ENABLE_NHIS_INTEGRATION === 'true',
+    analytics: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
   },
 };
 
+// API Endpoints configuration
+export const API_ENDPOINTS = {
+  // Auth
+  LOGIN: '/auth/login',
+  REGISTER: '/auth/register',
+  LOGOUT: '/auth/logout',
+  REFRESH_TOKEN: '/auth/refresh',
+  
+  // Hospitals
+  HOSPITALS: '/hospitals',
+  HOSPITAL_DETAILS: (id) => `/hospitals/${id}`,
+  
+  // Onboarding
+  APPLICATIONS: '/onboarding/applications',
+  APPLICATION_DETAILS: (id) => `/onboarding/applications/${id}`,
+  DOCUMENTS: '/onboarding/documents',
+  CONTRACTS: '/onboarding/contracts',
+  
+  // CRM
+  OWNERS: '/crm/owners',
+  PATIENTS: '/crm/patients',
+  CAMPAIGNS: '/crm/campaigns',
+  
+  // Hospital Management
+  EMR_PATIENTS: '/emr/patients',
+  BILLING: '/billing/invoices',
+  INVENTORY: '/inventory',
+  HR_STAFF: '/hr/staff',
+  
+  // Operations
+  METRICS: '/operations/metrics',
+  ANALYTICS: '/analytics/dashboard',
+  PROJECTS: '/operations/projects',
+};
+
+// Export configured axios instance for advanced usage
 export default apiClient;

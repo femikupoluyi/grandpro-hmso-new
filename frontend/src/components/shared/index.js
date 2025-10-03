@@ -1,53 +1,55 @@
-// Shared Component Library for GrandPro HMSO
-// Central export point for all reusable components
+// Shared Component Library - Centralized exports
+// This file provides a single entry point for all shared components
 
-// Layout Components
-export { default as Header } from './Header';
-export { default as Footer } from './Footer';
-export { default as Sidebar } from './Sidebar';
-export { default as PageContainer } from './PageContainer';
+// UI Components
+export { default as Button } from './Button';
 export { default as Card } from './Card';
-
-// Data Display
-export { default as DataTable } from './DataTable';
-export { default as StatsCard } from './StatsCard';
-export { default as Chart } from './Chart';
-export { default as Badge } from './Badge';
-export { default as Avatar } from './Avatar';
-
-// Form Components
+export { default as Modal } from './Modal';
 export { default as Input } from './Input';
 export { default as Select } from './Select';
-export { default as Button } from './Button';
-export { default as Checkbox } from './Checkbox';
-export { default as Radio } from './Radio';
-export { default as DatePicker } from './DatePicker';
-export { default as FileUpload } from './FileUpload';
-export { default as FormGroup } from './FormGroup';
-
-// Feedback Components
-export { default as Alert } from './Alert';
-export { default as Toast } from './Toast';
-export { default as Modal } from './Modal';
-export { default as Spinner } from './Spinner';
-export { default as ProgressBar } from './ProgressBar';
-export { default as Skeleton } from './Skeleton';
-
-// Navigation
+export { default as Table } from './Table';
 export { default as Tabs } from './Tabs';
+export { default as Alert } from './Alert';
+export { default as Badge } from './Badge';
+export { default as Spinner } from './Spinner';
 export { default as Breadcrumb } from './Breadcrumb';
 export { default as Pagination } from './Pagination';
+export { default as Avatar } from './Avatar';
+export { default as Tooltip } from './Tooltip';
 export { default as Dropdown } from './Dropdown';
 
-// Nigerian-specific Components
-export { default as NigerianStateSelector } from './NigerianStateSelector';
-export { default as NairaCurrencyInput } from './NairaCurrencyInput';
-export { default as PhoneNumberInput } from './PhoneNumberInput';
-export { default as NINValidator } from './NINValidator';
+// Layout Components
+export { default as PageHeader } from './PageHeader';
+export { default as SectionHeader } from './SectionHeader';
+export { default as EmptyState } from './EmptyState';
+export { default as LoadingState } from './LoadingState';
+export { default as ErrorBoundary } from './ErrorBoundary';
 
-// Healthcare-specific Components
-export { default as PatientCard } from './PatientCard';
-export { default as AppointmentCard } from './AppointmentCard';
-export { default as MedicalRecordViewer } from './MedicalRecordViewer';
-export { default as BillingWidget } from './BillingWidget';
-export { default as InventoryAlert } from './InventoryAlert';
+// Form Components
+export { default as FormField } from './FormField';
+export { default as FormSelect } from './FormSelect';
+export { default as FormTextarea } from './FormTextarea';
+export { default as FormCheckbox } from './FormCheckbox';
+export { default as FormRadio } from './FormRadio';
+export { default as FormDatePicker } from './FormDatePicker';
+export { default as FormFileUpload } from './FormFileUpload';
+
+// Data Display Components
+export { default as StatCard } from './StatCard';
+export { default as DataGrid } from './DataGrid';
+export { default as ChartContainer } from './ChartContainer';
+export { default as InfoCard } from './InfoCard';
+export { default as Timeline } from './Timeline';
+export { default as ProgressBar } from './ProgressBar';
+
+// Nigerian Context Components
+export { default as NigerianCurrencyDisplay } from './NigerianCurrencyDisplay';
+export { default as NigerianPhoneInput } from './NigerianPhoneInput';
+export { default as NigerianStateSelect } from './NigerianStateSelect';
+export { default as NigerianDateFormat } from './NigerianDateFormat';
+
+// Utility Components
+export { default as ConfirmDialog } from './ConfirmDialog';
+export { default as NotificationToast } from './NotificationToast';
+export { default as SearchBar } from './SearchBar';
+export { default as FilterPanel } from './FilterPanel';
