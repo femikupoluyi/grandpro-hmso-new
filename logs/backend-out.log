@@ -3961,3 +3961,10 @@
 2025-10-04T02:44:45: 🗄️ Database: neondb
 2025-10-04T02:44:45: Sequelize connection established successfully.
 2025-10-04T02:45:45: Connected to PostgreSQL database
+2025-10-04T02:51:11: Connected to PostgreSQL database
+2025-10-04T02:51:11: Starting ETL job: patient_visits_etl
+2025-10-04T02:51:11: Starting ETL job: inventory_etl
+2025-10-04T02:51:11: Starting ETL job: financial_etl
+2025-10-04T02:51:11: Starting ETL job: analytics_aggregation
+2025-10-04T02:51:11: Starting ETL job: drug_usage_analysis
+2025-10-04T02:53:47: Connected to PostgreSQL database
