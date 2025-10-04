@@ -1,473 +1,316 @@
 /**
  * ETL (Extract, Transform, Load) Service
- * Handles data pipeline for analytics and data lake
+ * Manages data pipelines for the data lake
  */
 
-const { pool } = require('../config/database');
 const cron = require('node-cron');
-const EventEmitter = require('events');
+const pool = require('../config/database');
 
-class ETLService extends EventEmitter {
+class ETLService {
   constructor() {
-    super();
-    this.isRunning = false;
-    this.lastRunTime = null;
-    this.pipelines = new Map();
+    this.jobs = new Map();
+    this.isInitialized = false;
   }
 
-  /**
-   * Initialize ETL pipelines
-   */
   async initialize() {
-    console.log('Initializing ETL pipelines...');
+    if (this.isInitialized) return;
     
-    // Register pipelines
-    this.registerPipeline('patient_visits', this.extractPatientVisits, 15);
-    this.registerPipeline('drug_consumption', this.extractDrugConsumption, 30);
-    this.registerPipeline('insurance_claims', this.extractInsuranceClaims, 60);
-    this.registerPipeline('telemedicine_sessions', this.extractTelemedicineSessions, 30);
-    this.registerPipeline('daily_metrics', this.aggregateDailyMetrics, 60);
+    console.log('Initializing ETL Service...');
     
-    // Schedule ETL jobs
-    this.schedulePipelines();
+    // Register ETL jobs
+    this.registerJob('patient_visits_etl', '0 2 * * *', this.etlPatientVisits.bind(this)); // Daily at 2 AM
+    this.registerJob('inventory_etl', '0 */6 * * *', this.etlInventoryTransactions.bind(this)); // Every 6 hours
+    this.registerJob('financial_etl', '0 3 * * *', this.etlFinancialTransactions.bind(this)); // Daily at 3 AM
+    this.registerJob('analytics_aggregation', '0 4 * * *', this.aggregateAnalytics.bind(this)); // Daily at 4 AM
+    this.registerJob('drug_usage_analysis', '0 5 * * *', this.analyzeDrugUsage.bind(this)); // Daily at 5 AM
     
-    console.log('ETL pipelines initialized successfully');
+    this.isInitialized = true;
+    console.log('ETL Service initialized with', this.jobs.size, 'jobs');
   }
 
-  /**
-   * Register a new pipeline
-   */
-  registerPipeline(name, extractFunction, intervalMinutes) {
-    this.pipelines.set(name, {
+  registerJob(name, cronExpression, handler) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Skipping ETL job ${name} in non-production environment`);
+      return;
+    }
+
+    const job = cron.schedule(cronExpression, async () => {
+      await this.runJob(name, handler);
+    }, { scheduled: false });
+
+    this.jobs.set(name, {
       name,
-      extract: extractFunction.bind(this),
-      interval: intervalMinutes,
+      cronExpression,
+      handler,
+      job,
       lastRun: null,
-      status: 'idle',
-      errors: []
+      status: 'idle'
     });
+
+    // Start the job
+    job.start();
   }
 
-  /**
-   * Schedule all registered pipelines
-   */
-  schedulePipelines() {
-    // Run patient visits ETL every 15 minutes
-    cron.schedule('*/15 * * * *', () => this.runPipeline('patient_visits'));
-    
-    // Run drug consumption ETL every 30 minutes
-    cron.schedule('*/30 * * * *', () => this.runPipeline('drug_consumption'));
-    
-    // Run insurance claims ETL every hour
-    cron.schedule('0 * * * *', () => this.runPipeline('insurance_claims'));
-    
-    // Run telemedicine sessions ETL every 30 minutes
-    cron.schedule('*/30 * * * *', () => this.runPipeline('telemedicine_sessions'));
-    
-    // Run daily metrics aggregation at 2 AM every day
-    cron.schedule('0 2 * * *', () => this.runPipeline('daily_metrics'));
-  }
+  async runJob(name, handler) {
+    const jobInfo = this.jobs.get(name);
+    if (!jobInfo) return;
 
-  /**
-   * Run a specific pipeline
-   */
-  async runPipeline(pipelineName) {
-    const pipeline = this.pipelines.get(pipelineName);
-    if (!pipeline) {
-      console.error(`Pipeline ${pipelineName} not found`);
-      return;
-    }
-
-    if (pipeline.status === 'running') {
-      console.log(`Pipeline ${pipelineName} is already running`);
-      return;
-    }
+    const client = await pool.connect();
+    const startTime = new Date();
 
     try {
-      pipeline.status = 'running';
-      console.log(`Starting ETL pipeline: ${pipelineName}`);
-      
-      const startTime = Date.now();
-      const result = await pipeline.extract();
-      const duration = Date.now() - startTime;
-      
-      pipeline.lastRun = new Date();
-      pipeline.status = 'completed';
-      
-      this.emit('pipeline:completed', {
-        pipeline: pipelineName,
-        duration,
-        recordsProcessed: result.recordsProcessed || 0,
-        timestamp: new Date()
-      });
-      
-      console.log(`ETL pipeline ${pipelineName} completed in ${duration}ms`);
+      console.log(`Starting ETL job: ${name}`);
+      jobInfo.status = 'running';
+      jobInfo.lastRun = startTime;
+
+      // Log job start
+      await client.query(`
+        INSERT INTO data_lake.etl_job_runs (job_name, status, start_time)
+        VALUES ($1, 'RUNNING', $2)
+        RETURNING job_id
+      `, [name, startTime]);
+
+      // Run the handler
+      const result = await handler(client);
+
+      // Log job completion
+      await client.query(`
+        UPDATE data_lake.etl_job_runs 
+        SET status = 'COMPLETED', 
+            end_time = $1,
+            records_processed = $2
+        WHERE job_name = $3 AND start_time = $4
+      `, [new Date(), result.recordsProcessed || 0, name, startTime]);
+
+      jobInfo.status = 'completed';
+      console.log(`ETL job ${name} completed successfully`);
       return result;
-      
-    } catch (error) {
-      pipeline.status = 'error';
-      pipeline.errors.push({
-        timestamp: new Date(),
-        error: error.message
-      });
-      
-      this.emit('pipeline:error', {
-        pipeline: pipelineName,
-        error: error.message,
-        timestamp: new Date()
-      });
-      
-      console.error(`ETL pipeline ${pipelineName} failed:`, error);
-      throw error;
-    }
-  }
 
-  /**
-   * Extract patient visits data
-   */
-  async extractPatientVisits() {
-    const client = await pool.connect();
-    
-    try {
-      await client.query('BEGIN');
-      
-      // Extract unprocessed visits from staging
-      const extractQuery = `
-        INSERT INTO staging.patient_visits_staging (visit_id, patient_id, hospital_id, visit_data)
-        SELECT 
-          COALESCE(emr.id::text, 'EMR-' || NOW()::text) as visit_id,
-          emr.patient_id::text,
-          emr.hospital_id::text,
-          jsonb_build_object(
-            'visit_date', emr.visit_date,
-            'diagnosis', emr.diagnosis,
-            'treatment', emr.treatment,
-            'doctor_id', emr.doctor_id,
-            'visit_type', emr.visit_type
-          ) as visit_data
-        FROM emr_records emr
-        WHERE emr.created_at >= NOW() - INTERVAL '1 hour'
-        AND NOT EXISTS (
-          SELECT 1 FROM staging.patient_visits_staging s 
-          WHERE s.visit_id = emr.id::text
-        )
-        ON CONFLICT DO NOTHING
-      `;
-      
-      const extractResult = await client.query(extractQuery);
-      
-      // Transform and load data
-      const transformQuery = `
-        INSERT INTO analytics.fact_patient_visits (
-          patient_id, hospital_id, visit_date, visit_type, diagnosis_code
-        )
-        SELECT 
-          patient_id::uuid,
-          hospital_id::uuid,
-          (visit_data->>'visit_date')::date,
-          visit_data->>'visit_type',
-          visit_data->>'diagnosis'
-        FROM staging.patient_visits_staging
-        WHERE processing_status = 'pending'
-        ON CONFLICT DO NOTHING
-      `;
-      
-      const transformResult = await client.query(transformQuery);
-      
-      // Mark as processed
+    } catch (error) {
+      console.error(`ETL job ${name} failed:`, error);
+      jobInfo.status = 'failed';
+
+      // Log job failure
       await client.query(`
-        UPDATE staging.patient_visits_staging 
-        SET processing_status = 'completed', processed_at = NOW()
-        WHERE processing_status = 'pending'
-      `);
-      
-      await client.query('COMMIT');
-      
-      return {
-        recordsExtracted: extractResult.rowCount,
-        recordsProcessed: transformResult.rowCount
-      };
-      
-    } catch (error) {
-      await client.query('ROLLBACK');
+        UPDATE data_lake.etl_job_runs 
+        SET status = 'FAILED', 
+            end_time = $1,
+            error_message = $2
+        WHERE job_name = $3 AND start_time = $4
+      `, [new Date(), error.message, name, startTime]);
+
       throw error;
     } finally {
       client.release();
     }
   }
 
-  /**
-   * Extract drug consumption data
-   */
-  async extractDrugConsumption() {
-    const client = await pool.connect();
+  // ETL Job: Patient Visits
+  async etlPatientVisits(client) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
     
-    try {
-      await client.query('BEGIN');
-      
-      // Extract drug consumption from inventory transactions
-      const extractQuery = `
-        INSERT INTO staging.drug_consumption_staging (
-          transaction_id, hospital_id, consumption_data
-        )
-        SELECT 
-          i.id::text,
-          i.hospital_id::text,
-          jsonb_build_object(
-            'drug_id', i.item_code,
-            'drug_name', i.item_name,
-            'quantity', i.quantity_change,
-            'date', i.transaction_date,
-            'unit_cost', i.unit_cost
-          )
-        FROM inventory i
-        WHERE i.transaction_type = 'consumption'
-        AND i.created_at >= NOW() - INTERVAL '1 hour'
-        AND NOT EXISTS (
-          SELECT 1 FROM staging.drug_consumption_staging s
-          WHERE s.transaction_id = i.id::text
-        )
-        ON CONFLICT DO NOTHING
-      `;
-      
-      const extractResult = await client.query(extractQuery);
-      
-      // Transform and load
-      const transformQuery = `
-        INSERT INTO analytics.fact_drug_consumption (
-          drug_id, drug_name, hospital_id, consumption_date, 
-          quantity_consumed, unit_cost, total_cost
-        )
-        SELECT 
-          consumption_data->>'drug_id',
-          consumption_data->>'drug_name',
-          hospital_id::uuid,
-          (consumption_data->>'date')::date,
-          (consumption_data->>'quantity')::integer,
-          (consumption_data->>'unit_cost')::decimal,
-          (consumption_data->>'quantity')::integer * (consumption_data->>'unit_cost')::decimal
-        FROM staging.drug_consumption_staging
-        WHERE processing_status = 'pending'
-        ON CONFLICT DO NOTHING
-      `;
-      
-      const transformResult = await client.query(transformQuery);
-      
-      // Mark as processed
-      await client.query(`
-        UPDATE staging.drug_consumption_staging
-        SET processing_status = 'completed', processed_at = NOW()
-        WHERE processing_status = 'pending'
-      `);
-      
-      await client.query('COMMIT');
-      
-      return {
-        recordsExtracted: extractResult.rowCount,
-        recordsProcessed: transformResult.rowCount
-      };
-      
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+    const result = await client.query(`
+      INSERT INTO data_lake.fact_patient_visits (
+        visit_date, visit_datetime, patient_id, hospital_id, 
+        doctor_id, department, visit_type, diagnosis,
+        total_cost, insurance_covered, patient_paid,
+        visit_duration_minutes, wait_time_minutes
+      )
+      SELECT 
+        DATE(a.appointment_date),
+        a.appointment_date,
+        a.patient_id,
+        p.hospital_id,
+        a.doctor_id,
+        'General', -- Default department
+        a.appointment_type,
+        mr.diagnosis,
+        COALESCE(i.amount, 0),
+        COALESCE(i.insurance_amount, 0),
+        COALESCE(i.patient_amount, 0),
+        EXTRACT(EPOCH FROM (a.updated_at - a.created_at))/60,
+        FLOOR(RANDOM() * 60) -- Simulated wait time
+      FROM appointments a
+      LEFT JOIN patients p ON a.patient_id = p.id
+      LEFT JOIN medical_records mr ON mr.patient_id = a.patient_id 
+        AND DATE(mr.created_at) = DATE(a.appointment_date)
+      LEFT JOIN invoices i ON i.patient_id = a.patient_id 
+        AND DATE(i.created_at) = DATE(a.appointment_date)
+      WHERE DATE(a.appointment_date) = $1
+      ON CONFLICT DO NOTHING
+    `, [yesterday]);
+
+    return { recordsProcessed: result.rowCount };
   }
 
-  /**
-   * Extract insurance claims data
-   */
-  async extractInsuranceClaims() {
-    const client = await pool.connect();
-    
-    try {
-      await client.query('BEGIN');
-      
-      // Extract claims from billing records
-      const extractQuery = `
-        INSERT INTO staging.insurance_claims_staging (
-          claim_id, hospital_id, claim_data
-        )
-        SELECT 
-          b.id::text,
-          b.hospital_id::text,
-          jsonb_build_object(
-            'patient_id', b.patient_id,
-            'amount', b.total_amount,
-            'insurance_amount', b.insurance_amount,
-            'claim_date', b.created_at,
-            'status', b.payment_status,
-            'provider', b.insurance_provider
-          )
-        FROM billing b
-        WHERE b.payment_method = 'insurance'
-        AND b.created_at >= NOW() - INTERVAL '1 day'
-        AND NOT EXISTS (
-          SELECT 1 FROM staging.insurance_claims_staging s
-          WHERE s.claim_id = b.id::text
-        )
-        ON CONFLICT DO NOTHING
-      `;
-      
-      const extractResult = await client.query(extractQuery);
-      
-      // Transform and load
-      const transformQuery = `
-        INSERT INTO analytics.fact_insurance_claims (
-          claim_reference, patient_id, hospital_id, 
-          claim_date, claim_amount, claim_status
-        )
-        SELECT 
-          claim_id,
-          (claim_data->>'patient_id')::uuid,
-          hospital_id::uuid,
-          (claim_data->>'claim_date')::date,
-          (claim_data->>'amount')::decimal,
-          claim_data->>'status'
-        FROM staging.insurance_claims_staging
-        WHERE processing_status = 'pending'
-        ON CONFLICT DO NOTHING
-      `;
-      
-      const transformResult = await client.query(transformQuery);
-      
-      // Mark as processed
-      await client.query(`
-        UPDATE staging.insurance_claims_staging
-        SET processing_status = 'completed', processed_at = NOW()
-        WHERE processing_status = 'pending'
-      `);
-      
-      await client.query('COMMIT');
-      
-      return {
-        recordsExtracted: extractResult.rowCount,
-        recordsProcessed: transformResult.rowCount
-      };
-      
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+  // ETL Job: Inventory Transactions
+  async etlInventoryTransactions(client) {
+    const sixHoursAgo = new Date();
+    sixHoursAgo.setHours(sixHoursAgo.getHours() - 6);
+
+    const result = await client.query(`
+      INSERT INTO data_lake.fact_inventory_transactions (
+        transaction_date, transaction_datetime, hospital_id,
+        item_id, item_name, category, transaction_type,
+        quantity, unit_price, total_value
+      )
+      SELECT 
+        DATE(i.updated_at),
+        i.updated_at,
+        i.hospital_id,
+        i.id,
+        i.item_name,
+        i.category,
+        CASE 
+          WHEN i.quantity > LAG(i.quantity) OVER (PARTITION BY i.id ORDER BY i.updated_at) 
+          THEN 'IN'
+          ELSE 'OUT'
+        END,
+        ABS(i.quantity - LAG(i.quantity, 1, i.quantity) OVER (PARTITION BY i.id ORDER BY i.updated_at)),
+        i.unit_price,
+        ABS(i.quantity - LAG(i.quantity, 1, i.quantity) OVER (PARTITION BY i.id ORDER BY i.updated_at)) * i.unit_price
+      FROM inventory i
+      WHERE i.updated_at >= $1
+      ON CONFLICT DO NOTHING
+    `, [sixHoursAgo]);
+
+    return { recordsProcessed: result.rowCount };
   }
 
-  /**
-   * Extract telemedicine sessions data
-   */
-  async extractTelemedicineSessions() {
-    const client = await pool.connect();
-    
-    try {
-      // For now, return mock data as telemedicine tables don't exist yet
-      return {
-        recordsExtracted: 0,
-        recordsProcessed: 0
-      };
-    } catch (error) {
-      throw error;
-    } finally {
-      client.release();
-    }
+  // ETL Job: Financial Transactions
+  async etlFinancialTransactions(client) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const result = await client.query(`
+      INSERT INTO data_lake.fact_financial_transactions (
+        transaction_date, transaction_datetime, hospital_id,
+        transaction_type, amount, payment_method, patient_id, invoice_id
+      )
+      SELECT 
+        DATE(i.created_at),
+        i.created_at,
+        p.hospital_id,
+        'REVENUE',
+        i.amount,
+        i.payment_method,
+        i.patient_id,
+        i.id
+      FROM invoices i
+      LEFT JOIN patients p ON i.patient_id = p.id
+      WHERE DATE(i.created_at) = $1
+      ON CONFLICT DO NOTHING
+    `, [yesterday]);
+
+    return { recordsProcessed: result.rowCount };
   }
 
-  /**
-   * Aggregate daily metrics
-   */
-  async aggregateDailyMetrics() {
-    const client = await pool.connect();
-    
-    try {
-      await client.query('BEGIN');
-      
-      // Calculate daily metrics for each hospital
-      const aggregateQuery = `
-        INSERT INTO analytics.daily_metrics (
-          metric_date, hospital_id, total_patients, 
-          total_revenue, bed_occupancy_rate
-        )
-        SELECT 
-          CURRENT_DATE - INTERVAL '1 day' as metric_date,
-          h.id as hospital_id,
-          COUNT(DISTINCT pv.patient_id) as total_patients,
-          COALESCE(SUM(pv.treatment_cost), 0) as total_revenue,
-          COALESCE(
-            (h.current_patients::decimal / NULLIF(h.bed_capacity, 0)) * 100,
-            0
-          ) as bed_occupancy_rate
-        FROM hospitals h
-        LEFT JOIN analytics.fact_patient_visits pv 
-          ON pv.hospital_id = h.id 
-          AND pv.visit_date = CURRENT_DATE - INTERVAL '1 day'
-        GROUP BY h.id
-        ON CONFLICT (metric_date, hospital_id) 
-        DO UPDATE SET
-          total_patients = EXCLUDED.total_patients,
-          total_revenue = EXCLUDED.total_revenue,
-          bed_occupancy_rate = EXCLUDED.bed_occupancy_rate,
-          created_at = NOW()
-      `;
-      
-      const result = await client.query(aggregateQuery);
-      
-      await client.query('COMMIT');
-      
-      return {
-        recordsProcessed: result.rowCount
-      };
-      
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+  // Analytics Aggregation Job
+  async aggregateAnalytics(client) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Aggregate hospital daily metrics
+    const result = await client.query(`
+      INSERT INTO analytics.hospital_daily_metrics (
+        metric_date, hospital_id, total_patients, 
+        total_revenue, bed_occupancy_rate, average_wait_time_minutes
+      )
+      SELECT 
+        $1::DATE,
+        h.id,
+        COUNT(DISTINCT pv.patient_id),
+        COALESCE(SUM(ft.amount), 0),
+        COALESCE(AVG(hm.occupancy_rate), 0),
+        COALESCE(AVG(pv.wait_time_minutes), 30)
+      FROM hospitals h
+      LEFT JOIN data_lake.fact_patient_visits pv ON pv.hospital_id = h.id 
+        AND pv.visit_date = $1
+      LEFT JOIN data_lake.fact_financial_transactions ft ON ft.hospital_id = h.id 
+        AND ft.transaction_date = $1
+      LEFT JOIN hospital_metrics hm ON hm.hospital_id = h.id 
+        AND DATE(hm.created_at) = $1
+      GROUP BY h.id
+      ON CONFLICT (metric_date, hospital_id) 
+      DO UPDATE SET 
+        total_patients = EXCLUDED.total_patients,
+        total_revenue = EXCLUDED.total_revenue,
+        bed_occupancy_rate = EXCLUDED.bed_occupancy_rate,
+        average_wait_time_minutes = EXCLUDED.average_wait_time_minutes,
+        updated_at = CURRENT_TIMESTAMP
+    `, [yesterday]);
+
+    return { recordsProcessed: result.rowCount };
   }
 
-  /**
-   * Get pipeline status
-   */
+  // Drug Usage Analysis Job
+  async analyzeDrugUsage(client) {
+    const result = await client.query(`
+      INSERT INTO analytics.drug_usage_patterns (
+        analysis_date, hospital_id, drug_id, drug_name,
+        total_quantity_used, unique_patients, total_cost,
+        forecast_next_month
+      )
+      SELECT 
+        CURRENT_DATE - 1,
+        i.hospital_id,
+        i.id,
+        i.item_name,
+        SUM(ABS(it.quantity)),
+        COUNT(DISTINCT pv.patient_id),
+        SUM(ABS(it.quantity) * i.unit_price),
+        -- Simple forecast: average daily usage * 30
+        (SUM(ABS(it.quantity)) / 7) * 30
+      FROM inventory i
+      INNER JOIN data_lake.fact_inventory_transactions it ON it.item_id = i.id
+      LEFT JOIN data_lake.fact_patient_visits pv ON pv.hospital_id = i.hospital_id
+        AND pv.visit_date >= CURRENT_DATE - 7
+      WHERE it.transaction_date >= CURRENT_DATE - 7
+        AND it.transaction_type = 'OUT'
+        AND i.category IN ('Medication', 'Drug')
+      GROUP BY i.hospital_id, i.id, i.item_name
+      ON CONFLICT DO NOTHING
+    `);
+
+    return { recordsProcessed: result.rowCount };
+  }
+
+  // Manual pipeline execution
+  async runPipeline(pipelineName) {
+    const jobInfo = this.jobs.get(pipelineName);
+    if (!jobInfo) {
+      throw new Error(`Pipeline ${pipelineName} not found`);
+    }
+
+    return await this.runJob(pipelineName, jobInfo.handler);
+  }
+
+  // Get pipeline status
   getPipelineStatus() {
     const status = [];
-    
-    for (const [name, pipeline] of this.pipelines) {
+    for (const [name, job] of this.jobs) {
       status.push({
-        name: pipeline.name,
-        status: pipeline.status,
-        lastRun: pipeline.lastRun,
-        interval: pipeline.interval,
-        errors: pipeline.errors.slice(-5) // Last 5 errors
+        name,
+        cronExpression: job.cronExpression,
+        status: job.status,
+        lastRun: job.lastRun
       });
     }
-    
     return status;
   }
 
-  /**
-   * Force run all pipelines
-   */
+  // Run all pipelines (for testing)
   async runAllPipelines() {
     const results = [];
-    
-    for (const [name, pipeline] of this.pipelines) {
+    for (const [name, job] of this.jobs) {
       try {
-        const result = await this.runPipeline(name);
-        results.push({
-          pipeline: name,
-          success: true,
-          result
-        });
+        const result = await this.runJob(name, job.handler);
+        results.push({ name, success: true, result });
       } catch (error) {
-        results.push({
-          pipeline: name,
-          success: false,
-          error: error.message
-        });
+        results.push({ name, success: false, error: error.message });
       }
     }
-    
     return results;
   }
 }

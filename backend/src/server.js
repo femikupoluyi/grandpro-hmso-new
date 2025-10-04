@@ -55,6 +55,7 @@ const telemedicineRoutes = require('./routes/telemedicine.routes');
 
 // Analytics & ML Routes
 const dataAnalyticsRoutes = require('./routes/analytics.routes');
+const dataLakeRoutes = require('./routes/data-analytics.routes');
 
 // Security & Compliance Routes
 const securityRoutes = require('./routes/security.routes');
@@ -185,6 +186,7 @@ app.use('/api', fixApiRoutes);
 
 // Analytics & ML Routes
 app.use('/api/data-analytics', dataAnalyticsRoutes);
+app.use('/api/data-lake', dataLakeRoutes);
 
 // Security & Compliance Routes
 app.use('/api/security', securityRoutes);

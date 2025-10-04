@@ -3842,3 +3842,122 @@
 2025-10-04T02:21:51: Connected to PostgreSQL database
 2025-10-04T02:32:52: Connected to PostgreSQL database
 2025-10-04T02:34:53: Connected to PostgreSQL database
+2025-10-04T02:44:37: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+2025-10-04T02:44:37: [dotenv@17.2.3] injecting env (0) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+2025-10-04T02:44:39: [dotenv@17.2.3] injecting env (6) from backend/.env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+2025-10-04T02:44:39: Initializing predictive analytics models...
+2025-10-04T02:44:39: Initializing Predictive Analytics Service...
+2025-10-04T02:44:39: Initializing backup service...
+2025-10-04T02:44:39: Backup schedules configured:
+2025-10-04T02:44:39:   - Daily incremental: 2:00 AM
+2025-10-04T02:44:39:   - Weekly full: Sunday 3:00 AM
+2025-10-04T02:44:39:   - Monthly archive: 1st of month 4:00 AM
+2025-10-04T02:44:39: Backup service initialized successfully
+2025-10-04T02:44:39: Connected to PostgreSQL database
+2025-10-04T02:44:39: Connected to PostgreSQL database
+2025-10-04T02:44:39: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-04T02:44:39: 📍 Environment: production
+2025-10-04T02:44:39: 🌍 Timezone: Africa/Lagos
+2025-10-04T02:44:39: 💵 Currency: NGN
+2025-10-04T02:44:39: 🏥 Application: GrandPro HMSO
+2025-10-04T02:44:39: ✅ Database connected successfully
+2025-10-04T02:44:39: 📅 Server time: 2025-10-04T02:44:39.627Z
+2025-10-04T02:44:39: 🗄️ Database: neondb
+2025-10-04T02:44:39: [dotenv@17.2.3] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+2025-10-04T02:44:40: [dotenv@17.2.3] injecting env (0) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+2025-10-04T02:44:40: [dotenv@17.2.3] injecting env (6) from backend/.env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+2025-10-04T02:44:40: Initializing predictive analytics models...
+2025-10-04T02:44:40: Initializing Predictive Analytics Service...
+2025-10-04T02:44:40: Initializing backup service...
+2025-10-04T02:44:40: Backup schedules configured:
+2025-10-04T02:44:40:   - Daily incremental: 2:00 AM
+2025-10-04T02:44:40:   - Weekly full: Sunday 3:00 AM
+2025-10-04T02:44:40:   - Monthly archive: 1st of month 4:00 AM
+2025-10-04T02:44:40: Backup service initialized successfully
+2025-10-04T02:44:40: Connected to PostgreSQL database
+2025-10-04T02:44:40: Connected to PostgreSQL database
+2025-10-04T02:44:40: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-04T02:44:40: 📍 Environment: production
+2025-10-04T02:44:40: 🌍 Timezone: Africa/Lagos
+2025-10-04T02:44:40: 💵 Currency: NGN
+2025-10-04T02:44:40: 🏥 Application: GrandPro HMSO
+2025-10-04T02:44:40: ✅ Database connected successfully
+2025-10-04T02:44:40: 📅 Server time: 2025-10-04T02:44:40.939Z
+2025-10-04T02:44:40: 🗄️ Database: neondb
+2025-10-04T02:44:41: [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+2025-10-04T02:44:41: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+2025-10-04T02:44:41: [dotenv@17.2.3] injecting env (6) from backend/.env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+2025-10-04T02:44:41: Initializing predictive analytics models...
+2025-10-04T02:44:41: Initializing Predictive Analytics Service...
+2025-10-04T02:44:41: Initializing backup service...
+2025-10-04T02:44:42: Backup schedules configured:
+2025-10-04T02:44:42:   - Daily incremental: 2:00 AM
+2025-10-04T02:44:42:   - Weekly full: Sunday 3:00 AM
+2025-10-04T02:44:42:   - Monthly archive: 1st of month 4:00 AM
+2025-10-04T02:44:42: Backup service initialized successfully
+2025-10-04T02:44:42: Connected to PostgreSQL database
+2025-10-04T02:44:42: Predictive Analytics Service initialized with 0 models
+2025-10-04T02:44:42: Initializing ETL Service...
+2025-10-04T02:44:42: ETL Service initialized with 5 jobs
+2025-10-04T02:44:42: Analytics services initialized
+2025-10-04T02:44:42: Connected to PostgreSQL database
+2025-10-04T02:44:42: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-04T02:44:42: 📍 Environment: production
+2025-10-04T02:44:42: 🌍 Timezone: Africa/Lagos
+2025-10-04T02:44:42: 💵 Currency: NGN
+2025-10-04T02:44:42: 🏥 Application: GrandPro HMSO
+2025-10-04T02:44:42: ✅ Database connected successfully
+2025-10-04T02:44:42: 📅 Server time: 2025-10-04T02:44:42.287Z
+2025-10-04T02:44:42: 🗄️ Database: neondb
+2025-10-04T02:44:42: [dotenv@17.2.3] injecting env (0) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+2025-10-04T02:44:42: [dotenv@17.2.3] injecting env (0) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
+2025-10-04T02:44:43: [dotenv@17.2.3] injecting env (6) from backend/.env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+2025-10-04T02:44:43: Initializing predictive analytics models...
+2025-10-04T02:44:43: Initializing Predictive Analytics Service...
+2025-10-04T02:44:43: Initializing backup service...
+2025-10-04T02:44:43: Backup schedules configured:
+2025-10-04T02:44:43:   - Daily incremental: 2:00 AM
+2025-10-04T02:44:43:   - Weekly full: Sunday 3:00 AM
+2025-10-04T02:44:43:   - Monthly archive: 1st of month 4:00 AM
+2025-10-04T02:44:43: Backup service initialized successfully
+2025-10-04T02:44:43: Connected to PostgreSQL database
+2025-10-04T02:44:43: Connected to PostgreSQL database
+2025-10-04T02:44:43: Predictive Analytics Service initialized with 0 models
+2025-10-04T02:44:43: Initializing ETL Service...
+2025-10-04T02:44:43: ETL Service initialized with 5 jobs
+2025-10-04T02:44:43: Analytics services initialized
+2025-10-04T02:44:43: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-04T02:44:43: 📍 Environment: production
+2025-10-04T02:44:43: 🌍 Timezone: Africa/Lagos
+2025-10-04T02:44:43: 💵 Currency: NGN
+2025-10-04T02:44:43: 🏥 Application: GrandPro HMSO
+2025-10-04T02:44:43: ✅ Database connected successfully
+2025-10-04T02:44:43: 📅 Server time: 2025-10-04T02:44:43.594Z
+2025-10-04T02:44:43: 🗄️ Database: neondb
+2025-10-04T02:44:43: [dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+2025-10-04T02:44:43: [dotenv@17.2.3] injecting env (0) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+2025-10-04T02:44:44: [dotenv@17.2.3] injecting env (6) from backend/.env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+2025-10-04T02:44:44: Initializing predictive analytics models...
+2025-10-04T02:44:44: Initializing Predictive Analytics Service...
+2025-10-04T02:44:44: Initializing backup service...
+2025-10-04T02:44:44: Backup schedules configured:
+2025-10-04T02:44:44:   - Daily incremental: 2:00 AM
+2025-10-04T02:44:44:   - Weekly full: Sunday 3:00 AM
+2025-10-04T02:44:44:   - Monthly archive: 1st of month 4:00 AM
+2025-10-04T02:44:44: Backup service initialized successfully
+2025-10-04T02:44:45: Connected to PostgreSQL database
+2025-10-04T02:44:45: Connected to PostgreSQL database
+2025-10-04T02:44:45: Predictive Analytics Service initialized with 0 models
+2025-10-04T02:44:45: Initializing ETL Service...
+2025-10-04T02:44:45: ETL Service initialized with 5 jobs
+2025-10-04T02:44:45: Analytics services initialized
+2025-10-04T02:44:45: ✅ GrandPro HMSO Backend Server running on port 5001
+2025-10-04T02:44:45: 📍 Environment: production
+2025-10-04T02:44:45: 🌍 Timezone: Africa/Lagos
+2025-10-04T02:44:45: 💵 Currency: NGN
+2025-10-04T02:44:45: 🏥 Application: GrandPro HMSO
+2025-10-04T02:44:45: ✅ Database connected successfully
+2025-10-04T02:44:45: 📅 Server time: 2025-10-04T02:44:45.098Z
+2025-10-04T02:44:45: 🗄️ Database: neondb
+2025-10-04T02:44:45: Sequelize connection established successfully.
+2025-10-04T02:45:45: Connected to PostgreSQL database

@@ -2,10 +2,11 @@
 > backend@1.0.0 start
 > node src/server.js
 
-[dotenv@17.2.3] injecting env (11) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
-[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
-[dotenv@17.2.3] injecting env (0) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (11) from .env -- tip: ⚙️  override existing env vars with { override: true }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
 Initializing predictive analytics models...
+Initializing Predictive Analytics Service...
 Initializing backup service...
 Failed to initialize analytics services: TypeError: Cannot read properties of undefined (reading 'connect')
     at PredictiveAnalyticsService.registerModel (/root/grandpro-hmso-new/backend/src/services/analytics.service.js:36:31)
@@ -28,33 +29,29 @@ Backup configuration test failed: TypeError: Cannot read properties of undefined
     at async /root/grandpro-hmso-new/backend/src/routes/security.routes.js:17:5
 Backup service initialized successfully
 Connected to PostgreSQL database
+Connected to PostgreSQL database
 ✅ GrandPro HMSO Backend Server running on port 5001
 📍 Environment: development
 🌍 Timezone: Africa/Lagos
 💵 Currency: NGN
 🏥 Application: GrandPro HMSO
 ✅ Database connected successfully
-📅 Server time: 2025-10-04T02:21:01.300Z
+📅 Server time: 2025-10-04T02:44:39.617Z
 🗄️ Database: neondb
-node:events:502
-      throw er; // Unhandled 'error' event
-      ^
+Predictive Analytics Service initialized with 0 models
+Analytics services initialized
+Sequelize connection established successfully.
+/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:71
+    const client = await pool.connect();
+                              ^
 
-Error: listen EADDRINUSE: address already in use :::5001
-    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
-    at listenInCluster (node:net:1965:12)
-    at Server.listen (node:net:2067:7)
-    at Function.listen (/root/grandpro-hmso-new/backend/node_modules/express/lib/application.js:605:24)
-    at startServer (/root/grandpro-hmso-new/backend/src/server.js:277:9)
-    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
-Emitted 'error' event on Server instance at:
-    at emitErrorNT (node:net:1944:8)
-    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
-  code: 'EADDRINUSE',
-  errno: -98,
-  syscall: 'listen',
-  address: '::',
-  port: 5001
-}
+TypeError: Cannot read properties of undefined (reading 'connect')
+    at ServerResponse.<anonymous> (/root/grandpro-hmso-new/backend/src/middleware/security.middleware.js:71:31)
+    at ServerResponse.emit (node:events:536:35)
+    at onFinish (node:_http_outgoing:1031:10)
+    at callback (node:internal/streams/writable:766:21)
+    at afterWrite (node:internal/streams/writable:710:5)
+    at afterWriteTick (node:internal/streams/writable:696:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)
 
 Node.js v20.19.5
