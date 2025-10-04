@@ -39,6 +39,11 @@ const hrRoutes = require('./routes/hr.routes');
 // Operations Routes
 const operationsRoutes = require('./routes/operations.routes');
 
+// Centralized Operations Management Routes (Using simplified versions)
+const commandCentreRoutes = require('./routes/command-centre-simple.routes');
+const alertsRoutes = require('./routes/alerts-simple.routes');
+const projectsRoutes = require('./routes/projects-simple.routes');
+
 // Hospital Analytics Routes
 const hospitalAnalyticsRoutes = require('./routes/hospital-analytics.routes');
 const analyticsEnhancedRoutes = require('./routes/analytics-enhanced.routes');
@@ -147,6 +152,11 @@ app.use('/api/hr', hrRoutes);
 // Operations Routes
 app.use('/api/operations', operationsRoutes);
 
+// Centralized Operations Management Routes
+app.use('/api/command-centre', commandCentreRoutes);
+app.use('/api/alerts', alertsRoutes);
+app.use('/api/projects', projectsRoutes);
+
 // Hospital Analytics Routes
 app.use('/api/analytics', analyticsEnhancedRoutes); // Use enhanced implementation
 // Legacy analytics route for backward compatibility
@@ -190,7 +200,7 @@ app.use((req, res) => {
 });
 
 // Database connection
-const { pool } = require('./config/database');
+const pool = require('./config/database');
 
 // Start server
 const startServer = async () => {
