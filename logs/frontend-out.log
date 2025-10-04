@@ -799,3 +799,12 @@
 2025-10-04T02:21:52:  HTTP  10/4/2025 2:21:52 AM 127.0.0.1 GET /operations
 2025-10-04T02:21:52:  HTTP  10/4/2025 2:21:52 AM 127.0.0.1 Returned 200 in 0 ms
 2025-10-04T02:24:12:  INFO  Accepting connections at http://localhost:33619
+2025-10-04T03:05:47: 
+2025-10-04T03:05:47:  INFO  Gracefully shutting down. Please wait...
+2025-10-04T03:05:49:  INFO  Accepting connections at http://localhost:3001
+2025-10-04T03:05:56: 
+2025-10-04T03:05:56:  INFO  Gracefully shutting down. Please wait...
+2025-10-04T03:05:58:  INFO  Accepting connections at http://localhost:3001
+2025-10-04T03:06:06:  INFO  Accepting connections at http://localhost:3001
+2025-10-04T03:08:01: 
+2025-10-04T03:08:01:  INFO  Gracefully shutting down. Please wait...

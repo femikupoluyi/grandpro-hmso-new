@@ -1,288 +1,162 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const path = require('path');
+const { Pool } = require('pg');
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
-// Import routes
-const authRoutes = require('./routes/auth.routes');
-const hospitalRoutes = require('./routes/hospital-full.routes'); // Using full implementation
-const userRoutes = require('./routes/user.routes');
-const contractRoutes = require('./routes/contract-full.routes'); // Using full implementation
-const applicationRoutes = require('./routes/application.routes');
-const dashboardRoutes = require('./routes/dashboard.routes');
-const onboardingRoutes = require('./routes/onboarding.routes'); // Digital sourcing onboarding module
-
-// Fix routes for missing endpoints
-const fixRoutes = require('./routes/fix-missing-routes');
-const fixApiRoutes = require('./routes/fix-api-routes');
-
-// Public endpoints for demo
-const publicEndpoints = require('./routes/public-endpoints');
-
-// CRM Routes
-const crmRoutes = require('./routes/crm.routes');
-const ownerCrmRoutes = require('./routes/owner-crm.routes');
-const patientCrmRoutes = require('./routes/patient-crm.routes');
-const communicationRoutes = require('./routes/communication.routes');
-const enhancedCrmRoutes = require('./routes/crm-enhanced.routes');
-const completeCrmRoutes = require('./routes/crm-complete.routes');
-
-// Hospital Management Routes
-const emrRoutes = require('./routes/emr.routes');
-const billingRoutes = require('./routes/billing.routes');
-const inventoryRoutes = require('./routes/inventory.routes');
-const hrRoutes = require('./routes/hr.routes');
-
-// Operations Routes
-const operationsRoutes = require('./routes/operations.routes');
-
-// Centralized Operations Management Routes (Using simplified versions)
-const commandCentreRoutes = require('./routes/command-centre-simple.routes');
-const alertsRoutes = require('./routes/alerts-simple.routes');
-const projectsRoutes = require('./routes/projects-simple.routes');
-
-// Hospital Analytics Routes
-const hospitalAnalyticsRoutes = require('./routes/hospital-analytics.routes');
-const analyticsEnhancedRoutes = require('./routes/analytics-enhanced.routes');
-
-// Partner Integration Routes
-const insuranceRoutes = require('./routes/insurance.routes');
-const pharmacyRoutes = require('./routes/pharmacy.routes');
-const telemedicineRoutes = require('./routes/telemedicine.routes');
-
-// Analytics & ML Routes
-const dataAnalyticsRoutes = require('./routes/analytics.routes');
-const dataLakeRoutes = require('./routes/data-analytics.routes');
-
-// Security & Compliance Routes
-const securityRoutes = require('./routes/security.routes');
-const { 
-  securityHeaders, 
-  auditLog, 
-  sanitizeInput,
-  rateLimiters 
-} = require('./middleware/security.middleware');
-
-// System Info Routes
-const systemInfoRoutes = require('./routes/system-info.routes');
-
-// Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0';
 
-// Security Middleware
-app.use(securityHeaders);
-app.use(sanitizeInput);
-app.use(auditLog);
+// Database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
-// CORS Middleware
-app.use(cors({
-  origin: '*', // Allow all origins for testing (restrict in production)
-  credentials: true
+// Trust proxy
+app.set('trust proxy', 1);
+
+// Middleware
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
 }));
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 
-// Apply rate limiting to auth routes
-app.use('/api/auth', rateLimiters.auth);
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Static files for uploads
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Request logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
-// Health check endpoints (both /health and /api/health)
+// Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    service: 'GrandPro HMSO Backend API',
+  res.json({ 
+    status: 'healthy', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    timezone: process.env.TIMEZONE,
-    currency: process.env.CURRENCY
+    service: 'GrandPro HMSO Backend',
+    version: '1.0.0',
+    environment: process.env.NODE_ENV || 'production'
   });
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    service: 'GrandPro HMSO Backend API',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    timezone: process.env.TIMEZONE,
-    currency: process.env.CURRENCY,
-    uptime: process.uptime(),
-    memory: process.memoryUsage()
-  });
-});
-
-// System info routes (public access)
-app.use('/api', systemInfoRoutes);
-
-// Mount public endpoints (no auth required for demo)
-app.use('/api', publicEndpoints);
-
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/hospitals', hospitalRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/contracts', contractRoutes);
-app.use('/api/applications', applicationRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/onboarding', onboardingRoutes);
-
-// Fix routes for missing endpoints
-app.use('/api/dashboard', fixRoutes);
-app.use('/api/crm', fixRoutes);
-app.use('/api/emr', fixRoutes);
-app.use('/api/inventory', fixRoutes);
-app.use('/api/hr', fixRoutes);
-app.use('/api/operations', fixRoutes);
-app.use('/api/pharmacy', fixRoutes);
-app.use('/api/telemedicine', fixRoutes);
-app.use('/api/analytics', fixRoutes);
-app.use('/api/security', fixRoutes);
-app.use('/api/onboarding', fixRoutes);
-
-// CRM Routes
-const simpleCrmRoutes = require('./routes/crm-simple.routes');
-app.use('/api/crm', crmRoutes);
-app.use('/api/crm/owners', ownerCrmRoutes);
-app.use('/api/crm/patients', patientCrmRoutes);
-app.use('/api/crm/communications', communicationRoutes);
-app.use('/api/crm/enhanced', enhancedCrmRoutes);
-app.use('/api/crm-complete', completeCrmRoutes); // Complete CRM implementation
-app.use('/api/crm-v2', simpleCrmRoutes); // Version 2 CRM with direct SQL
-
-// Hospital Management Routes
-app.use('/api/emr', emrRoutes);
-app.use('/api/billing', billingRoutes);
-app.use('/api/inventory', inventoryRoutes);
-app.use('/api/hr', hrRoutes);
-
-// Operations Routes
-app.use('/api/operations', operationsRoutes);
-
-// Centralized Operations Management Routes
-app.use('/api/command-centre', commandCentreRoutes);
-app.use('/api/alerts', alertsRoutes);
-app.use('/api/projects', projectsRoutes);
-
-// Hospital Analytics Routes
-app.use('/api/analytics', analyticsEnhancedRoutes); // Use enhanced implementation
-// Legacy analytics route for backward compatibility
-app.use('/api/analytics-legacy', hospitalAnalyticsRoutes);
-
-// Partner Integration Routes
-app.use('/api/insurance', insuranceRoutes);
-app.use('/api/pharmacy', pharmacyRoutes);
-app.use('/api/telemedicine', telemedicineRoutes);
-
-// Fix API routes for missing endpoints
-app.use('/api', fixApiRoutes);
-
-// Analytics & ML Routes
-app.use('/api/data-analytics', dataAnalyticsRoutes);
-app.use('/api/data-lake', dataLakeRoutes);
-
-// Security & Compliance Routes
-app.use('/api/security', securityRoutes);
-
-// Audit logs endpoint (direct route)
-app.get('/api/audit/logs', async (req, res) => {
+// API status endpoint
+app.get('/api/status', async (req, res) => {
   try {
-    const pool = require('./config/database');
-    const { limit = 100, offset = 0 } = req.query;
-    
-    const client = await pool.connect();
-    try {
-      const query = `
-        SELECT 
-          al.*,
-          u.email as user_email,
-          u.first_name,
-          u.last_name
-        FROM audit_logs al
-        LEFT JOIN users u ON al.user_id = u.id
-        ORDER BY al.created_at DESC
-        LIMIT $1 OFFSET $2
-      `;
-
-      const result = await client.query(query, [limit, offset]);
-
-      res.json({
-        success: true,
-        data: result.rows,
-        pagination: {
-          limit: parseInt(limit),
-          offset: parseInt(offset),
-          total: result.rows.length
-        }
-      });
-    } finally {
-      client.release();
-    }
+    const result = await pool.query('SELECT NOW() as time, current_database() as database');
+    res.json({
+      status: 'operational',
+      database: 'connected',
+      databaseInfo: result.rows[0],
+      server: {
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        node: process.version
+      }
+    });
   } catch (error) {
     res.status(500).json({
-      success: false,
+      status: 'error',
+      database: 'disconnected',
       error: error.message
     });
   }
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    error: {
-      message: err.message || 'Internal server error',
-      status: err.status || 500,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+// Import routes
+const authRoutes = require('./routes/auth.routes');
+const onboardingRoutes = require('./routes/onboarding.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
+const crmRoutes = require('./routes/crm.routes');
+const hospitalRoutes = require('./routes/hospital-management.routes');
+const operationsRoutes = require('./routes/operations.routes');
+const partnersRoutes = require('./routes/partners.routes');
+const analyticsRoutes = require('./routes/analytics.routes');
+const securityRoutes = require('./routes/security.routes');
+
+// Mount routes
+app.use('/api/auth', authRoutes);
+app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/crm', crmRoutes);
+app.use('/api/hospital', hospitalRoutes);
+app.use('/api/operations', operationsRoutes);
+app.use('/api/partners', partnersRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/security', securityRoutes);
+
+// Catch-all API route
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'GrandPro HMSO API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      status: '/api/status',
+      auth: '/api/auth',
+      onboarding: '/api/onboarding',
+      dashboard: '/api/dashboard',
+      crm: '/api/crm',
+      hospital: '/api/hospital',
+      operations: '/api/operations',
+      partners: '/api/partners',
+      analytics: '/api/analytics',
+      security: '/api/security'
     }
   });
 });
 
-// 404 handler
-app.use((req, res) => {
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
   res.status(404).json({
-    error: {
-      message: 'Route not found',
-      status: 404,
-      path: req.path
-    }
+    error: 'Not Found',
+    message: `API endpoint ${req.originalUrl} not found`,
+    timestamp: new Date().toISOString()
   });
 });
 
-// Database connection
-const pool = require('./config/database');
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Start server
-const startServer = async () => {
-  try {
-    // Test database connection
-    const client = await pool.connect();
-    const result = await client.query('SELECT NOW()');
-    client.release();
-    
-    console.log('✅ GrandPro HMSO Backend Server running on port', PORT);
-    console.log('📍 Environment:', process.env.NODE_ENV || 'development');
-    console.log('🌍 Timezone:', process.env.TIMEZONE || 'Africa/Lagos');
-    console.log('💵 Currency:', process.env.CURRENCY || 'NGN');
-    console.log('🏥 Application: GrandPro HMSO');
-    console.log('✅ Database connected successfully');
-    console.log('📅 Server time:', result.rows[0].now);
-    console.log('🗄️ Database:', process.env.DATABASE_NAME || 'neondb');
-    
-    app.listen(PORT);
-  } catch (error) {
-    console.error('❌ Failed to start server:', error.message);
-    process.exit(1);
-  }
-};
+app.listen(PORT, HOST, () => {
+  console.log(`\n================================================`);
+  console.log(`GrandPro HMSO Backend Server`);
+  console.log(`================================================`);
+  console.log(`✓ Server running on http://${HOST}:${PORT}`);
+  console.log(`✓ Environment: ${process.env.NODE_ENV || 'production'}`);
+  console.log(`✓ Database: Connected to Neon PostgreSQL`);
+  console.log(`✓ Health check: http://${HOST}:${PORT}/health`);
+  console.log(`✓ API status: http://${HOST}:${PORT}/api/status`);
+  console.log(`================================================\n`);
+});
 
-startServer();
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, closing server...');
+  pool.end();
+  process.exit(0);
+});
 
 module.exports = app;

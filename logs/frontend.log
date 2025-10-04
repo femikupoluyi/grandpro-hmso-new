@@ -1,2 +1,2 @@
-nohup: ignoring input
- INFO  Accepting connections at http://localhost:44607
+Frontend server running on http://0.0.0.0:3000
+Health check: http://0.0.0.0:3000/health

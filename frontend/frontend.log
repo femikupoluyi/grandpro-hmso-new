@@ -5,3 +5,5 @@
  HTTP  10/4/2025 2:27:52 AM 127.0.0.1 Returned 200 in 14 ms
  HTTP  10/4/2025 2:27:52 AM 127.0.0.1 GET /assets/index-BNR-2gx1.css
  HTTP  10/4/2025 2:27:52 AM 127.0.0.1 Returned 200 in 20 ms
+
+ INFO  Gracefully shutting down. Please wait...
