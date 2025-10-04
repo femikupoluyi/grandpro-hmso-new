@@ -418,3 +418,194 @@ Login error: error: column "full_name" does not exist
   line: '3716',
   routine: 'errorMissingColumn'
 }
+2025-10-04T03:29:02.313Z - GET /health
+2025-10-04T03:29:02.364Z - GET /api/status
+2025-10-04T03:29:02.611Z - POST /api/onboarding/applications
+Application error: error: relation "applications" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /root/grandpro-hmso-new/backend/simple-server.js:171:20 {
+  length: 111,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '13',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+2025-10-04T03:29:02.685Z - GET /api/onboarding/applications
+Applications error: error: relation "applications" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /root/grandpro-hmso-new/backend/simple-server.js:153:20 {
+  length: 111,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '56',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+2025-10-04T03:29:02.943Z - GET /api/onboarding/applications
+Applications error: error: relation "applications" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /root/grandpro-hmso-new/backend/simple-server.js:153:20 {
+  length: 111,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '56',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+2025-10-04T03:29:03.216Z - POST /api/crm/patients
+Create patient error: error: column "patient_id" of relation "patients" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /root/grandpro-hmso-new/backend/simple-server.js:222:20 {
+  length: 131,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '23',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1065',
+  routine: 'checkInsertTargets'
+}
+2025-10-04T03:29:03.498Z - GET /api/crm/patients
+2025-10-04T03:29:03.761Z - GET /api/crm/patients
+2025-10-04T03:29:03.838Z - GET /api/hospital/overview
+2025-10-04T03:29:03.911Z - GET /api/dashboard/stats
+2025-10-04T03:29:04.046Z - POST /api/hospital/emr
+2025-10-04T03:29:04.089Z - POST /api/hospital/billing
+2025-10-04T03:29:04.129Z - GET /api/hospital/inventory
+2025-10-04T03:29:04.173Z - GET /api/hospital/hr/schedule
+2025-10-04T03:29:04.211Z - GET /api/operations/metrics
+2025-10-04T03:29:04.254Z - GET /api/operations/dashboard
+2025-10-04T03:29:04.302Z - GET /api/operations/alerts
+2025-10-04T03:29:04.344Z - GET /api/operations/projects
+2025-10-04T03:29:04.384Z - GET /api/partners/insurance
+2025-10-04T03:29:04.633Z - GET /api/partners/pharmacy
+2025-10-04T03:29:04.674Z - GET /api/partners/telemedicine
+2025-10-04T03:29:04.717Z - POST /api/partners/insurance/claims
+2025-10-04T03:29:04.762Z - GET /api/analytics/summary
+2025-10-04T03:29:04.804Z - GET /api/analytics/patient-flow
+2025-10-04T03:29:04.841Z - GET /api/analytics/revenue
+2025-10-04T03:29:04.881Z - GET /api/analytics/predictions
+2025-10-04T03:29:04.920Z - GET /api/security/audit-logs
+2025-10-04T03:29:04.993Z - GET /api/security/rbac
+2025-10-04T03:29:05.033Z - GET /api/security/compliance
+2025-10-04T03:29:05.075Z - GET /api/security/incidents
+2025-10-04T03:29:05.114Z - POST /api/auth/login
+Login error: error: column "full_name" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /root/grandpro-hmso-new/backend/simple-server.js:92:20 {
+  length: 109,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '19',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+2025-10-04T03:29:05.196Z - POST /api/auth/register
+Register error: error: column "full_name" of relation "users" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /root/grandpro-hmso-new/backend/simple-server.js:131:20 {
+  length: 127,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '42',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1065',
+  routine: 'checkInsertTargets'
+}
+2025-10-04T03:29:05.513Z - POST /api/crm/patients
+Create patient error: error: column "patient_id" of relation "patients" does not exist
+    at /root/grandpro-hmso-new/backend/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /root/grandpro-hmso-new/backend/simple-server.js:222:20 {
+  length: 131,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '23',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1065',
+  routine: 'checkInsertTargets'
+}
+2025-10-04T03:29:05.773Z - POST /api/hospital/encounters
+2025-10-04T03:29:05.816Z - POST /api/hospital/billing
+2025-10-04T03:29:05.850Z - GET /api/hospital/inventory
+2025-10-04T03:29:05.888Z - GET /api/security/audit-logs

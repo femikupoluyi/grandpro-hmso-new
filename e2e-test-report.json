@@ -1,0 +1,286 @@
+{
+  "timestamp": "2025-10-04T03:29:06.124Z",
+  "totalTests": 37,
+  "passedTests": 14,
+  "failedTests": 24,
+  "successRate": "37.8%",
+  "duration": "3.933 seconds",
+  "modules": [
+    {
+      "name": "Digital Sourcing",
+      "total": 5,
+      "passed": 4,
+      "failed": 1
+    },
+    {
+      "name": "CRM",
+      "total": 3,
+      "passed": 2,
+      "failed": 1
+    },
+    {
+      "name": "Hospital Management",
+      "total": 6,
+      "passed": 2,
+      "failed": 4
+    },
+    {
+      "name": "Operations",
+      "total": 4,
+      "passed": 1,
+      "failed": 3
+    },
+    {
+      "name": "Partners",
+      "total": 4,
+      "passed": 1,
+      "failed": 3
+    },
+    {
+      "name": "Analytics",
+      "total": 4,
+      "passed": 1,
+      "failed": 3
+    },
+    {
+      "name": "Security",
+      "total": 4,
+      "passed": 1,
+      "failed": 3
+    },
+    {
+      "name": "Authentication",
+      "total": 2,
+      "passed": 0,
+      "failed": 2
+    },
+    {
+      "name": "Frontend",
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "name": "E2E Workflow",
+      "total": 5,
+      "passed": 1,
+      "failed": 4
+    }
+  ],
+  "details": [
+    {
+      "name": "Health Check",
+      "status": "PASSED",
+      "module": "Digital Sourcing"
+    },
+    {
+      "name": "API Status",
+      "status": "PASSED",
+      "module": "Digital Sourcing"
+    },
+    {
+      "name": "Submit Hospital Application",
+      "status": "FAILED",
+      "module": "Digital Sourcing",
+      "error": "Request failed with status code 400"
+    },
+    {
+      "name": "Get Applications List",
+      "status": "PASSED",
+      "module": "Digital Sourcing"
+    },
+    {
+      "name": "Check Application Status",
+      "status": "PASSED",
+      "module": "Digital Sourcing"
+    },
+    {
+      "name": "Create Patient Record",
+      "status": "FAILED",
+      "module": "CRM",
+      "error": "Request failed with status code 400"
+    },
+    {
+      "name": "Get Patients List",
+      "status": "PASSED",
+      "module": "CRM"
+    },
+    {
+      "name": "Get Patient Communications",
+      "status": "PASSED",
+      "module": "CRM"
+    },
+    {
+      "name": "Hospital Overview",
+      "status": "PASSED",
+      "module": "Hospital Management"
+    },
+    {
+      "name": "Dashboard Statistics",
+      "status": "PASSED",
+      "module": "Hospital Management"
+    },
+    {
+      "name": "Create Medical Record",
+      "status": "FAILED",
+      "module": "Hospital Management",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Generate Bill",
+      "status": "FAILED",
+      "module": "Hospital Management",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Check Inventory",
+      "status": "FAILED",
+      "module": "Hospital Management",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Staff Schedule",
+      "status": "FAILED",
+      "module": "Hospital Management",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Operations Metrics",
+      "status": "PASSED",
+      "module": "Operations"
+    },
+    {
+      "name": "Real-time Dashboard",
+      "status": "FAILED",
+      "module": "Operations",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Alert Status",
+      "status": "FAILED",
+      "module": "Operations",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Project Management",
+      "status": "FAILED",
+      "module": "Operations",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Insurance Partners",
+      "status": "PASSED",
+      "module": "Partners"
+    },
+    {
+      "name": "Pharmacy Suppliers",
+      "status": "FAILED",
+      "module": "Partners",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Telemedicine Status",
+      "status": "FAILED",
+      "module": "Partners",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Submit Insurance Claim",
+      "status": "FAILED",
+      "module": "Partners",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Analytics Summary",
+      "status": "PASSED",
+      "module": "Analytics"
+    },
+    {
+      "name": "Patient Flow Analytics",
+      "status": "FAILED",
+      "module": "Analytics",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Revenue Analytics",
+      "status": "FAILED",
+      "module": "Analytics",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Predictive Analytics",
+      "status": "FAILED",
+      "module": "Analytics",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Audit Logs",
+      "status": "PASSED",
+      "module": "Security"
+    },
+    {
+      "name": "Access Control Status",
+      "status": "FAILED",
+      "module": "Security",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Compliance Reports",
+      "status": "FAILED",
+      "module": "Security",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Security Incidents",
+      "status": "FAILED",
+      "module": "Security",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Admin Login",
+      "status": "FAILED",
+      "module": "Authentication",
+      "error": "Login failed"
+    },
+    {
+      "name": "User Registration",
+      "status": "FAILED",
+      "module": "Authentication",
+      "error": "Registration failed"
+    },
+    {
+      "name": "Frontend Homepage",
+      "status": "PASSED",
+      "module": "Frontend"
+    },
+    {
+      "name": "Register Patient",
+      "status": "FAILED",
+      "module": "E2E Workflow",
+      "error": "Request failed with status code 400"
+    },
+    {
+      "name": "Create Encounter",
+      "status": "FAILED",
+      "module": "E2E Workflow",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Generate E2E Bill",
+      "status": "FAILED",
+      "module": "E2E Workflow",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Update Inventory",
+      "status": "FAILED",
+      "module": "E2E Workflow",
+      "error": "Request failed with status code 404"
+    },
+    {
+      "name": "Verify Audit Log",
+      "status": "PASSED",
+      "module": "E2E Workflow"
+    }
+  ]
+}
