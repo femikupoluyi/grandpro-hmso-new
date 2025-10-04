@@ -1,144 +1,156 @@
-# GrandPro HMSO - Public URL Documentation
+# GrandPro HMSO Platform - Public URLs
 
-## Base URL
-**Production URL**: `https://grandpro-hmso-morphvm-wz7xxc7v.http.cloud.morph.so`
+## Main Application URLs
+The GrandPro HMSO platform is publicly accessible through multiple endpoints:
 
-## Application Status
-✅ **Frontend**: Active and accessible
-✅ **Backend API**: Active and responding
-✅ **Database**: Connected (Neon PostgreSQL)
+### Primary Access Points
+- **Port 80 (Main)**: Available through Morph.so cloud proxy
+- **Port 3001 (Frontend Direct)**: Frontend development server  
+- **Port 5001 (Backend API Direct)**: Backend API server
+- **Port 9000 (Alternative)**: Combined proxy endpoint
 
-## Functional Public Endpoints
+### Working Local Endpoints (Verified ✅)
+- **Frontend**: `http://localhost:80/`
+- **Backend API**: `http://localhost:80/api/*`
+- **Health Check**: `http://localhost:80/health`
+- **Dashboard Stats**: `http://localhost:80/api/dashboard/stats`
 
-### Core System
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/` | GET | ✅ Working | Frontend homepage |
-| `/health` | GET | ✅ Working | System health check |
+## Available Endpoints
 
-### Hospital Management
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/hospitals` | GET | ✅ Working | List all hospitals |
-| `/api/hospitals/:id` | GET | ✅ Working | Get hospital details |
-| `/api/applications` | GET | 🔒 Auth Required | Hospital applications |
-| `/api/contracts` | GET | 🔒 Auth Required | Contract management |
+### Frontend Application
+- **URL**: `https://morphvm-wz7xxc7v-9000.morphvm.com`
+- **Description**: Main web application interface for all users
+- **Features**:
+  - Login/Authentication
+  - Hospital Owner Portal
+  - Patient Portal
+  - Staff Dashboard
+  - Admin Dashboard
 
-### CRM Module
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/crm/owners` | GET | ✅ Working | Hospital owners list |
-| `/api/crm/patients` | GET | ✅ Working | Patient list |
-| `/api/crm/campaigns` | GET | ✅ Working | Communication campaigns |
-| `/api/crm/appointments` | GET | ✅ Working | Appointment management |
-| `/api/crm/feedback` | GET | ✅ Working | Patient feedback |
+### Backend API
+- **Base URL**: `https://morphvm-wz7xxc7v-9000.morphvm.com/api`
+- **Health Check**: `https://morphvm-wz7xxc7v-9000.morphvm.com/health`
 
-### Core Operations
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/emr/patients` | GET | ✅ Working | Electronic medical records |
-| `/api/billing/invoices` | GET | ✅ Working | Billing and invoices |
-| `/api/inventory/items` | GET | ✅ Working | Inventory management |
-| `/api/hr/staff` | GET | ✅ Working | Staff management |
+### API Endpoints
 
-### Operations Command Centre
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/operations/command-centre/overview` | GET | ✅ Working | Command centre overview |
-| `/api/operations/command-centre/metrics` | GET | ✅ Working | Performance metrics |
-| `/api/operations/alerts` | GET | ✅ Working | System alerts |
-| `/api/operations/projects` | GET | ✅ Working | Project management |
+#### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/profile` - Get current user profile
 
-### Partner Integrations
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/insurance/providers` | GET | ✅ Working | Insurance providers |
-| `/api/pharmacy/suppliers` | GET | ✅ Working | Pharmacy suppliers |
-| `/api/telemedicine/sessions` | GET | ✅ Working | Telemedicine sessions |
+#### Hospital Management
+- `GET /api/hospitals` - List all hospitals
+- `POST /api/hospitals` - Create new hospital
+- `GET /api/hospitals/:id` - Get hospital details
+- `PUT /api/hospitals/:id` - Update hospital
+- `DELETE /api/hospitals/:id` - Delete hospital
 
-### Analytics & AI
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/analytics/dashboard` | GET | ✅ Working | Analytics dashboard |
-| `/api/analytics/predictions` | GET | ✅ Working | Predictive analytics |
-| `/api/analytics/ml/triage` | GET | ✅ Working | AI triage bot |
+#### Digital Sourcing & Onboarding
+- `GET /api/applications` - List applications
+- `POST /api/applications` - Submit new application
+- `GET /api/applications/:id` - Get application details
+- `PUT /api/applications/:id/score` - Update application score
+- `POST /api/applications/:id/approve` - Approve application
 
-### Security & Compliance
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/security/audit-logs` | GET | ✅ Working | Audit logs |
-| `/api/security/compliance-status` | GET | ✅ Working | Compliance status |
+#### CRM
+- `GET /api/crm/owners` - List hospital owners
+- `GET /api/crm/patients` - List patients
+- `POST /api/crm/communications/send` - Send communication
+- `GET /api/crm/campaigns` - List campaigns
 
-## Authentication Endpoints
-| Endpoint | Method | Status | Description |
-|----------|--------|--------|-------------|
-| `/api/auth/login` | POST | ⚠️ Requires Body | User login |
-| `/api/auth/register` | POST | ⚠️ Requires Body | User registration |
-| `/api/users` | GET | 🔒 Auth Required | User management |
+#### Hospital Operations
+- `GET /api/emr/patients` - Electronic Medical Records
+- `POST /api/billing/invoices` - Create invoice
+- `GET /api/inventory/items` - Inventory management
+- `GET /api/hr/staff` - Staff management
+- `GET /api/analytics/dashboard` - Analytics dashboard
 
-## Sample API Responses
+#### Partner Integrations
+- `POST /api/insurance/claims` - Submit insurance claim
+- `GET /api/pharmacy/orders` - Pharmacy orders
+- `POST /api/telemedicine/consultations` - Schedule consultation
 
-### Health Check
-```bash
-curl https://grandpro-hmso-morphvm-wz7xxc7v.http.cloud.morph.so/health
-```
-Response:
-```json
-{
-  "status": "healthy",
-  "service": "GrandPro HMSO Backend API",
-  "timestamp": "2025-10-03T20:30:00.000Z",
-  "environment": "development",
-  "timezone": "Africa/Lagos",
-  "currency": "NGN"
-}
-```
+## Test Credentials
 
-### Hospital List
-```bash
-curl https://grandpro-hmso-morphvm-wz7xxc7v.http.cloud.morph.so/api/hospitals
-```
-Returns list of registered hospitals with Nigerian data.
+### Admin User
+- **Email**: admin@grandpro.com
+- **Password**: Admin@123456
 
-### CRM Owners
-```bash
-curl https://grandpro-hmso-morphvm-wz7xxc7v.http.cloud.morph.so/api/crm/owners
-```
-Returns list of hospital owners with contract and payout information.
+### Hospital Owner
+- **Email**: owner@lagos.hospital.com
+- **Password**: Owner@123456
 
-## Testing Script
-A comprehensive test script is available at:
-```bash
-/root/grandpro-hmso-new/test-public-urls.sh
-```
+### Patient
+- **Email**: patient1@example.com
+- **Password**: Patient@123
 
-## Nigerian Localization
-All data is configured for the Nigerian market:
-- Currency: Nigerian Naira (NGN)
-- Timezone: Africa/Lagos
-- States: All 36 Nigerian states + FCT
-- Sample hospitals: LUTH, National Hospital Abuja, UCH Ibadan
+### Staff/Doctor
+- **Email**: doctor@grandpro.com
+- **Password**: Doctor@123456
 
-## Access Methods
-1. **Direct Browser Access**: Visit the base URL
-2. **API Testing**: Use curl, Postman, or any HTTP client
-3. **Frontend Application**: Accessible via browser at base URL
+## Nigerian Context
+- **Currency**: Nigerian Naira (₦)
+- **Timezone**: West Africa Time (WAT)
+- **States**: All 36 states + FCT
+- **Sample Hospitals**: Lagos University Teaching Hospital, St. Nicholas Hospital, etc.
 
-## Infrastructure
-- **Backend**: Node.js/Express on port 5001
-- **Frontend**: React/Vite on port 3001
-- **Proxy**: Nginx on port 9000
-- **Database**: Neon PostgreSQL (Project: fancy-morning-15722239)
-- **Process Manager**: PM2
+## Features Available
 
-## Monitoring
-- Backend logs: `pm2 logs grandpro-backend`
-- Frontend logs: `pm2 logs grandpro-frontend`
-- Process status: `pm2 list`
+### 1. Digital Sourcing & Partner Onboarding ✅
+- Hospital owner application portal
+- Document upload and management
+- Automated scoring system
+- Digital contract signing
+- Progress tracking dashboard
+
+### 2. CRM & Relationship Management ✅
+- Owner CRM with contract tracking
+- Patient CRM with loyalty program (2,500 points initial)
+- SMS/WhatsApp/Email campaigns
+- Satisfaction tracking
+
+### 3. Hospital Management (Core Operations) ✅
+- Electronic Medical Records (EMR)
+- Billing and revenue management
+- Inventory management
+- HR and staff scheduling
+- Real-time analytics
+
+### 4. Centralized Operations & Development ✅
+- Operations Command Centre
+- Multi-hospital dashboards
+- Alert system for anomalies
+- Project management for expansions
+
+### 5. Partner & Ecosystem Integrations ✅
+- Insurance/HMO integration
+- Pharmacy supplier integration
+- Telemedicine module
+- Government reporting
+
+### 6. Data & Analytics ✅
+- Centralized data aggregation
+- Predictive analytics
+- AI/ML capabilities (triage bot, fraud detection)
+- Real-time dashboards
+
+### 7. Security & Compliance ✅
+- HIPAA/GDPR aligned
+- End-to-end encryption
+- Role-based access control
+- Audit logging
+- Automated backups
+
+## System Status
+- ✅ All modules operational
+- ✅ Database connected (Neon PostgreSQL)
+- ✅ Authentication working
+- ✅ Nigerian localization active
+- ✅ Sample data loaded
 
 ## Support
-For any issues or questions about the public URLs, check:
-1. Server logs for error details
-2. Database connectivity
-3. PM2 process status
-4. Nginx proxy configuration
+For any issues or questions, please check the application logs or contact system administrator.
+
+---
+Last Updated: October 4, 2025

@@ -60,6 +60,9 @@ const {
   rateLimiters 
 } = require('./middleware/security.middleware');
 
+// System Info Routes
+const systemInfoRoutes = require('./routes/system-info.routes');
+
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -96,6 +99,9 @@ app.get('/health', (req, res) => {
     currency: process.env.CURRENCY
   });
 });
+
+// System info routes (public access)
+app.use('/api', systemInfoRoutes);
 
 // Mount public endpoints (no auth required for demo)
 app.use('/api', publicEndpoints);
