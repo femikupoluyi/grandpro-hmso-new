@@ -1,0 +1,60 @@
+
+> backend@1.0.0 start
+> node src/server.js
+
+[dotenv@17.2.3] injecting env (11) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+Initializing predictive analytics models...
+Initializing backup service...
+Failed to initialize analytics services: TypeError: Cannot read properties of undefined (reading 'connect')
+    at PredictiveAnalyticsService.registerModel (/root/grandpro-hmso-new/backend/src/services/analytics.service.js:36:31)
+    at PredictiveAnalyticsService.initialize (/root/grandpro-hmso-new/backend/src/services/analytics.service.js:23:16)
+    at /root/grandpro-hmso-new/backend/src/routes/analytics.routes.js:15:28
+    at Object.<anonymous> (/root/grandpro-hmso-new/backend/src/routes/analytics.routes.js:23:3)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Module.require (node:internal/modules/cjs/loader:1289:19)
+    at require (node:internal/modules/helpers:182:18)
+Backup schedules configured:
+  - Daily incremental: 2:00 AM
+  - Weekly full: Sunday 3:00 AM
+  - Monthly archive: 1st of month 4:00 AM
+Backup configuration test failed: TypeError: Cannot read properties of undefined (reading 'connect')
+    at BackupService.testBackupConfiguration (/root/grandpro-hmso-new/backend/src/services/backup.service.js:375:33)
+    at BackupService.initialize (/root/grandpro-hmso-new/backend/src/services/backup.service.js:37:16)
+    at async /root/grandpro-hmso-new/backend/src/routes/security.routes.js:17:5
+Backup service initialized successfully
+Connected to PostgreSQL database
+✅ GrandPro HMSO Backend Server running on port 5001
+📍 Environment: development
+🌍 Timezone: Africa/Lagos
+💵 Currency: NGN
+🏥 Application: GrandPro HMSO
+✅ Database connected successfully
+📅 Server time: 2025-10-04T02:21:01.300Z
+🗄️ Database: neondb
+node:events:502
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::5001
+    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
+    at listenInCluster (node:net:1965:12)
+    at Server.listen (node:net:2067:7)
+    at Function.listen (/root/grandpro-hmso-new/backend/node_modules/express/lib/application.js:605:24)
+    at startServer (/root/grandpro-hmso-new/backend/src/server.js:277:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1944:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 5001
+}
+
+Node.js v20.19.5

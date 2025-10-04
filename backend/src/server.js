@@ -93,7 +93,7 @@ app.use('/api/auth', rateLimiters.auth);
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Health check endpoint
+// Health check endpoints (both /health and /api/health)
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -102,6 +102,19 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV,
     timezone: process.env.TIMEZONE,
     currency: process.env.CURRENCY
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    service: 'GrandPro HMSO Backend API',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    timezone: process.env.TIMEZONE,
+    currency: process.env.CURRENCY,
+    uptime: process.uptime(),
+    memory: process.memoryUsage()
   });
 });
 
@@ -175,6 +188,48 @@ app.use('/api/data-analytics', dataAnalyticsRoutes);
 
 // Security & Compliance Routes
 app.use('/api/security', securityRoutes);
+
+// Audit logs endpoint (direct route)
+app.get('/api/audit/logs', async (req, res) => {
+  try {
+    const pool = require('./config/database');
+    const { limit = 100, offset = 0 } = req.query;
+    
+    const client = await pool.connect();
+    try {
+      const query = `
+        SELECT 
+          al.*,
+          u.email as user_email,
+          u.first_name,
+          u.last_name
+        FROM audit_logs al
+        LEFT JOIN users u ON al.user_id = u.id
+        ORDER BY al.created_at DESC
+        LIMIT $1 OFFSET $2
+      `;
+
+      const result = await client.query(query, [limit, offset]);
+
+      res.json({
+        success: true,
+        data: result.rows,
+        pagination: {
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+          total: result.rows.length
+        }
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

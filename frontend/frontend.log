@@ -1,0 +1,7 @@
+ INFO  Accepting connections at http://localhost:3001
+ HTTP  10/4/2025 2:27:51 AM 127.0.0.1 GET /
+ HTTP  10/4/2025 2:27:51 AM 127.0.0.1 Returned 200 in 32 ms
+ HTTP  10/4/2025 2:27:52 AM 127.0.0.1 GET /assets/index-BWVvUCEm.js
+ HTTP  10/4/2025 2:27:52 AM 127.0.0.1 Returned 200 in 14 ms
+ HTTP  10/4/2025 2:27:52 AM 127.0.0.1 GET /assets/index-BNR-2gx1.css
+ HTTP  10/4/2025 2:27:52 AM 127.0.0.1 Returned 200 in 20 ms
