@@ -8,6 +8,10 @@ import Login from './pages/Login';
 // Updated CRM Components
 import OwnerDashboard from './components/crm/OwnerDashboard';
 import PatientPortal from './components/crm/PatientPortal';
+// Enhanced CRM Components
+import EnhancedOwnerDashboard from './pages/crm/owner/EnhancedOwnerDashboard';
+import EnhancedPatientPortal from './pages/crm/patient/EnhancedPatientPortal';
+import RoleBasedRoute from './components/auth/RoleBasedRoute';
 // Legacy owner pages (fallback)
 import PayoutHistory from './pages/owner/PayoutHistory';
 import ContractStatus from './pages/owner/ContractStatus';
@@ -75,9 +79,9 @@ function App() {
         {/* Owner Routes */}
         <Route path="owner">
           <Route index element={
-            <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
-              <OwnerDashboard />
-            </ProtectedRoute>
+            <RoleBasedRoute allowedRoles={['owner', 'OWNER', 'ADMIN']}>
+              <EnhancedOwnerDashboard />
+            </RoleBasedRoute>
           } />
           <Route path="payouts" element={
             <ProtectedRoute allowedRoles={['OWNER', 'ADMIN']}>
@@ -99,9 +103,14 @@ function App() {
         {/* Patient Routes */}
         <Route path="patient">
           <Route index element={
-            <ProtectedRoute allowedRoles={['PATIENT']}>
-              <PatientPortal />
-            </ProtectedRoute>
+            <RoleBasedRoute allowedRoles={['patient', 'PATIENT']}>
+              <EnhancedPatientPortal />
+            </RoleBasedRoute>
+          } />
+          <Route path="portal" element={
+            <RoleBasedRoute allowedRoles={['patient', 'PATIENT']}>
+              <EnhancedPatientPortal />
+            </RoleBasedRoute>
           } />
           <Route path="appointments" element={
             <ProtectedRoute allowedRoles={['PATIENT']}>

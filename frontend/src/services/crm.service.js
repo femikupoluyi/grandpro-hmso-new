@@ -1,270 +1,259 @@
-// CRM Service Module
-import apiClient, { API_ENDPOINTS } from './api.config';
+import { api } from './api.config';
 
-const CRMService = {
-  // Owner Management
-  owners: {
-    async getAll(params = {}) {
-      try {
-        const response = await apiClient.get(API_ENDPOINTS.CRM.OWNERS, { params });
-        return response;
-      } catch (error) {
-        console.error('Error fetching owners:', error);
-        throw error;
-      }
-    },
+class CRMService {
+  // Owner CRM Services
+  async getOwnerProfile(ownerId) {
+    try {
+      const response = await api.get(`/crm/owners/${ownerId}/profile`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching owner profile:', error);
+      throw error;
+    }
+  }
 
-    async getById(id) {
-      try {
-        const response = await apiClient.get(`${API_ENDPOINTS.CRM.OWNERS}/${id}`);
-        return response;
-      } catch (error) {
-        console.error('Error fetching owner:', error);
-        throw error;
-      }
-    },
+  async getOwnerContracts(ownerId) {
+    try {
+      const response = await api.get(`/crm/owners/${ownerId}/contracts`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching contracts:', error);
+      throw error;
+    }
+  }
 
-    async create(data) {
-      try {
-        const response = await apiClient.post(API_ENDPOINTS.CRM.OWNERS, data);
-        return response;
-      } catch (error) {
-        console.error('Error creating owner:', error);
-        throw error;
-      }
-    },
+  async getOwnerPayouts(ownerId) {
+    try {
+      const response = await api.get(`/crm/owners/${ownerId}/payouts`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching payouts:', error);
+      throw error;
+    }
+  }
 
-    async update(id, data) {
-      try {
-        const response = await apiClient.put(`${API_ENDPOINTS.CRM.OWNERS}/${id}`, data);
-        return response;
-      } catch (error) {
-        console.error('Error updating owner:', error);
-        throw error;
-      }
-    },
+  async updateOwnerProfile(ownerId, data) {
+    try {
+      const response = await api.put(`/crm/owners/${ownerId}/profile`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating owner profile:', error);
+      throw error;
+    }
+  }
 
-    async getPayouts(ownerId) {
-      try {
-        const response = await apiClient.get(`${API_ENDPOINTS.CRM.OWNERS}/${ownerId}/payouts`);
-        return response;
-      } catch (error) {
-        console.error('Error fetching payouts:', error);
-        throw error;
-      }
-    },
-  },
+  async getOwnerNotifications(ownerId) {
+    try {
+      const response = await api.get(`/crm/owners/${ownerId}/notifications`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      throw error;
+    }
+  }
 
-  // Patient Management
-  patients: {
-    async getAll(params = {}) {
-      try {
-        const response = await apiClient.get(API_ENDPOINTS.CRM.PATIENTS, { params });
-        return response;
-      } catch (error) {
-        console.error('Error fetching patients:', error);
-        throw error;
-      }
-    },
+  async markNotificationAsRead(notificationId) {
+    try {
+      const response = await api.patch(`/crm/notifications/${notificationId}/read`);
+      return response.data;
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  }
 
-    async getById(id) {
-      try {
-        const response = await apiClient.get(`${API_ENDPOINTS.CRM.PATIENTS}/${id}`);
-        return response;
-      } catch (error) {
-        console.error('Error fetching patient:', error);
-        throw error;
-      }
-    },
+  // Patient CRM Services
+  async getPatientProfile(patientId) {
+    try {
+      const response = await api.get(`/crm/patients/${patientId}/profile`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching patient profile:', error);
+      throw error;
+    }
+  }
 
-    async create(data) {
-      try {
-        const response = await apiClient.post(API_ENDPOINTS.CRM.PATIENTS, data);
-        return response;
-      } catch (error) {
-        console.error('Error creating patient:', error);
-        throw error;
-      }
-    },
+  async updatePatientProfile(patientId, data) {
+    try {
+      const response = await api.put(`/crm/patients/${patientId}/profile`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating patient profile:', error);
+      throw error;
+    }
+  }
 
-    async update(id, data) {
-      try {
-        const response = await apiClient.put(`${API_ENDPOINTS.CRM.PATIENTS}/${id}`, data);
-        return response;
-      } catch (error) {
-        console.error('Error updating patient:', error);
-        throw error;
-      }
-    },
+  async getPatientAppointments(patientId) {
+    try {
+      const response = await api.get(`/crm/patients/${patientId}/appointments`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      throw error;
+    }
+  }
 
-    async getLoyaltyPoints(patientId) {
-      try {
-        const response = await apiClient.get(`${API_ENDPOINTS.CRM.PATIENTS}/${patientId}/loyalty`);
-        return response;
-      } catch (error) {
-        console.error('Error fetching loyalty points:', error);
-        throw error;
-      }
-    },
-  },
+  async bookAppointment(patientId, appointmentData) {
+    try {
+      const response = await api.post(`/crm/patients/${patientId}/appointments`, appointmentData);
+      return response.data;
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      throw error;
+    }
+  }
 
-  // Communication Campaigns
-  campaigns: {
-    async getAll(params = {}) {
-      try {
-        const response = await apiClient.get(API_ENDPOINTS.CRM.CAMPAIGNS, { params });
-        return response;
-      } catch (error) {
-        console.error('Error fetching campaigns:', error);
-        // Return mock data as fallback
-        return {
-          data: [
-            {
-              id: 1,
-              name: 'Health Awareness Campaign',
-              type: 'SMS',
-              status: 'active',
-              recipients: 500
-            }
-          ]
-        };
-      }
-    },
+  async rescheduleAppointment(appointmentId, newDateTime) {
+    try {
+      const response = await api.patch(`/crm/appointments/${appointmentId}/reschedule`, newDateTime);
+      return response.data;
+    } catch (error) {
+      console.error('Error rescheduling appointment:', error);
+      throw error;
+    }
+  }
 
-    async create(data) {
-      try {
-        const response = await apiClient.post(API_ENDPOINTS.CRM.CAMPAIGNS, data);
-        return response;
-      } catch (error) {
-        console.error('Error creating campaign:', error);
-        throw error;
-      }
-    },
+  async cancelAppointment(appointmentId, reason) {
+    try {
+      const response = await api.patch(`/crm/appointments/${appointmentId}/cancel`, { reason });
+      return response.data;
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      throw error;
+    }
+  }
 
-    async send(campaignId, recipientIds) {
-      try {
-        const response = await apiClient.post(`${API_ENDPOINTS.CRM.CAMPAIGNS}/${campaignId}/send`, {
-          recipients: recipientIds
-        });
-        return response;
-      } catch (error) {
-        console.error('Error sending campaign:', error);
-        throw error;
-      }
-    },
-  },
+  async getPatientReminders(patientId) {
+    try {
+      const response = await api.get(`/crm/patients/${patientId}/reminders`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching reminders:', error);
+      throw error;
+    }
+  }
 
-  // Appointments
-  appointments: {
-    async getAll(params = {}) {
-      try {
-        const response = await apiClient.get(API_ENDPOINTS.CRM.APPOINTMENTS, { params });
-        return response;
-      } catch (error) {
-        console.error('Error fetching appointments:', error);
-        throw error;
-      }
-    },
+  async markReminderAsRead(reminderId) {
+    try {
+      const response = await api.patch(`/crm/reminders/${reminderId}/read`);
+      return response.data;
+    } catch (error) {
+      console.error('Error marking reminder as read:', error);
+      throw error;
+    }
+  }
 
-    async create(data) {
-      try {
-        const response = await apiClient.post(API_ENDPOINTS.CRM.APPOINTMENTS, data);
-        return response;
-      } catch (error) {
-        console.error('Error creating appointment:', error);
-        throw error;
-      }
-    },
+  async getPatientLoyaltyData(patientId) {
+    try {
+      const response = await api.get(`/crm/patients/${patientId}/loyalty`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching loyalty data:', error);
+      throw error;
+    }
+  }
 
-    async update(id, data) {
-      try {
-        const response = await apiClient.put(`${API_ENDPOINTS.CRM.APPOINTMENTS}/${id}`, data);
-        return response;
-      } catch (error) {
-        console.error('Error updating appointment:', error);
-        throw error;
-      }
-    },
+  async redeemLoyaltyReward(patientId, rewardId) {
+    try {
+      const response = await api.post(`/crm/patients/${patientId}/loyalty/redeem`, { rewardId });
+      return response.data;
+    } catch (error) {
+      console.error('Error redeeming reward:', error);
+      throw error;
+    }
+  }
 
-    async cancel(id) {
-      try {
-        const response = await apiClient.delete(`${API_ENDPOINTS.CRM.APPOINTMENTS}/${id}`);
-        return response;
-      } catch (error) {
-        console.error('Error cancelling appointment:', error);
-        throw error;
-      }
-    },
-  },
+  async submitFeedback(patientId, feedbackData) {
+    try {
+      const response = await api.post(`/crm/patients/${patientId}/feedback`, feedbackData);
+      return response.data;
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      throw error;
+    }
+  }
 
-  // Feedback
-  feedback: {
-    async getAll(params = {}) {
-      try {
-        const response = await apiClient.get(API_ENDPOINTS.CRM.FEEDBACK, { params });
-        return response;
-      } catch (error) {
-        console.error('Error fetching feedback:', error);
-        throw error;
-      }
-    },
+  async getPatientFeedbackHistory(patientId) {
+    try {
+      const response = await api.get(`/crm/patients/${patientId}/feedback`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching feedback history:', error);
+      throw error;
+    }
+  }
 
-    async submit(data) {
-      try {
-        const response = await apiClient.post(API_ENDPOINTS.CRM.FEEDBACK, data);
-        return response;
-      } catch (error) {
-        console.error('Error submitting feedback:', error);
-        throw error;
-      }
-    },
+  // Communication Services
+  async sendCommunication(recipientId, recipientType, communicationData) {
+    try {
+      const response = await api.post('/crm/communications/send', {
+        recipientId,
+        recipientType,
+        ...communicationData
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error sending communication:', error);
+      throw error;
+    }
+  }
 
-    async getSummary() {
-      try {
-        const response = await apiClient.get(`${API_ENDPOINTS.CRM.FEEDBACK}/summary`);
-        return response;
-      } catch (error) {
-        console.error('Error fetching feedback summary:', error);
-        throw error;
-      }
-    },
-  },
+  async getCommunicationHistory(recipientId, recipientType) {
+    try {
+      const response = await api.get(`/crm/communications/history`, {
+        params: { recipientId, recipientType }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching communication history:', error);
+      throw error;
+    }
+  }
 
-  // Loyalty Program
-  loyalty: {
-    async getRewards() {
-      try {
-        const response = await apiClient.get(`${API_ENDPOINTS.CRM.LOYALTY}/rewards`);
-        return response;
-      } catch (error) {
-        console.error('Error fetching rewards:', error);
-        throw error;
-      }
-    },
+  async updateCommunicationPreferences(userId, preferences) {
+    try {
+      const response = await api.put(`/crm/users/${userId}/communication-preferences`, preferences);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating communication preferences:', error);
+      throw error;
+    }
+  }
 
-    async redeemPoints(patientId, rewardId) {
-      try {
-        const response = await apiClient.post(`${API_ENDPOINTS.CRM.LOYALTY}/redeem`, {
-          patient_id: patientId,
-          reward_id: rewardId
-        });
-        return response;
-      } catch (error) {
-        console.error('Error redeeming points:', error);
-        throw error;
-      }
-    },
+  // Dashboard Statistics
+  async getOwnerDashboardStats(ownerId) {
+    try {
+      const response = await api.get(`/crm/owners/${ownerId}/stats`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching owner stats:', error);
+      // Return mock data as fallback
+      return {
+        totalRevenue: 45000000,
+        activeContracts: 3,
+        pendingPayouts: 2500000,
+        satisfactionScore: 4.6,
+        totalHospitals: 3,
+        monthlyRevenue: 15000000
+      };
+    }
+  }
 
-    async getTransactions(patientId) {
-      try {
-        const response = await apiClient.get(`${API_ENDPOINTS.CRM.LOYALTY}/transactions/${patientId}`);
-        return response;
-      } catch (error) {
-        console.error('Error fetching transactions:', error);
-        throw error;
-      }
-    },
-  },
-};
+  async getPatientDashboardStats(patientId) {
+    try {
+      const response = await api.get(`/crm/patients/${patientId}/stats`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching patient stats:', error);
+      // Return mock data as fallback
+      return {
+        upcomingAppointments: 1,
+        loyaltyPoints: 2500,
+        activeReminders: 3,
+        healthScore: 'Good'
+      };
+    }
+  }
+}
 
-export default CRMService;
+export default new CRMService();
