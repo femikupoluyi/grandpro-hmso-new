@@ -10,11 +10,37 @@ export default function Login() {
 
   const handleMockLogin = async (role) => {
     setLoading(true);
-    const result = await mockLogin(role);
-    if (result.success) {
-      navigate(role === 'PATIENT' ? '/patient' : '/owner');
+    try {
+      // Call mockLogin (it's synchronous, not async)
+      const result = mockLogin(role);
+      
+      // Add a small delay to simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      if (result.success) {
+        // Navigate based on role
+        switch(role) {
+          case 'PATIENT':
+            navigate('/patient');
+            break;
+          case 'OWNER':
+            navigate('/owner');
+            break;
+          case 'STAFF':
+            navigate('/staff');
+            break;
+          case 'ADMIN':
+            navigate('/admin');
+            break;
+          default:
+            navigate('/dashboard');
+        }
+      }
+    } catch (error) {
+      console.error('Mock login error:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

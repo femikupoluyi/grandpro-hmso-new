@@ -238,12 +238,32 @@ function App() {
           <Route path="projects" element={<ProjectManagement />} />
         </Route>
 
+        {/* Staff Routes */}
+        <Route path="staff" element={
+          <ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}>
+            <HospitalDashboard />
+          </ProtectedRoute>
+        } />
+        
+        {/* Admin Routes */}
+        <Route path="admin" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <CommandCentre />
+          </ProtectedRoute>
+        } />
+
         {/* Default redirect based on role */}
         <Route index element={
           isAuthenticated ? (
-            role === 'OWNER' || role === 'ADMIN' ? 
+            role === 'OWNER' ? 
               <Navigate to="/owner" replace /> : 
-              <Navigate to="/patient" replace />
+            role === 'PATIENT' ?
+              <Navigate to="/patient" replace /> :
+            role === 'STAFF' ?
+              <Navigate to="/staff" replace /> :
+            role === 'ADMIN' ?
+              <Navigate to="/admin" replace /> :
+              <Navigate to="/dashboard" replace />
           ) : (
             <Navigate to="/login" replace />
           )
